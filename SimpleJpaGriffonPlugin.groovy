@@ -132,6 +132,19 @@ search key. You will need to make sure the first attribute defined in domain cla
 **Note**: If `griffon.simpleJpa.finder.alwaysExcludeSoftDeleted` in `Config.groovy` is true when calling this command,
 the generated controller will always soft-delete (will not issue a real delete from database).
 
+### install-templates
+
+Files generated from scaffolding is based on a Groovy GString template.  This command will copy template files used
+by generate-all scaffolding into your project in src/templates/artifacts folder.  generate-all command will then generate
+files based on the templates in your project.
+
+SimpleJpaDomainClass.groovy will be used by create-domain-class command.
+
+SimpleJpaModel.groovy, SimpleJpaView.groovy, SimpleJpaController.groovy will be used by generate-all to generate model,
+view, and controller for a domain class.
+
+StartupModel.groovy, StartupView.groovy, StartupController.groovy will be used by generate-all to generate startup group.
+
 Methods
 -------
 
