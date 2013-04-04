@@ -39,6 +39,7 @@ String generatedPackage
 String domainClassName
 String domainPackageName
 String startupGroup
+boolean forceOverwrite
 boolean softDelete
 List fieldList
 
@@ -58,8 +59,12 @@ def createView = {
     String viewClassName = GriffonUtil.getClassName(startupGroup?:domainClassName, "View")
     File viewFile = new File("${basedir}/griffon-app/views/${generatedPackage.replace('.', '/')}/${viewClassName}.groovy")
     if (viewFile?.exists()) {
-        println "File $viewFile already exists!"
-        return
+        if (forceOverwrite) {
+            println "File $viewFile already exists and will be overwritten!"
+        } else {
+            println "File $viewFile already exists!"
+            return
+        }
     }
     ant.mkdir(dir: "${basedir}/griffon-app/views/${generatedPackage.replace('.', '/')}")
 
@@ -87,8 +92,12 @@ def createController = {
     String controllerClassName = GriffonUtil.getClassName(startupGroup?:domainClassName, "Controller")
     File controllerFile = new File("${basedir}/griffon-app/controllers/${generatedPackage.replace('.', '/')}/${controllerClassName}.groovy")
     if (controllerFile?.exists()) {
-        println "File $controllerFile already exists!"
-        return
+        if (forceOverwrite) {
+            println "File $controllerFile already exists and will be overwritten!"
+        } else {
+            println "File $controllerFile already exists!"
+            return
+        }
     }
     ant.mkdir(dir: "${basedir}/griffon-app/controllers/${generatedPackage.replace('.', '/')}")
 
@@ -115,8 +124,12 @@ def createModel = {
     String modelClassName = GriffonUtil.getClassName(startupGroup?:domainClassName, "Model")
     File modelFile = new File("${basedir}/griffon-app/models/${generatedPackage.replace('.', '/')}/${modelClassName}.groovy")
     if (modelFile?.exists()) {
-        println "File $modelFile already exists!"
-        return
+        if (forceOverwrite) {
+            println "File $modelFile already exists and will be overwritten!"
+        } else {
+            println "File $modelFile already exists!"
+            return
+        }
     }
     ant.mkdir(dir: "${basedir}/griffon-app/models/${generatedPackage.replace('.', '/')}")
 
@@ -138,8 +151,9 @@ def createMVCGroup = { String mvcGroupName ->
     // create mvcGroup in an application
     def applicationConfigFile = new File("${basedir}/griffon-app/conf/Application.groovy")
     def configText = applicationConfigFile.text
-    if (configText =~ /(?s)\s*mvcGroups\s*\{.*'${mvcGroupName}'.*\}/) {
+    if (configText =~ /(?s)\s*mvcGroups\s*\{.*'${GriffonUtil.getPropertyName(mvcGroupName)}'.*\}/) {
         println "No MVC group added because it already exists!"
+        return
     } else {
         if (!(configText =~ /\s*mvcGroups\s*\{/)) {
             configText += """
@@ -257,9 +271,10 @@ def processDomainClass = { String name ->
 
 target(name: 'generateAll', description: "Create CRUD scaffolding for specified domain class", prehook: null, posthook: null) {
 
-    if (argsMap.params==null && argsMap?.params?.startupGroup==null) {
+    if (argsMap?.params?.isEmpty() && argsMap?.startupGroup==null) {
         println '''
 Usage: griffon generate-all *
+       griffon generate-all * --forceOverwrite
        griffon generate-all [domainClass]
        griffon generate-all --startup-group=[startupGroupName]
 
@@ -268,11 +283,13 @@ Example: griffon generate-all Student
 Domain class package location is retrieved from the value of griffon.simpleJpa.model.package in Config.groovy
 (default is 'domain').
 '''
-        fail("Can't execute generate-all")
+        println "Can't execute generate-all"
+        return
     }
 
     generatedPackage = argsMap['generated-package'] ?: 'project'
     startupGroup = argsMap['startup-group']
+    forceOverwrite = argsMap.containsKey('force-overwrite')
 
     def config = new ConfigSlurper().parse(configFile.toURL())
     domainPackageName = config.griffon?.simpleJpa?.model?.package ?: 'domain'
@@ -308,8 +325,6 @@ Domain class package location is retrieved from the value of griffon.simpleJpa.m
             file << "\n$k = $v"
         }
     }
-
-
 }
 
 class DomainModelVisitor extends VisitorAdapter {

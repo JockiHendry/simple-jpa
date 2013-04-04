@@ -107,6 +107,12 @@ Usage example:
 
     generate-all Student
 
+By default, generate-all will not allow you to overwrite existing files.  But you can force simple-jpa to
+overwrite existing files by adding --force-overwrite, for example, the following command
+will always replace existing files:
+
+    generate-all Student --force-overwrite
+
 The command above will create `StudentModel`, `StudentView`, `StudentController` in package `project`.  It will also
 create a new MVCGroup called `student`.  If you want to place the resulting class in a different package, you can
 use `generatedPackage` parameter, for example:
