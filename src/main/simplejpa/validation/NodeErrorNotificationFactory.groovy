@@ -37,19 +37,27 @@ class BasicHighlightErrorNotification implements PropertyChangeListener {
         this.errors = errors
         this.errorPath = errorPath
         this.normalBackgroundColor = node.getBackground()
+    }
 
+    void normalBackground() {
         if (node instanceof JXDatePicker) {
-            backgroundPropertyName = "editor.background"
+            node.editor.background = normalBackgroundColor
         } else {
-            backgroundPropertyName = "background"
+            node.background = normalBackgroundColor
         }
     }
 
     @Override
     void propertyChange(PropertyChangeEvent evt) {
-        node."$backgroundPropertyName" = normalBackgroundColor
+
+        normalBackground()
+
         if (errors.get(errorPath)?.length() > 0) {
-            node."$backgroundPropertyName" = Color.PINK
+            if (node instanceof JXDatePicker) {
+                node.editor.background = Color.PINK
+            } else {
+                node.background = Color.PINK
+            }
         }
     }
 
