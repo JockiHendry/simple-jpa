@@ -36,7 +36,7 @@ class SimpleJpaGriffonPlugin {
     // URL where documentation can be found
     String documentation = ''
     // URL where source can be found
-    String source = ''
+    String source = 'https://github.com/JockiHendry/simple-jpa'
     // Map of Bnd directives and/or Manifest entries
     // see http://www.aqute.biz/Bnd/Bnd for reference
     Map manifest = [
