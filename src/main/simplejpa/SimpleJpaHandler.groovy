@@ -30,6 +30,8 @@ final class SimpleJpaHandler {
     private static final PATTERN_DONAMEDQUERY = /do([A-Z]\w*)On([A-Z]\w*)/
     private static final PATTERN_SOFTDELETE = /softDelete([A-Z]\w*)/
 
+    private static final int DEFAULT_PAGE_SIZE = 10
+
     final String prefix
     final String domainModelPackage
     final EntityManagerFactory emf
@@ -87,6 +89,17 @@ final class SimpleJpaHandler {
         }
     }
 
+    private Query configureQuery(Query query, Map config) {
+        if (config["page"]!=null || config["pageSize"]!=null) {
+            int page = config["page"] as Integer ?: 1
+            page = (page - 1) >= 0 ? (page-1) : 0
+            int pageSize = config["pageSize"] as Integer ?: DEFAULT_PAGE_SIZE
+            query.setFirstResult(page*pageSize)
+            query.setMaxResults(pageSize)
+        }
+        query
+    }
+
     def beginTransaction = {
         TransactionHolder transactionHolder = tlTransactionHolder.get()
         transactionHolder.beginTransaction()
@@ -106,12 +119,12 @@ final class SimpleJpaHandler {
         throw new ReturnFailedSignal()
     }
 
-    def executeQuery = { String jpql ->
-        tlEntityManager.get().createQuery(jpql).getResultList()
+    def executeQuery = { String jpql, Map config = [:] ->
+        configureQuery(tlEntityManager.get().createQuery(jpql), config).getResultList()
     }
 
-    def executeNativeQuery = { String sql ->
-        tlEntityManager.get().createNativeQuery(sql).getResultList()
+    def executeNativeQuery = { String sql, Map config = [:] ->
+        configureQuery(tlEntityManager.get().createNativeQuery(sql), config).getResultList()
     }
 
     def findAllModel = { String model ->
@@ -123,8 +136,7 @@ final class SimpleJpaHandler {
             c.select(rootModel)
 
             configureCriteria(cb, c, rootModel, config)
-
-            tlEntityManager.get().createQuery(c).getResultList()
+            configureQuery(tlEntityManager.get().createQuery(c), config).getResultList()
         }
     }
 
@@ -158,8 +170,7 @@ final class SimpleJpaHandler {
             c.where(closure.delegate.criteria)
 
             configureCriteria(cb, c, rootModel, config)
-
-            tlEntityManager.get().createQuery(c).getResultList()
+            configureQuery(tlEntityManager.get().createQuery(c), config).getResultList()
         }
     }
 
@@ -183,8 +194,7 @@ final class SimpleJpaHandler {
             c.where(criteria)
 
             configureCriteria(cb, c, rootModel, config)
-
-            tlEntityManager.get().createQuery(c).getResultList()
+            configureQuery(tlEntityManager.get().createQuery(c), config).getResultList()
         }
     }
 
@@ -208,21 +218,26 @@ final class SimpleJpaHandler {
                 c.where(cb.equal(rootModel.get(attribute), args[0]))
             }
 
-            configureCriteria(cb, c, rootModel, args.last() instanceof Map ? (Map) args.last(): [:])
-
-            tlEntityManager.get().createQuery(c).getResultList()
+            if (args.last() instanceof Map) {
+                Map configuration = (Map) args.last()
+                configureCriteria(cb, c, rootModel, configuration)
+                return configureQuery(tlEntityManager.get().createQuery(c), configuration).getResultList()
+            } else {
+                return tlEntityManager.get().createQuery(c).getResultList()
+            }
         }
     }
 
     def doNamedQuery = { String namedQuery, String model ->
         Query query = tlEntityManager.get().createNamedQuery("${model}.${namedQuery}")
 
-        return { Map args ->
+        return { Map args, Map config = [:] ->
             LOG.info "Executing named query [${model}.${namedQuery}] with argument [$args]"
             args.each { key, value ->
                 query.setParameter(key, value)
             }
-            query.getResultList()
+
+            configureQuery(query, config).getResultList()
         }
     }
 

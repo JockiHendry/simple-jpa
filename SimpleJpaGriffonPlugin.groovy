@@ -16,7 +16,7 @@
 
 class SimpleJpaGriffonPlugin {
     // the plugin version
-    String version = '0.1.2'
+    String version = '0.1.4'
     // the version or versions of Griffon the plugin is designed for
     String griffonVersion = '1.2.0 > *'
     // the other plugins this plugin depends on
@@ -194,12 +194,12 @@ This method support optional configuration map.
 Example: `findStudent([name: 'steven', age: 27])` will return List of all Student with name equals to steven and age
 equals to 27.
 
-* **findModelBy(closure)**
+* **findModelByDsl(closure)**
 This method support optional configuration map.
 *Note*:  DSL Query should be line separated properly as seen in example.
 Example:
 
-    findStudentBy {
+    findStudentByDsl {
       name like ('%steven%')
       or()
       age gt(27)
@@ -239,6 +239,8 @@ Example: `getEntityManager()` will return current EntityManager.
 
 Finder methods that support configuration map can receive an Map as last argument.  The content of this Map can be any of:
 
+* **page** (start from 1) and **pageSize**
+For example: `findAllStudent(['page': 1, 'pageSize': 3]) will return first three students and `findAllStudent(['page': 2, 'pageSize': 3)` will return the next three students.
 * **orderBy**
 For example: `findAllStudent(['orderBy': 'name'])` will return all Student ordered by name in ascending direction.
 * **orderDirection**
