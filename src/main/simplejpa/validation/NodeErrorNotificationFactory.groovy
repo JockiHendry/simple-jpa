@@ -20,7 +20,11 @@ public class NodeErrorNotificationFactory {
 
     public static void addErrorNotification(JComponent node, ObservableMap errors, String errorPath) {
         errors.addPropertyChangeListener(new BasicHighlightErrorNotification(node, errors, errorPath))
-        BasicClearErrorTrigger."enhance${node.class.simpleName}"(node, errors, errorPath)
+        try {
+            BasicClearErrorTrigger."enhance${node.class.simpleName}"(node, errors, errorPath)
+        } catch (MissingMethodException ex) {
+            BasicClearErrorTrigger.enhanceJTextField(node, errors, errorPath)
+        }
     }
 }
 
