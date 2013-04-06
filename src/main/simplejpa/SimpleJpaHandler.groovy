@@ -58,7 +58,7 @@ final class SimpleJpaHandler {
     private final ThreadLocal<TransactionHolder> tlTransactionHolder = new ThreadLocal<TransactionHolder>() {
         @Override
         protected TransactionHolder initialValue() {
-            new TransactionHolder(tlEntityManager.get().transaction)
+            new TransactionHolder()
         }
     }
 
@@ -102,16 +102,19 @@ final class SimpleJpaHandler {
 
     def beginTransaction = {
         TransactionHolder transactionHolder = tlTransactionHolder.get()
+        transactionHolder.em = tlEntityManager.get()
         transactionHolder.beginTransaction()
     }
 
     def commitTransaction = {
         TransactionHolder transactionHolder = tlTransactionHolder.get()
+        transactionHolder.em = tlEntityManager.get()
         transactionHolder.commitTransaction()
     }
 
     def rollbackTransaction = {
         TransactionHolder transactionHolder = tlTransactionHolder.get()
+        transactionHolder.em = tlEntityManager.get()
         transactionHolder.rollbackTransaction()
     }
 
