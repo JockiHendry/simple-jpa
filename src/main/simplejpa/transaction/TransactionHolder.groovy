@@ -57,7 +57,7 @@ class TransactionHolder {
                 LOG.info "Not committing yet [$resumeLevel]."
             }
             resumeLevel--
-            LOG.info "Now in transaction [${resumeLevel>0?:'no transaction'}]."
+            LOG.info "Now in transaction [${resumeLevel>0?resumeLevel:'no transaction'}]."
         } else if (resumeLevel==0) {
             LOG.info "Can't commit: Not inside a transaction."
         }
