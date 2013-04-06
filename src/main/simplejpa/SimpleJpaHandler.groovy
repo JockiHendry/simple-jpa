@@ -272,6 +272,12 @@ final class SimpleJpaHandler {
         return tlEntityManager.get()
     }
 
+    def newEntityManager = { ->
+        LOG.info "Discarding previous EntityManager and returning new EntityManager..."
+        tlEntityManager.remove()
+        return tlEntityManager.get()
+    }
+
     def validate = { model, viewModel ->
         LOG.info "Validating model [$model]"
 
@@ -350,6 +356,10 @@ final class SimpleJpaHandler {
             case "getEntityManager":
                 delegate.metaClass.getEntityManager = getEntityManager
                 return getEntityManager()
+
+            case "newEntityManager":
+                delegate.metaClass.newEntityManager = newEntityManager
+                return newEntityManager()
 
             case "executeQuery":
                 delegate.metaClass.executeQuery = executeQuery

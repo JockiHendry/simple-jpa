@@ -237,6 +237,9 @@ Example: `remove(student)` will remove a student from persistence commit (delete
 * **getEntityManager()**
 Example: `getEntityManager()` will return current EntityManager.
 
+* **newEntityManager()**
+Example: `newEntityManager()` will discard current EntityManager and create a new one.  This will sync EntityManager with database contents.
+
 Finder methods that support configuration map can receive an Map as last argument.  The content of this Map can be any of:
 
 * **page** (start from 1) and **pageSize**
