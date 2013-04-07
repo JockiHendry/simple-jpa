@@ -42,6 +42,7 @@ String domainPackageName
 String startupGroup
 boolean forceOverwrite
 boolean softDelete
+boolean skipExcel
 List fieldList
 
 def findDomainClasses = {
@@ -174,26 +175,28 @@ def createIntegrationTest = {
     testFile.write(result)
 
     // Create XML file called "data.xml" in the same package
-
-    File xmlFile = new File("${basedir}/test/integration/${generatedPackage.replace('.', '/')}/data.xls")
-    String sheetName = domainClassName.toLowerCase()
-    HSSFWorkbook workbook
-    if (xmlFile.exists()) {
-        println "File $xmlFile already exists..."
-        workbook = new HSSFWorkbook(new FileInputStream(xmlFile))
-        if (workbook.getSheet(sheetName)) {
-            println "Sheet $sheetName already exists, it will not modified!"
-            return
-        }
+    if (skipExcel) {
+        println "Will not create XML file for integration testing data!"
     } else {
-        workbook = new HSSFWorkbook()
+        File xmlFile = new File("${basedir}/test/integration/${generatedPackage.replace('.', '/')}/data.xls")
+        String sheetName = domainClassName.toLowerCase()
+        HSSFWorkbook workbook
+        if (xmlFile.exists()) {
+            println "File $xmlFile already exists..."
+            workbook = new HSSFWorkbook(new FileInputStream(xmlFile))
+            if (workbook.getSheet(sheetName)) {
+                println "Sheet $sheetName already exists, it will not modified!"
+                return
+            }
+        } else {
+            workbook = new HSSFWorkbook()
+        }
+        workbook.createSheet(sheetName)
+        FileOutputStream output = new FileOutputStream(xmlFile)
+        workbook.write(output)
+        output.close()
+        println "File $xmlFile created!"
     }
-    workbook.createSheet(sheetName)
-    FileOutputStream output = new FileOutputStream(xmlFile)
-    workbook.write(output)
-    output.close()
-
-    println "File $xmlFile created!"
     println "File $testFile created!"
 }
 
@@ -344,6 +347,7 @@ Domain class package location is retrieved from the value of griffon.simpleJpa.m
     generatedPackage = argsMap['generated-package'] ?: 'project'
     startupGroup = argsMap['startup-group']
     forceOverwrite = argsMap.containsKey('force-overwrite')
+    skipExcel = argsMap.containsKey('skip-excel')
 
     def config = new ConfigSlurper().parse(configFile.toURL())
     domainPackageName = config.griffon?.simpleJpa?.model?.package ?: 'domain'
