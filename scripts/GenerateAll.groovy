@@ -15,6 +15,7 @@
  */
 
 import groovy.text.GStringTemplateEngine
+import org.apache.poi.hssf.usermodel.HSSFWorkbook
 import org.codehaus.groovy.antlr.AntlrASTProcessor
 import org.codehaus.groovy.antlr.GroovySourceAST
 import org.codehaus.groovy.antlr.SourceBuffer
@@ -52,13 +53,13 @@ def findDomainClasses = {
 def createView = {
     println "Creating view..."
     def templateFile = resolveTemplate(startupGroup?"StartupView":"SimpleJpaView", ".groovy")
-    if (!templateFile?.exists()) {
+    if (!templateFile.exists()) {
         println "Can't find $templateFile."
         return
     }
     String viewClassName = GriffonUtil.getClassName(startupGroup?:domainClassName, "View")
     File viewFile = new File("${basedir}/griffon-app/views/${generatedPackage.replace('.', '/')}/${viewClassName}.groovy")
-    if (viewFile?.exists()) {
+    if (viewFile.exists()) {
         if (forceOverwrite) {
             println "File $viewFile already exists and will be overwritten!"
         } else {
@@ -85,13 +86,13 @@ def createView = {
 def createController = {
     println "Creating controller..."
     def templateFile = resolveTemplate(startupGroup?"StartupController":"SimpleJpaController", ".groovy")
-    if (!templateFile?.exists()) {
+    if (!templateFile.exists()) {
         println "Can't find $templateFile."
         return
     }
     String controllerClassName = GriffonUtil.getClassName(startupGroup?:domainClassName, "Controller")
     File controllerFile = new File("${basedir}/griffon-app/controllers/${generatedPackage.replace('.', '/')}/${controllerClassName}.groovy")
-    if (controllerFile?.exists()) {
+    if (controllerFile.exists()) {
         if (forceOverwrite) {
             println "File $controllerFile already exists and will be overwritten!"
         } else {
@@ -117,13 +118,13 @@ def createModel = {
 
     println "Creating model..."
     def templateFile = resolveTemplate(startupGroup?"StartupModel":"SimpleJpaModel", ".groovy")
-    if (!templateFile?.exists()) {
+    if (!templateFile.exists()) {
         println "Can't find $templateFile."
         return
     }
     String modelClassName = GriffonUtil.getClassName(startupGroup?:domainClassName, "Model")
     File modelFile = new File("${basedir}/griffon-app/models/${generatedPackage.replace('.', '/')}/${modelClassName}.groovy")
-    if (modelFile?.exists()) {
+    if (modelFile.exists()) {
         if (forceOverwrite) {
             println "File $modelFile already exists and will be overwritten!"
         } else {
@@ -142,6 +143,58 @@ def createModel = {
 
     println "File $modelFile created!"
 
+}
+
+def createIntegrationTest = {
+
+    println "Creating Integration Test..."
+
+    def templateFile = resolveTemplate("SimpleJpaIntegrationTest", ".groovy")
+    if (!templateFile.exists()) {
+        println "Can't find $templateFile."
+        return
+    }
+    String testClassName = GriffonUtil.getClassName(domainClassName, "Test")
+    File testFile = new File("${basedir}/test/integration/${generatedPackage.replace('.', '/')}/${testClassName}.groovy")
+    if (testFile.exists()) {
+        if (forceOverwrite) {
+            println "File $testFile already exists and will be overwritten!"
+        } else {
+            println "File $testFile already exists!"
+            return
+        }
+    }
+    ant.mkdir(dir: "${basedir}/test/integration/${generatedPackage.replace('.', '/')}")
+
+    def template = new GStringTemplateEngine().createTemplate(templateFile.file)
+    def binding = ["packageName":generatedPackage, "domainPackage":domainPackageName, "className":testClassName,
+            "domainClass": domainClassName, "domainClassAsProp": startupGroup?:GriffonUtil.getPropertyName(domainClassName),
+            "fields":fieldList]
+    String result = template.make(binding)
+    testFile.write(result)
+
+    // Create XML file called "data.xml" in the same package
+
+    File xmlFile = new File("${basedir}/test/integration/${generatedPackage.replace('.', '/')}/data.xls")
+    String sheetName = domainClassName.toLowerCase()
+    HSSFWorkbook workbook
+    if (xmlFile.exists()) {
+        println "File $xmlFile already exists..."
+        workbook = new HSSFWorkbook(new FileInputStream(xmlFile))
+        if (workbook.getSheet(sheetName)) {
+            println "Sheet $sheetName already exists, it will not modified!"
+            return
+        }
+    } else {
+        workbook = new HSSFWorkbook()
+    }
+    workbook.createSheet(sheetName)
+    FileOutputStream output = new FileOutputStream(xmlFile)
+    workbook.write(output)
+    output.close()
+
+    println "File $xmlFile created!"
+    println "File $testFile created!"
 }
 
 def createMVCGroup = { String mvcGroupName ->
@@ -266,6 +319,7 @@ def processDomainClass = { String name ->
     createModel()
     createController()
     createView()
+    createIntegrationTest()
     createMVCGroup(name)
 }
 

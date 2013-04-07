@@ -61,12 +61,12 @@ class TagChooser extends JPanel {
 
     private static final ImageIcon addIcon, addRolloverIcon, removeIcon, removeRolloverIcon, addAllIcon, addAllRolloverIcon
     static {
-        addIcon = new ImageIcon(getClass().getResource("/simplejpa/swing/icons/add.png"))
-        addRolloverIcon = new ImageIcon(getClass().getResource("/simplejpa/swing/icons/add_rollover.png"))
-        removeIcon = new ImageIcon(getClass().getResource("/simplejpa/swing/icons/remove.png"))
-        removeRolloverIcon = new ImageIcon(getClass().getResource("/simplejpa/swing/icons/remove_rollover.png"))
-        addAllIcon = new ImageIcon(getClass().getResource("/simplejpa/swing/icons/addall.png"))
-        addAllRolloverIcon = new ImageIcon(getClass().getResource("/simplejpa/swing/icons/addall_rollover.png"))
+        addIcon = new ImageIcon(TagChooser.getResource("/simplejpa/swing/icons/add.png"))
+        addRolloverIcon = new ImageIcon(TagChooser.getResource("/simplejpa/swing/icons/add_rollover.png"))
+        removeIcon = new ImageIcon(TagChooser.getResource("/simplejpa/swing/icons/remove.png"))
+        removeRolloverIcon = new ImageIcon(TagChooser.getResource("/simplejpa/swing/icons/remove_rollover.png"))
+        addAllIcon = new ImageIcon(TagChooser.getResource("/simplejpa/swing/icons/addall.png"))
+        addAllRolloverIcon = new ImageIcon(TagChooser.getResource("/simplejpa/swing/icons/addall_rollover.png"))
     }
 
     private JComboBox cboInput

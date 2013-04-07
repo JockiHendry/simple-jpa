@@ -42,6 +42,10 @@ griffon.project.dependency.resolution = {
         // automatically depends on these libraries for quick start, but user may not want them.
         runtime 'mysql:mysql-connector-java:5.1.20'
         compile 'net.java.dev.glazedlists:glazedlists_java15:1.9.0'
+
+        // for integration testing support
+        compile 'org.dbunit:dbunit:2.4.9'
+        runtime 'org.apache.poi:poi:3.2-FINAL'
     }
 }
 
