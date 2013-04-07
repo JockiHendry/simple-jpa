@@ -328,12 +328,15 @@ def processDomainClass = { String name ->
 
 target(name: 'generateAll', description: "Create CRUD scaffolding for specified domain class", prehook: null, posthook: null) {
 
-    if (argsMap?.params?.isEmpty() && argsMap?.startupGroup==null) {
+    if (argsMap?.params?.isEmpty() && argsMap['startup-group']==null) {
         println '''
 Usage: griffon generate-all *
-       griffon generate-all * --forceOverwrite
+       griffon generate-all * --force-overwrite
        griffon generate-all [domainClass]
        griffon generate-all --startup-group=[startupGroupName]
+
+Parameter: --force-overwrite : will overwrite existing file without any warning!
+           --skip-xml : will not generate XML for DbUnit data (integration testing).
 
 Example: griffon generate-all Student
 
