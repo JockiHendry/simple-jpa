@@ -8,8 +8,12 @@ First release into griffon artifacts portal.
 2.  Add `install-templates` command for customizing templates used by generate-all scaffolding.
 3.  Fixes groovy.lang.MissingPropertyException: No such property: editor.background for generated view with JXDatePicker.
 
-### 0.1.4
+### 0.2
 
-1.  Fixes groovy.lang.MissingMethodException: No signature of method when using simple-jpa validation.
+1.  Add dbUnit support in integration testing for creating consistent data for each test methods (generate-all will create a new integration test class and XML document to be filled with data).
 2.  Add 'page' and 'pageSize' to configuration map for dynamic finders.
 3.  Add 'newEntityManager()' method to force creating a new persistence context.
+4.  Modification to MVC templates used by generate-all.
+5.  Fixes generate-all --startup-group can't be executed.
+6.  Fixes groovy.lang.MissingMethodException: No signature of method when using simple-jpa validation.
+7.  Fixes bug in transaction propagation.

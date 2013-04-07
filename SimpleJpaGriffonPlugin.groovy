@@ -16,7 +16,7 @@
 
 class SimpleJpaGriffonPlugin {
     // the plugin version
-    String version = '0.1.4'
+    String version = '0.2'
     // the version or versions of Griffon the plugin is designed for
     String griffonVersion = '1.2.0 > *'
     // the other plugins this plugin depends on
@@ -448,6 +448,49 @@ When user select this JComboBox, the selected value will still be the a Car obje
     //    model.classRoomList.replaceValues(findAllClassRoom())
     // To get selected values:
     //    model.classRoomList.selectedValues
+
+Integration Testing
+-------------------
+
+simple-jpa uses dbUnit for integration testing to create consistent data for each test method.  generate-all command
+will create class for integration test, with content like this:
+
+    class StudentTest extends HibernateTestCase {
+       private static final Logger log = LoggerFactory.getLogger(MahasiswaTest)
+
+       protected void setUp() {
+          super.setUp()
+          setUpDatabase("mahasiswa", "/project/data.xls")
+       }
+
+       protected void tearDown() {
+          super.tearDown()
+       }
+    }
+
+In the `setUp()` method, you must pass the correct parameters to `setUpDatabase()`: the name of MVCGroup that will be
+tested and the location of the Excel file (this can also be an XML or CSV).  generate-all by default will generate
+this Excel file in the correct location, so you will only need to find and open this Excel file.  Each sheet represent
+a table, first row is for field names (each column represent a field) and the following rows are for data.  You can't
+have a blank sheet.  You are not required to add all existing tables in the Excel file.
+
+This is an example of a test method:
+
+    public void testSave() {
+        model.id = null
+        model.name = "A5"
+        model.location = "Class A5"
+        controller.save()
+        Thread.sleep(3000)
+
+        List list = controller.findAllStudent()
+        assertEquals(5, list.size())
+        assertTrue(list.contains(new Student("A5", "Class A5")))
+    }
+
+You can use `view`, `model`, and `controller` variables to refer to view, model, and controller for the currently
+being tested MVCGroup.  You can also create another MVCGroup by using `app` variable.
+
 
 '''
 }

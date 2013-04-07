@@ -10,15 +10,15 @@ class $className {
     def view
 
     def switchPage = { ActionEvent event ->
-        edt { view.busyLabel.visible = true }
+        execInsideUISync { view.busyLabel.visible = true }
         String groupId = event.actionCommand
         def group = app.mvcGroupManager.findGroup(groupId)
-        if (group==null) {
+        if (group == null) {
             group = app.mvcGroupManager.buildMVCGroup(groupId)
-            edt { view.mainPanel.add(group.view.mainPanel, groupId) }
+            execInsideUISync { view.mainPanel.add(group.view.mainPanel, groupId) }
         }
         group.controller.listAll()
-        edt {
+        execInsideUIAsync {
             view.cardLayout.show(view.mainPanel, groupId)
             view.busyLabel.visible = false
         }
