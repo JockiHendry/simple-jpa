@@ -26,6 +26,26 @@ import java.sql.Statement
 
 target(name: 'createSimpleJpa', description: "Creates persistence.xml, orm.xml and validation messages if not present", prehook: null, posthook: null) {
 
+    if ((argsMap['user']==null || argsMap['password']==null || argsMap['database']==null) ||
+        ((argsMap['root-password']==null && argsMap['rootPassword']==null) &&
+         (argsMap['skip-database']==null && argsMap['skipDatabase']==null))) {
+        println '''
+Usage: griffon create-simple-jpa --user=databaseUser --password=databaseUserPassword --database=databaseName --root-password=rootUserPassowrd
+       griffon create-simple-jpa --user=databaseUser --password=databaseUserPasword  --database=databaseName --skip-database
+
+Parameter: --user: database user name (will be created if not exists).
+           --password: password for database user (if user doesn't exists, it will be created with this password).
+           --database: database name (will be created if not exists).
+           --root-password: root user password, will not be used by application but required to create user & database.
+           --skip-database: will not create anything on database when executing this script.
+
+Example: griffon create-simple-jpa --user=steven --password=12345 --database=exercises --root-password=password
+'''
+        println "Can't execute create-simple-jpa"
+        return
+    }
+
+
     String persistenceXml = "${basedir}/griffon-app/conf/metainf/persistence.xml"
     File file = new File(persistenceXml)
     if (file.exists()) {
@@ -35,9 +55,11 @@ target(name: 'createSimpleJpa', description: "Creates persistence.xml, orm.xml a
     String databaseName = argsMap.database ?: "database"
     String user = argsMap.user ?: "user"
     String password = argsMap.password ?: "password"
-    String rootPassword = argsMap.rootPassword ?: ""
+    String rootPassword = argsMap['root-password'] ?: (argsMap['rootPassword'] ?: '')
+    boolean skipDatabase = argsMap['skip-database']==true || argsMap['skip-database']=="true" ? true:
+        (argsMap['skip-database']==true || argsMap['skipDatabase']=="true" ? true : false)
 
-    if (!(argsMap["skip-database"]=="true")) {
+    if (!skipDatabase) {
         Connection cn
         ResultSet rs
         Statement stmt
