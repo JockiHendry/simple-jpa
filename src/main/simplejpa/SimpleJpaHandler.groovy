@@ -118,28 +118,57 @@ final class SimpleJpaHandler {
         transactionHolder.rollbackTransaction()
     }
 
+    def executeInsideTransaction(Closure action) {
+        boolean notCalledInTransaction = false
+        def result
+        if (!tlEntityManager.get().transaction.isActive()) {
+            notCalledInTransaction = true
+            beginTransaction()
+        }
+        try {
+            result = action()
+            if (notCalledInTransaction) {
+                commitTransaction()
+            }
+        } catch (Exception ex) {
+            if (notCalledInTransaction) {
+                rollbackTransaction()
+            }
+            throw new Exception(ex)
+        }
+        return result
+    }
+
     def returnFailed = {
         throw new ReturnFailedSignal()
     }
 
     def executeQuery = { String jpql, Map config = [:] ->
-        configureQuery(tlEntityManager.get().createQuery(jpql), config).getResultList()
+        LOG.info "Executing query $jpql"
+        executeInsideTransaction {
+            configureQuery(tlEntityManager.get().createQuery(jpql), config).getResultList()
+        }
     }
 
     def executeNativeQuery = { String sql, Map config = [:] ->
-        configureQuery(tlEntityManager.get().createNativeQuery(sql), config).getResultList()
+        LOG.info "Executing native query $sql"
+        executeInsideTransaction {
+            configureQuery(tlEntityManager.get().createNativeQuery(sql), config).getResultList()
+        }
     }
 
     def findAllModel = { String model ->
         return { Map config = [:] ->
             LOG.info "Executing findAll$model for $model"
-            CriteriaBuilder cb = tlEntityManager.get().getCriteriaBuilder()
-            CriteriaQuery c = cb.createQuery()
-            Root rootModel = c.from(Class.forName(domainModelPackage + "." + model))
-            c.select(rootModel)
+            executeInsideTransaction {
+                CriteriaBuilder cb = tlEntityManager.get().getCriteriaBuilder()
+                CriteriaQuery c = cb.createQuery()
+                Root rootModel = c.from(Class.forName(domainModelPackage + "." + model))
+                c.select(rootModel)
 
-            configureCriteria(cb, c, rootModel, config)
-            configureQuery(tlEntityManager.get().createQuery(c), config).getResultList()
+                configureCriteria(cb, c, rootModel, config)
+                configureQuery(tlEntityManager.get().createQuery(c), config).getResultList()
+            }
         }
     }
 
@@ -149,11 +178,13 @@ final class SimpleJpaHandler {
 
         return { id ->
             LOG.info "Executing find$model for class $modelClass and id [$id]"
-            Object object = tlEntityManager.get().find(modelClass, idClass.newInstance(id))
-            if (notSoftDeleted) {
-                if (object."deleted"=="Y") return null
+            executeInsideTransaction {
+                Object object = tlEntityManager.get().find(modelClass, idClass.newInstance(id))
+                if (notSoftDeleted) {
+                    if (object."deleted"=="Y") return null
+                }
+                return object
             }
-            return object
         }
     }
 
@@ -162,18 +193,19 @@ final class SimpleJpaHandler {
 
         return { Closure closure, Map config = [:] ->
             LOG.info "Executing find${model}ByDsl with config [$config]"
+            executeInsideTransaction {
+                CriteriaBuilder cb = tlEntityManager.get().getCriteriaBuilder()
+                CriteriaQuery c = cb.createQuery()
+                Root rootModel = c.from(modelClass)
+                c.select(rootModel)
 
-            CriteriaBuilder cb = tlEntityManager.get().getCriteriaBuilder()
-            CriteriaQuery c = cb.createQuery()
-            Root rootModel = c.from(modelClass)
-            c.select(rootModel)
+                closure.delegate = new QueryDsl(cb: cb, rootModel: rootModel)
+                closure.call()
+                c.where(closure.delegate.criteria)
 
-            closure.delegate = new QueryDsl(cb: cb, rootModel: rootModel)
-            closure.call()
-            c.where(closure.delegate.criteria)
-
-            configureCriteria(cb, c, rootModel, config)
-            configureQuery(tlEntityManager.get().createQuery(c), config).getResultList()
+                configureCriteria(cb, c, rootModel, config)
+                configureQuery(tlEntityManager.get().createQuery(c), config).getResultList()
+            }
         }
     }
 
@@ -182,22 +214,23 @@ final class SimpleJpaHandler {
 
         return { Map args, Map config = [:]  ->
             LOG.info "Executing find${model}By with argument [$args] and config [$config]"
+            executeInsideTransaction {
+                CriteriaBuilder cb = tlEntityManager.get().getCriteriaBuilder()
+                CriteriaQuery c = cb.createQuery()
+                Root rootModel = c.from(modelClass)
+                c.select(rootModel)
 
-            CriteriaBuilder cb = tlEntityManager.get().getCriteriaBuilder()
-            CriteriaQuery c = cb.createQuery()
-            Root rootModel = c.from(modelClass)
-            c.select(rootModel)
+                Predicate criteria
+                criteria = cb.conjunction()
+                args.each { key, value ->
+                    criteria = cb.and(criteria, cb.equal(rootModel.get(key), value))
+                }
 
-            Predicate criteria
-            criteria = cb.conjunction()
-            args.each { key, value ->
-                criteria = cb.and(criteria, cb.equal(rootModel.get(key), value))
+                c.where(criteria)
+
+                configureCriteria(cb, c, rootModel, config)
+                configureQuery(tlEntityManager.get().createQuery(c), config).getResultList()
             }
-
-            c.where(criteria)
-
-            configureCriteria(cb, c, rootModel, config)
-            configureQuery(tlEntityManager.get().createQuery(c), config).getResultList()
         }
     }
 
@@ -206,27 +239,28 @@ final class SimpleJpaHandler {
 
         return { Object[] args ->
             LOG.info "Executing find${model}By${attribute} with argument [$args]"
+            executeInsideTransaction {
+                CriteriaBuilder cb = tlEntityManager.get().getCriteriaBuilder()
+                CriteriaQuery c = cb.createQuery()
+                Root rootModel = c.from(modelClass)
+                c.select(rootModel)
 
-            CriteriaBuilder cb = tlEntityManager.get().getCriteriaBuilder()
-            CriteriaQuery c = cb.createQuery()
-            Root rootModel = c.from(modelClass)
-            c.select(rootModel)
+                if (args.length > 1 && args[0] instanceof String && !(args[1] instanceof Map) ) {
+                    LOG.info "Operation [${args[0]}]..."
+                    def lastArgumentIndex = (args.last() instanceof Map) ? args.length - 2 : args.length - 1
+                    c.where(cb."${GriffonNameUtils.uncapitalize(args[0])}"(rootModel.get(attribute), *args[1..lastArgumentIndex]))
+                } else {
+                    LOG.info "Operation [eq]..."
+                    c.where(cb.equal(rootModel.get(attribute), args[0]))
+                }
 
-            if (args.length > 1 && args[0] instanceof String && !(args[1] instanceof Map) ) {
-                LOG.info "Operation [${args[0]}]..."
-                def lastArgumentIndex = (args.last() instanceof Map) ? args.length - 2 : args.length - 1
-                c.where(cb."${GriffonNameUtils.uncapitalize(args[0])}"(rootModel.get(attribute), *args[1..lastArgumentIndex]))
-            } else {
-                LOG.info "Operation [eq]..."
-                c.where(cb.equal(rootModel.get(attribute), args[0]))
-            }
-
-            if (args.last() instanceof Map) {
-                Map configuration = (Map) args.last()
-                configureCriteria(cb, c, rootModel, configuration)
-                return configureQuery(tlEntityManager.get().createQuery(c), configuration).getResultList()
-            } else {
-                return tlEntityManager.get().createQuery(c).getResultList()
+                if (args.last() instanceof Map) {
+                    Map configuration = (Map) args.last()
+                    configureCriteria(cb, c, rootModel, configuration)
+                    return configureQuery(tlEntityManager.get().createQuery(c), configuration).getResultList()
+                } else {
+                    return tlEntityManager.get().createQuery(c).getResultList()
+                }
             }
         }
     }
@@ -236,38 +270,48 @@ final class SimpleJpaHandler {
 
         return { Map args, Map config = [:] ->
             LOG.info "Executing named query [${model}.${namedQuery}] with argument [$args]"
-            args.each { key, value ->
-                query.setParameter(key, value)
-            }
+            executeInsideTransaction {
+                args.each { key, value ->
+                    query.setParameter(key, value)
+                }
 
-            configureQuery(query, config).getResultList()
+                configureQuery(query, config).getResultList()
+            }
         }
     }
 
     def softDelete = { String model ->
         return { id ->
             LOG.info "Executing soft delete for [$model] with id [$id]"
-            def object = findModelById(model, false).call(id)
-            object."deleted" = "Y"
+            executeInsideTransaction {
+                def object = findModelById(model, false).call(id)
+                object."deleted" = "Y"
+            }
         }
     }
 
     def persist = { model ->
         LOG.info "Executing persist for [$model]"
-        EntityManager em = tlEntityManager.get()
-        em.persist(model)
+        executeInsideTransaction {
+            EntityManager em = tlEntityManager.get()
+            em.persist(model)
+        }
     }
 
     def merge = { model ->
         LOG.info "Executing merge for [$model]"
-        EntityManager em = tlEntityManager.get()
-        return em.merge(model)
+        executeInsideTransaction {
+            EntityManager em = tlEntityManager.get()
+            return em.merge(model)
+        }
     }
 
     def remove = { model ->
         LOG.info "Executing remove for [$model]"
-        EntityManager em = tlEntityManager.get()
-        em.remove(model)
+        executeInsideTransaction {
+            EntityManager em = tlEntityManager.get()
+            em.remove(model)
+        }
     }
 
     def getEntityManager = { ->

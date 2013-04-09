@@ -17,3 +17,8 @@ First release into griffon artifacts portal.
 5.  Fixes generate-all --startup-group can't be executed.
 6.  Fixes groovy.lang.MissingMethodException: No signature of method when using simple-jpa validation.
 7.  Fixes bug in transaction propagation.
+
+### 0.2.1
+
+1.  Add new feature that will always wrap simple-jpa methods inside transaction when not called from controller (hence not in transaction), for example, when calling simple-jpa methods from view or model.
+2.  Fix database synchronization bug by always clear persistence context when starting a transaction.
