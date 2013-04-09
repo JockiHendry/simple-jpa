@@ -28,6 +28,35 @@ includeTargets << griffonScript("_GriffonCreateArtifacts")
 
 target(name: 'createDomainClass', description: "Create an empty domain class and register it in persistence file", prehook: null, posthook: null) {
 
+    if (argsMap?.params?.isEmpty()) {
+        println '''
+Usage: griffon create-domain-class domainClassName
+       griffon create-domain-class domainClassName1 domainClassName2 domainClassName3 ...
+       griffon create-domain-class domainClassName1,domainClassName2,domainClassName3,...
+
+Parameter: domainClassName is domain class name to be generated.
+
+Example: griffon create-domain-class Student
+         griffon create-domain-class Teacher Student
+         griffon create-domain-class Teacher,Student
+'''
+        println "Can't execute create-domain-class"
+        return
+    }
+
+    List domainModelName = []
+    argsMap.params.each { String param ->
+        String[] temp = [param];
+        if (param.contains(",")) {
+            temp = param.split(",")
+        } else if (param.contains(";")) {
+            temp = param.split(";")
+        }
+        temp.each {
+            domainModelName << it.replaceAll("[^A-Za-z0-9\$_]", ' ').trim()
+        }
+    }
+
     String persistenceXml = "${basedir}/griffon-app/conf/metainf/persistence.xml"
     File persistenceFile = new File(persistenceXml)
     if (!persistenceFile.exists()) {
@@ -44,7 +73,7 @@ target(name: 'createDomainClass', description: "Create an empty domain class and
         return
     }
 
-    argsMap.params?.each { param ->
+    domainModelName.each { param ->
         String domainClassFileName = "${basedir}/src/main/${packageName?.replace('.','/')}/${param}.groovy"
         File domainClassFile = new File(domainClassFileName)
         if (domainClassFile .exists()) {
