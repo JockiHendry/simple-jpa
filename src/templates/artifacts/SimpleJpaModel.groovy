@@ -14,8 +14,8 @@ class $className {
 <% out << fields.collect { field ->
     if (["BASIC_TYPE", "DATE"].contains(field.info)) {
         return "\t@Bindable ${field.type} ${field.name}"
-    } else {
-        return ""
+    } else if ("UNKNOWN".equals(field.info)){
+        return "\t// ${field.name} is not supported by generator.  You will need to code it manually."
     }
 }.join("\n") %>
 
@@ -54,8 +54,8 @@ class $className {
             return "\t\t\t\t${field.name}.selectedItem = selected.${field.name}"
         } else if (field.type.toString()=="List" && field.info!="UNKNOWN") {
             return "\t\t\t\t${field.name}.replaceSelectedValues(selected.${field.name})"
-        } else {
-            return ""
+        } else if (field.info=="UNKNOWN") {
+            return "\t\t\t\t// ${field.name} is not supported by generator.  You will need to code it manually."
         }
     }.join("\n")
 %>
@@ -72,6 +72,8 @@ class $className {
             return "\t\t${field.name}.selectedItem = null"
         } else if (field.type.toString()=="List" && field.info!="UNKNOWN") {
             return "\t\t${field.name}.clearSelectedValues()"
+        } else if (field.info=="UNKNOWN") {
+            return "\t\t// ${field.name} is not supported by generator.  You will need to code it manually."
         }
    }.join("\n")
 %>

@@ -16,6 +16,7 @@
 
 import groovy.swing.factory.BeanFactory
 import simplejpa.SimpleJpaHandler
+import simplejpa.swing.DateTimePicker
 import simplejpa.swing.EventTableModelFactory
 import simplejpa.swing.ListCellRendererFactory
 import simplejpa.swing.TagChooser
@@ -68,7 +69,8 @@ class SimpleJpaGriffonAddon {
         templateRenderer: new ListCellRendererFactory(),
         eventTableModel: new EventTableModelFactory(),
 
-        tagChooser: new BeanFactory(TagChooser, false)
+        tagChooser: new BeanFactory(TagChooser, false),
+        dateTimePicker: new BeanFactory(DateTimePicker, false)
     ]
 
     List attributeDelegates = [

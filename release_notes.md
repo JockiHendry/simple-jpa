@@ -21,6 +21,8 @@ First release into griffon artifacts portal.
 ### 0.2.1
 
 1.  Add new feature that will always wrap simple-jpa methods inside transaction when not called from controller (hence not in transaction), for example, when calling simple-jpa methods from view or model.
-2.  Minor improvement on scripts.
-2.  Fixes database synchronization bug by always clear persistence context when starting a transaction.
-3.  Fixes create-simple-jpa will still connect to MySQL even when using --skip-database=true / --skipDatabase=true.
+2.  Add dateTimePicker() node that support LocalDate, LocalTime, LocalDateTime, and DateTime.
+3.  Minor improvement on scripts.
+4.  generate-all command will create a comment in output file if found unsupported attribute's type.
+5.  Fixes database synchronization bug by always clear persistence context when starting a transaction.
+6.  Fixes create-simple-jpa will still connect to MySQL even when using --skip-database=true / --skipDatabase=true.

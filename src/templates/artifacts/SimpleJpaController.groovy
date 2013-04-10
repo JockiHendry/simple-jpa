@@ -32,6 +32,8 @@ class $className {
             out << "\t\tList ${field.name}Result = findAll${field.type}()\n"
         } else if (field.type.toString()=="List" && field.info!="UNKNOWN") {
             out << "\t\tList ${field.name}Result = findAll${field.info}()\n"
+        } else if (field.info=="UNKNOWN") {
+            out << "\t\t// ${field.name} isn't supported! It must be coded manually!\n"
         }
     }
 %>

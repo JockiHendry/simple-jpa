@@ -431,6 +431,12 @@ using `<% ... %>`.
 The example above will render domain object `Car(type: 'type', name: 'name')` as 'type - name'.
 When user select this JComboBox, the selected value will still be the a Car object.
 
+`dateTimePicker()` will create a simple date time picker.  This component supports LocalDate, LocalTime, LocalDateTime, and DateTime.  Usage example:
+
+    dateTimePicker(id: 'birthDate', localDate: bind('birthDate', target: model, mutual: true), dateVisible: true, timeVisible: false)
+    dateTimePicker(id: 'endTime', localDateTime: bind('endTime', target: model, mutual: true))
+    dateTimePicker(id: 'expiredDate', dateTime: bind('expiredDate', target: model, mutual: true))
+
 `tagChooser()` will create a simple many-to-many chooser.  This is an example of a form that use `tagChooser()`:
 
     panel(id: "form", layout: new MigLayout('', '[right][left][left,grow]',''), constraints: PAGE_END, focusCycleRoot: true) {

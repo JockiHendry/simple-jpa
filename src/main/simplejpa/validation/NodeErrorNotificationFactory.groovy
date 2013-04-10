@@ -1,22 +1,21 @@
 package simplejpa.validation
 
-import org.apache.commons.logging.LogFactory
 import org.jdesktop.swingx.JXDatePicker
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
-import simplejpa.swing.TagChooser;
+import simplejpa.swing.DateTimePicker
+import simplejpa.swing.TagChooser
 
 import javax.swing.*
-import java.awt.Color
-import java.awt.Component
+import java.awt.*
 import java.awt.event.ItemEvent
-import java.awt.event.ItemListener
-import java.awt.event.KeyAdapter
 import java.awt.event.KeyEvent
-import java.beans.PropertyChangeEvent;
-import java.beans.PropertyChangeListener;
+import java.beans.PropertyChangeEvent
+import java.beans.PropertyChangeListener
 
 public class NodeErrorNotificationFactory {
+
+    static Logger LOG = LoggerFactory.getLogger(NodeErrorNotificationFactory)
 
     public static void addErrorNotification(JComponent node, ObservableMap errors, String errorPath) {
         errors.addPropertyChangeListener(new BasicHighlightErrorNotification(node, errors, errorPath))
@@ -34,40 +33,56 @@ class BasicHighlightErrorNotification implements PropertyChangeListener {
     ObservableMap errors
     String errorPath
     JComponent node
-    String backgroundPropertyName
+    static final Logger LOG = LoggerFactory.getLogger(BasicHighlightErrorNotification)
 
     public BasicHighlightErrorNotification(JComponent node, ObservableMap errors, String errorPath) {
         this.node = node
         this.errors = errors
         this.errorPath = errorPath
-        this.normalBackgroundColor = node.getBackground()
+        this.normalBackgroundColor = getBackground()
     }
 
-    void normalBackground() {
-        if (node instanceof JXDatePicker) {
-            node.editor.background = normalBackgroundColor
+    void setBackground(Color color) {
+        if (node instanceof DateTimePicker) {
+            node.componentBackground = color
         } else {
-            node.background = normalBackgroundColor
+            node.background = color
+        }
+    }
+
+    Color getBackground() {
+        if (node instanceof DateTimePicker) {
+            node.componentBackground
+        } else {
+            node.background
         }
     }
 
     @Override
     void propertyChange(PropertyChangeEvent evt) {
-
-        normalBackground()
-
-        if (errors.get(errorPath)?.length() > 0) {
-            if (node instanceof JXDatePicker) {
-                node.editor.background = Color.PINK
-            } else {
-                node.background = Color.PINK
+        def action = {
+            setBackground(normalBackgroundColor)
+            if (errors.get(errorPath)?.length() > 0) {
+                setBackground(Color.PINK)
             }
+        }
+        if (!SwingUtilities.isEventDispatchThread()) {
+            SwingUtilities.invokeAndWait(new Runnable() {
+                @Override
+                void run() {
+                    action()
+                }
+            })
+        } else {
+            action()
         }
     }
 
 }
 
 class BasicClearErrorTrigger {
+
+    static Logger LOG = LoggerFactory.getLogger(BasicClearErrorTrigger)
 
     static enhanceJXDatePicker(JXDatePicker component, ObservableMap errors, String errorPath) {
         component.propertyChange = { PropertyChangeEvent e ->
@@ -88,6 +103,12 @@ class BasicClearErrorTrigger {
     }
 
     static enhanceTagChooser(TagChooser component, ObservableMap errors, String errorPath) {
+        component.selectedValueChanged = {
+            errors.remove(errorPath)
+        }
+    }
+
+    static enhanceDateTimePicker(DateTimePicker component, ObservableMap errors, String errorPath) {
         component.selectedValueChanged = {
             errors.remove(errorPath)
         }

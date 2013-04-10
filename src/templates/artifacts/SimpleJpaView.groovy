@@ -55,12 +55,16 @@ application(title: '${GriffonUtil.getNaturalName(domainClass)}',
         } else if (field.info=="BASIC_TYPE") {
             out << "\t\t\ttextField(id: '${field.name}', columns: 20, text: bind('${field.name}', target: model, mutual: true), errorPath: '${field.name}')\n"
         } else if (field.info=="DATE") {
-            out << "\t\t\tjxdatePicker(id: '${field.name}', date: bind('${field.name}', target: model, converter: { it==null?null:new DateTime(it) },\n";
-            out << "\t\t\t\treverseConverter: { it==null?null:((DateTime)it)?.toDate() }, mutual: true), errorPath: '${field.name}')\n"
+            out << "\t\t\tdateTimePicker(id: '${field.name}', ${GriffonUtil.getPropertyName(field.type.toString())}: bind('${field.name}', target: model, mutual: true), errorPath: '${field.name}'"
+            if (field.type.toString().equals("LocalDate")) out << ", dateVisible: true, timeVisible: false"
+            if (field.type.toString().equals("LocalTime")) out << ", dateVisible: false, timeVisible: true"
+            out << ")\n"
         } else if (field.info=="DOMAIN_CLASS") {
             out << "\t\t\tcomboBox(model: model.${field.name}, renderer: templateRenderer(template: '\${value}'), errorPath: '${field.name}')\n"
         } else if (field.type.toString()=="List" && field.info!="UNKNOWN") {
             out << "\t\t\ttagChooser(model: model.${field.name}, templateString: '\${value}', constraints: 'grow,push,span,wrap', errorPath: '${field.name}')\n"
+        } else if (field.info=="UNKNOWN") {
+            out << "\t\t\t// ${field.name} isn't supported by generator. It must be coded manually!\n"
         }
 
         if (field.type.toString()=="List" && field.info!="UNKNOWN") {

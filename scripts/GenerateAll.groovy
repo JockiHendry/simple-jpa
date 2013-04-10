@@ -276,7 +276,7 @@ def processDomainClass = { String name ->
 
     def basicType = ["Boolean", "boolean", "Character", "char", "Byte", "byte", "Short", "short",
             "Integer", "int", "Long", "long", "Float", "float", "Double", "double", "String"]
-    def dateType = ["Date", "DateMidnight", "DateTime", "LocalDate", "LocalTime"]
+    def dateType = ["DateTime", "LocalDateTime", "LocalDate", "LocalTime"]
 
     fieldList.each { field ->
 
@@ -313,7 +313,7 @@ def processDomainClass = { String name ->
         }
 
         // Unknown
-        field["info"] = "UKNOWN"
+        field["info"] = "UNKNOWN"
 
     }
 
