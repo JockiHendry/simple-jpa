@@ -15,7 +15,10 @@ class $className {
     if (["BASIC_TYPE", "DATE"].contains(field.info)) {
         return "\t@Bindable ${field.type} ${field.name}"
     } else if ("UNKNOWN".equals(field.info)){
-        return "\t// ${field.name} is not supported by generator.  You will need to code it manually."
+        return "\t// ${field.name} is not supported by generator.  You will need to code it manually.\n" +
+               "\t@Bindable ${field.type} ${field.name}"
+    } else {
+        return ""
     }
 }.join("\n") %>
 
@@ -55,7 +58,10 @@ class $className {
         } else if (field.type.toString()=="List" && field.info!="UNKNOWN") {
             return "\t\t\t\t${field.name}.replaceSelectedValues(selected.${field.name})"
         } else if (field.info=="UNKNOWN") {
-            return "\t\t\t\t// ${field.name} is not supported by generator.  You will need to code it manually."
+            return "\t\t\t\t// ${field.name} is not supported by generator.  You will need to code it manually.\n" +
+                   "\t\t\t\t${field.name} = selected.${field.name}"
+        } else {
+            return ""
         }
     }.join("\n")
 %>
@@ -73,7 +79,10 @@ class $className {
         } else if (field.type.toString()=="List" && field.info!="UNKNOWN") {
             return "\t\t${field.name}.clearSelectedValues()"
         } else if (field.info=="UNKNOWN") {
-            return "\t\t// ${field.name} is not supported by generator.  You will need to code it manually."
+            return "\t\t// ${field.name} is not supported by generator.  You will need to code it manually.\n" +
+                   "\t\t${field.name} = null"
+        } else {
+            return ""
         }
    }.join("\n")
 %>

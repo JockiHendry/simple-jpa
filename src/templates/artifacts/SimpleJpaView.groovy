@@ -65,6 +65,7 @@ application(title: '${GriffonUtil.getNaturalName(domainClass)}',
             out << "\t\t\ttagChooser(model: model.${field.name}, templateString: '\${value}', constraints: 'grow,push,span,wrap', errorPath: '${field.name}')\n"
         } else if (field.info=="UNKNOWN") {
             out << "\t\t\t// ${field.name} isn't supported by generator. It must be coded manually!\n"
+            out << "\t\t\ttextField(id: '${field.name}', columns: 20, text: bind('${field.name}', target: model, mutual: true), errorPath: '${field.name}')\n"
         }
 
         if (field.type.toString()=="List" && field.info!="UNKNOWN") {
