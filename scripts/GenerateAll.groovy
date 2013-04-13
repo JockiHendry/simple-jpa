@@ -275,7 +275,7 @@ def processDomainClass = { String name ->
     fieldList = domainModelVisitor.fields;
 
     def basicType = ["Boolean", "boolean", "Character", "char", "Byte", "byte", "Short", "short",
-            "Integer", "int", "Long", "long", "Float", "float", "Double", "double", "String"]
+            "Integer", "int", "Long", "long", "Float", "float", "Double", "double", "String", "BigInteger", "BigDecimal"]
     def dateType = ["DateTime", "LocalDateTime", "LocalDate", "LocalTime"]
 
     fieldList.each { field ->
