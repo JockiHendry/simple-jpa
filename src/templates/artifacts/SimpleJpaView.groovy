@@ -50,8 +50,10 @@ application(title: '${GriffonUtil.getNaturalName(domainClass)}',
 <%
     fields.each { field ->
         out << "\t\t\tlabel('${GriffonUtil.getNaturalName(field.name as String)}:')\n"
-        if (field.info=="BASIC_TYPE" && ["Byte", "byte", "Short", "short", "Integer", "int", "Long", "long", "Float", "float", "Double", "double"].contains(field.type as String)) {
-            out << "\t\t\ttextField(id: '${field.name}', columns: 20, text: bind('${field.name}', target: model, converter: toInteger('${field.name}'), reverseConverter: toReverseString(), mutual: true), errorPath: '${field.name}')\n"
+        if (field.info=="BASIC_TYPE" && ["Byte", "byte", "Short", "short", "Integer", "int", "Long", "long", "Float", "float", "Double", "double", "BigInteger"].contains(field.type as String)) {
+            out << "\t\t\tnumberTextField(id: '${field.name}', columns: 20, bindTo: '${field.name}', errorPath: '${field.name}')\n"
+        } else if (field.info=="BASIC_TYPE" && ["BigDecimal"].contains(field.type as String)) {
+            out << "\t\t\tnumberTextField(id: '${field.name}', columns: 20, bindTo: '${field.name}', nfParseBigDecimal: true, errorPath: '${field.name}')\n"
         } else if (field.info=="BASIC_TYPE") {
             out << "\t\t\ttextField(id: '${field.name}', columns: 20, text: bind('${field.name}', target: model, mutual: true), errorPath: '${field.name}')\n"
         } else if (field.info=="DATE") {
