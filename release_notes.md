@@ -26,3 +26,8 @@ First release into griffon artifacts portal.
 4.  generate-all command will create a comment in output file if found unsupported attribute's type.
 5.  Fixes database synchronization bug by always clear persistence context when starting a transaction.
 6.  Fixes create-simple-jpa will still connect to MySQL even when using --skip-database=true / --skipDatabase=true.
+
+### 0.3
+
+1.  Deprecated toXXX() used by binding converter; use the new numberTextField() node that will create a JFormattedTextField.
+2.  Minor improvements on default templates.

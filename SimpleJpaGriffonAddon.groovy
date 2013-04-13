@@ -19,6 +19,7 @@ import simplejpa.SimpleJpaHandler
 import simplejpa.swing.DateTimePicker
 import simplejpa.swing.EventTableModelFactory
 import simplejpa.swing.ListCellRendererFactory
+import simplejpa.swing.NumberTextFieldFactory
 import simplejpa.swing.TagChooser
 import simplejpa.validation.ConverterFactory
 import simplejpa.validation.ErrorLabelFactory
@@ -70,7 +71,9 @@ class SimpleJpaGriffonAddon {
         eventTableModel: new EventTableModelFactory(),
 
         tagChooser: new BeanFactory(TagChooser, false),
-        dateTimePicker: new BeanFactory(DateTimePicker, false)
+        dateTimePicker: new BeanFactory(DateTimePicker, false),
+        numberTextField: new NumberTextFieldFactory(),
+
     ]
 
     List attributeDelegates = [

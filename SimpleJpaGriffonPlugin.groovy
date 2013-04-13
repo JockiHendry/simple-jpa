@@ -16,7 +16,7 @@
 
 class SimpleJpaGriffonPlugin {
     // the plugin version
-    String version = '0.2.2'
+    String version = '0.3'
     // the version or versions of Griffon the plugin is designed for
     String griffonVersion = '1.2.0 > *'
     // the other plugins this plugin depends on
@@ -454,6 +454,24 @@ When user select this JComboBox, the selected value will still be the a Car obje
     //    model.classRoomList.replaceValues(findAllClassRoom())
     // To get selected values:
     //    model.classRoomList.selectedValues
+
+`numberTextField()` will generate a JFormattedTextField and bind its `value` property to current model.  Example:
+
+    // This will create a JFormattedTextField, bind its 'value' to 'model.income' (specified in 'bindTo' attribute)
+    // The created JFormattextTextField will use NumberFormat.getCurrencyInstance() formatter
+    numberTextField(id: 'income', columns: 20, bindTo: 'income', type: 'currency')
+
+Available types are: 'currency', 'percent', 'integer'.  If `type` is not specified, default number format will be used.
+
+You can further customize NumberFormat used by `numberTextField()` by using 'nfXXX' attribute where 'XXX' is an attribute of NumberFormat.  Example:
+
+    numberTextField(id: 'income', columns: 20, bindTo: 'income', type: 'currency',
+        nfParseBigDecimal: true, nfMaximumFractionDigits: 5)
+
+You can also use your own NumberFormat by passing it as 'decimalFormat' attribute's value.  Example:
+
+    numberTextField(id: 'income', columns: 20, bindTo: 'income',
+        decimalFormat: new DecimalFormat("#,###.00"), nfParseBigDecimal: true, nfMaximumFractionDigits: 5)
 
 Integration Testing
 -------------------
