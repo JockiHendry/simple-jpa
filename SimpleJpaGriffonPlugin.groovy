@@ -373,15 +373,6 @@ For example, this will change JTextField background color if there is an error m
 
     textField(id: 'name', errorPath: 'name')
 
-simple-jpa has few converters node that can be used in binding to display error message in conversion automatically:
-
-* **toInteger()**
-* **toReverseString()**
-
-Example:
-
-    textField(id: 'age', text: bind('age', target: model, converter: toInteger('age')))
-
 You can check if there is an error by calling `hasError()` method of model.  Example:
 
     def save = {
@@ -472,6 +463,18 @@ You can also use your own NumberFormat by passing it as 'decimalFormat' attribut
 
     numberTextField(id: 'income', columns: 20, bindTo: 'income',
         decimalFormat: new DecimalFormat("#,###.00"), nfParseBigDecimal: true, nfMaximumFractionDigits: 5)
+
+`maskTextField()` will generate a JFormattedTextField and bind its `value` property to current model.  The generated JFormattedTextField will use a MaskFormatter.  Example:
+
+    maskTextField(id: 'phone', columns: 20, bindTo: 'phone', mask: '###-######')
+
+You can further customize MaskFormatter used by `maskTextField()` by using 'mfXXX' attribute where 'XXX' is an attribute of MaskFormatter.  Example:
+
+    maskTextField(id: 'phone', columns: 20, bindTo: 'phone', mask: '###-######', mfPlaceholderCharacter: '_')
+
+You can also use your own MaskFormatter by passing it as 'maskFormatter' attribute's value:  Example:
+
+    maskTextField(id: 'phone', columns: 20, bindTo: 'phone', maskFormatter: new MaskFormatter('###-######'))
 
 Integration Testing
 -------------------

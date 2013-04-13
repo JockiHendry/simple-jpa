@@ -30,4 +30,5 @@ First release into griffon artifacts portal.
 ### 0.3
 
 1.  Deprecated toXXX() used by binding converter; use the new numberTextField() node that will create a JFormattedTextField.
-2.  Minor improvements on default templates.
+2.  New maskTextField() node that will create a JFormatterTextField with MaskFormatter.
+3.  Minor improvements on default templates.
