@@ -100,10 +100,10 @@ final class SimpleJpaHandler {
         query
     }
 
-    def beginTransaction = {
+    def beginTransaction = { boolean resume = true ->
         TransactionHolder transactionHolder = tlTransactionHolder.get()
         transactionHolder.em = tlEntityManager.get()
-        transactionHolder.beginTransaction()
+        transactionHolder.beginTransaction(resume)
     }
 
     def commitTransaction = {
@@ -119,19 +119,21 @@ final class SimpleJpaHandler {
     }
 
     def executeInsideTransaction(Closure action) {
-        boolean notCalledInTransaction = false
+        boolean notInsideTransaction = false
         def result
         if (!tlEntityManager.get().transaction.isActive()) {
-            notCalledInTransaction = true
+            notInsideTransaction = true
             beginTransaction()
         }
+        LOG.info "Not inside a transaction? $notInsideTransaction"
         try {
             result = action()
-            if (notCalledInTransaction) {
+            if (notInsideTransaction) {
                 commitTransaction()
             }
         } catch (Exception ex) {
-            if (notCalledInTransaction) {
+            LOG.error "Error when not inside a transaction? $notInsideTransaction", ex
+            if (notInsideTransaction) {
                 rollbackTransaction()
             }
             throw new Exception(ex)
@@ -310,6 +312,9 @@ final class SimpleJpaHandler {
         LOG.info "Executing remove for [$model]"
         executeInsideTransaction {
             EntityManager em = tlEntityManager.get()
+            if (!em.contains(model)) {
+                model = em.merge(model)
+            }
             em.remove(model)
         }
     }

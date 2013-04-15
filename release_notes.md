@@ -20,7 +20,7 @@ First release into griffon artifacts portal.
 
 ### 0.2.1
 
-1.  Add new feature that will always wrap simple-jpa methods inside transaction when not called from controller (hence not in transaction), for example, when calling simple-jpa methods from view or model.
+1.  Add new feature that will always wrap simple-jpa methods inside transaction when not called from controller (not in transaction), for example, when calling simple-jpa methods from view or model.
 2.  Add dateTimePicker() node that support LocalDate, LocalTime, LocalDateTime, and DateTime.
 3.  Minor improvement on scripts.
 4.  generate-all command will create a comment in output file if found unsupported attribute's type.
@@ -30,5 +30,8 @@ First release into griffon artifacts portal.
 ### 0.3
 
 1.  Deprecated toXXX() used by binding converter; use the new numberTextField() node that will create a JFormattedTextField.
-2.  New maskTextField() node that will create a JFormatterTextField with MaskFormatter.
-3.  Minor improvements on default templates.
+2.  New maskTextField() node that will create a JFormattedTextField with MaskFormatter.
+3.  generate-all will automatically set startupGroups to the generated MVCGroup name.
+4.  Minor improvements on default templates.
+5.  remove() will try to merge entity with current persistence context if it is not managed.
+6.  Add a boolean parameter, resume, with default value true to beginTransaction().  Setting resume to false will force start a new transaction (no transaction propagation).

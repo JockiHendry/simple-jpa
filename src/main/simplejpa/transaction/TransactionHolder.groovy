@@ -27,12 +27,21 @@ class TransactionHolder {
         em.transaction
     }
 
-    public boolean beginTransaction() {
+    public boolean beginTransaction(boolean resume = true) {
         assert em != null
         if (resumeLevel > 0) {
-            resumeLevel++
-            LOG.info "Resuming from previous transaction, now in tr [$resumeLevel]."
-            return false
+            if (!resume) {
+                LOG.info "Commiting transaction."
+                em.transaction.commit()
+                LOG.info "Starting new transaction."
+                em.transaction.begin()
+                resumeLevel = 1
+                return true
+            } else {
+                resumeLevel++
+                LOG.info "Resuming from previous transaction, now in tr [$resumeLevel]."
+                return false
+            }
         } else if (resumeLevel==0) {
             LOG.info "Start a new transaction..."
             em.transaction.begin()

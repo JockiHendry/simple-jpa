@@ -280,7 +280,8 @@ If you want to return and rollback without throwing Exception, you can call `ret
 
 simple-jpa will inject these transaction methods: `beginTransaction()`, `commitTransaction()` and `rollbackTransaction()`
 to control JPA transaction manually.  But it is not recommended to call them if
-you have added `@SimpleJpaTransaction` to controller.
+you have added `@SimpleJpaTransaction` to controller.  Calling `beginTransaction(false)` will always start a new transaction,
+while calling `beginTransaction()` or `beginTransaction(true)` will resume previous transaction.
 
 Domain Model
 ------------
