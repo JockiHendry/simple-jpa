@@ -22,7 +22,7 @@ class $className {
     }
 }.join("\n") %>
 
-    @Bindable String ${fields[0].name}Search
+    @Bindable String ${fields[0]?.name ?: 'replaceThis'}Search
     @Bindable String searchMessage
 
 <%
