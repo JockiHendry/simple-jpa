@@ -223,7 +223,7 @@ mvcGroups {
         parts << "        view       = '${generatedPackage}.${GriffonUtil.getClassName(mvcGroupName, "View")}'"
         parts << "        controller = '${generatedPackage}.${GriffonUtil.getClassName(mvcGroupName, "Controller")}'"
 
-        configText.replaceAll(/\s*mvcGroups\s*\{/, """
+        configText = configText.replaceAll(/\s*mvcGroups\s*\{/, """
 mvcGroups {
     // MVC Group for "${GriffonUtil.getPropertyName(mvcGroupName)}"
     '${GriffonUtil.getPropertyName(mvcGroupName)}' {
@@ -233,7 +233,7 @@ ${parts.join('\n')}
     }
 
     // set startupGroup to this MVCGroup
-    configText.replaceFirst(/startupGroups = \['.*'\]/, "startupGroups = ['${GriffonUtil.getPropertyName(mvcGroupName)}']")
+    configText = configText.replaceFirst(/startupGroups = \['.*'\]/, "startupGroups = ['${GriffonUtil.getPropertyName(mvcGroupName)}']")
 
     // save changes
     applicationConfigFile.withWriter {
