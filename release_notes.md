@@ -35,3 +35,4 @@ First release into griffon artifacts portal.
 4.  Minor improvements on default templates.
 5.  remove() will try to merge entity with current persistence context if it is not managed.
 6.  Add a boolean parameter, resume, with default value true to beginTransaction().  Setting resume to false will force start a new transaction (no transaction propagation).
+7.  Add new functions that can be used inside template renderer: numberFormat, percentFormat, currentFormat, titleCase.

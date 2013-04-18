@@ -119,7 +119,7 @@ class TagChooserModel {
     public void refreshTemplateValues() {
         comboBoxModel = new DefaultComboBoxModel(values.toArray())
         values.each { value ->
-            templateValues[value?.toString()] = template?.make(value: value)?.toString() ?: value.toString()
+            templateValues[value?.toString()] = TemplateRenderer.make(template,value) ?: value.toString()
         }
     }
 

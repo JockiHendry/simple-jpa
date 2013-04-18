@@ -19,6 +19,8 @@ package simplejpa.swing
 import ca.odell.glazedlists.gui.TableFormat
 import groovy.text.SimpleTemplateEngine
 
+import java.text.NumberFormat
+
 
 class TemplateTableFormat implements TableFormat {
 
@@ -45,7 +47,7 @@ class TemplateTableFormat implements TableFormat {
 
     @Override
     Object getColumnValue(Object e, int i) {
-        String result = e==null? null: template[i].make(["value": e])
+        String result = e ? TemplateRenderer.make(template[i], e) : null
         result?:""
     }
 }

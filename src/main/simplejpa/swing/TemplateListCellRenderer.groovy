@@ -49,7 +49,7 @@ public class TemplateListCellRenderer extends JLabel implements ListCellRenderer
         if (value instanceof Icon) {
             setIcon((Icon)value);
         } else {
-            def result = value==null?null:template.make(["value": value])
+            String result = value ? TemplateRenderer.make(template, value) : null
             setText(result?result.toString():"...");
         }
         return this;

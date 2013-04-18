@@ -398,12 +398,15 @@ to `model.errors` if any of constraint violation is found.
 If `model.errors` already contains errors before calling this method, then `validate()` will always return `false`
 even when Hibernate Validator didn't found any violations.  You must clear `model.errors` manually.
 
-Template Renderer
------------------
+Swing
+-----
 
 simple-jpa will add some new nodes to Swing builder to support template renderer. This features will allow you
 easily present (render) domain model in JTable, JComboBox, or JList.  By default, they will render a domain model by
-converting it to a String (calling `toString()` method).  This is not always desirable.
+converting it to a String (calling `toString()` method).  This is not always desirable.  Inside a template renderer,
+you can use numberFormat(), currencyFormat(), percentFormat() or titleCase(), for example:
+
+   columnValues: ['${titleCase(value.productName)}', '${currencyFormat(value.price)}']
 
 `evenTableModel()` can be used for a TableModel in `table()` node.  This node will use Glazed Lists. Usage example:
 
