@@ -1,7 +1,5 @@
 package simplejpa
 
-import org.codehaus.groovy.runtime.StackTraceUtils
-import org.hibernate.PersistentObjectException
 import org.slf4j.*
 import simplejpa.transaction.ReturnFailedSignal
 import simplejpa.transaction.TransactionHolder
@@ -14,7 +12,6 @@ import javax.persistence.criteria.CriteriaQuery
 import javax.persistence.criteria.Predicate
 import javax.persistence.criteria.Root
 import javax.validation.ConstraintViolation
-import javax.validation.Validation
 import javax.validation.Validator
 
 final class SimpleJpaHandler {
@@ -282,13 +279,24 @@ final class SimpleJpaHandler {
         }
     }
 
-    def softDelete = { String model ->
+    def softDeleteModel = { String model ->
         return { id ->
             LOG.info "Executing soft delete for [$model] with id [$id]"
             executeInsideTransaction {
                 def object = findModelById(model, false).call(id)
                 object."deleted" = "Y"
             }
+        }
+    }
+
+    def softDelete = { model ->
+        LOG.info "Executing softDelete for [$model]"
+        executeInsideTransaction {
+            EntityManager em = tlEntityManager.get()
+            if (!em.contains(model)) {
+                model = em.merge(model)
+            }
+            model.deleted = "Y"
         }
     }
 
@@ -405,6 +413,10 @@ final class SimpleJpaHandler {
                 delegate.metaClass.remove = remove
                 return remove(args[0])
 
+            case "softDelete":
+                delegate.metaClass.softDelete = softDelete
+                return softDelete(args[0])
+
             case "getEntityManager":
                 delegate.metaClass.getEntityManager = getEntityManager
                 return getEntityManager()
@@ -491,12 +503,12 @@ final class SimpleJpaHandler {
                 delegate.metaClass."$name" = doNamedQueryClosure
                 return doNamedQueryClosure.call(args)
 
-            // softDelete
+            // softDeleteModel
             case ~PATTERN_SOFTDELETE:
                 def match = (nameWithoutPrefix =~ PATTERN_SOFTDELETE)
                 def modelName = match[0][1]
                 LOG.info "First match for model [$model]"
-                Closure softDeleteClosure = softDelete(modelName)
+                Closure softDeleteClosure = softDeleteModel(modelName)
                 delegate.metaClass."$name" = softDeleteClosure
                 return softDeleteClosure.call(args)
 

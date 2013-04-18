@@ -303,6 +303,11 @@ For example, this will soft-delete a Student with id 3:
 
     softDeleteStudent(3)
 
+Or, you can soft delete an entity:
+
+    Student s = findStudentByName("steve")[0]
+    softDelete(s)
+
 You can use `notSoftDeleted` key in configuration map to tell simple-jpa finders to return only not soft-'deleted'
 records (and will not return soft-deleted records).
 
