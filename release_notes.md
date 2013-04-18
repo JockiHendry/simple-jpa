@@ -37,3 +37,4 @@ First release into griffon artifacts portal.
 6.  Add a boolean parameter, resume, with default value true to beginTransaction().  Setting resume to false will force start a new transaction (no transaction propagation).
 7.  Add new functions that can be used inside template renderer: numberFormat, percentFormat, currentFormat, titleCase.
 8.  Add new softDelete(entity) method.
+9.  Add columnClasses to eventTableModel() to specify class type for each column (used by renderers).

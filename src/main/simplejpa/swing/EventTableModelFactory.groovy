@@ -42,8 +42,9 @@ class EventTableModelFactory extends AbstractFactory {
         BasicEventList list = attributes.remove('list')
         List columnNames = attributes.remove('columnNames')
         List columnValues = attributes.remove('columnValues')
+        List columnClasses = attributes.remove('columnClasses')
 
         return GlazedListsSwing.eventTableModelWithThreadProxyList(list,
-            new TemplateTableFormat(columnNames, columnValues))
+            new TemplateTableFormat(columnNames, columnValues, columnClasses))
     }
 }

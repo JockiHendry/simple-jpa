@@ -16,21 +16,21 @@
 
 package simplejpa.swing
 
-import ca.odell.glazedlists.gui.TableFormat
+import ca.odell.glazedlists.gui.AdvancedTableFormat
+import ca.odell.glazedlists.impl.sort.TableColumnComparator
 import groovy.text.SimpleTemplateEngine
 
-import java.text.NumberFormat
-
-
-class TemplateTableFormat implements TableFormat {
+class TemplateTableFormat implements AdvancedTableFormat {
 
     List columnName
     List columnExpression
+    List columnClass
     private List template = []
 
-    public TemplateTableFormat(List columnName, List columnExpression) {
+    public TemplateTableFormat(List columnName, List columnExpression, List columnClass) {
         this.columnName = columnName
         this.columnExpression = columnExpression
+        this.columnClass = columnClass
         SimpleTemplateEngine templateEngine = new SimpleTemplateEngine()
         columnExpression.each { template << templateEngine.createTemplate(it) }
     }
@@ -49,5 +49,19 @@ class TemplateTableFormat implements TableFormat {
     Object getColumnValue(Object e, int i) {
         String result = e ? TemplateRenderer.make(template[i], e) : null
         result?:""
+    }
+
+    @Override
+    Class getColumnClass(int i) {
+        if (columnClass) {
+            columnClass[i]
+        } else {
+            String
+        }
+    }
+
+    @Override
+    Comparator getColumnComparator(int i) {
+        new TableColumnComparator(this, i)
     }
 }
