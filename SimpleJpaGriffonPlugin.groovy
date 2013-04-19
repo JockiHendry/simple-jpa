@@ -420,6 +420,13 @@ you can use numberFormat(), currencyFormat(), percentFormat() or titleCase(), fo
             columnValues: ['${value.name}', '${value.type?:"Unknown"}', 'Year ${value.year}'])
     }
 
+    table(rowSelectionAllowed: true, id: 'table') {
+        eventTableModel(list: model.carList,
+            columnNames: ["Name", "Type", "Year"],
+            columnValues: ['${value.name}', '${value.type?:"Unknown"}', 'Year ${value.year}'],
+            columnClasses: [String, String, Integer])
+    }
+
 `columnValues` attributes control how domain model will be displayed in each column.
 The domain model will be binded as `value` inside the template. You can also use Groovy code inside the template by
 using `<% ... %>`.

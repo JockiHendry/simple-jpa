@@ -43,6 +43,7 @@ String startupGroup
 boolean forceOverwrite
 boolean softDelete
 boolean skipExcel
+boolean setStartup
 List fieldList
 
 def findDomainClasses = {
@@ -233,7 +234,9 @@ ${parts.join('\n')}
     }
 
     // set startupGroup to this MVCGroup
-    configText = configText.replaceFirst(/startupGroups = \['.*'\]/, "startupGroups = ['${GriffonUtil.getPropertyName(mvcGroupName)}']")
+    if (setStartup || startupGroup) {
+        configText = configText.replaceFirst(/startupGroups = \['.*'\]/, "startupGroups = ['${GriffonUtil.getPropertyName(mvcGroupName)}']")
+    }
 
     // save changes
     applicationConfigFile.withWriter {
@@ -338,7 +341,7 @@ target(name: 'generateAll', description: "Create CRUD scaffolding for specified 
     if (argsMap?.params?.isEmpty() && argsMap['startup-group']==null) {
         println '''
 Usage: griffon generate-all *
-       griffon generate-all * --force-overwrite
+       griffon generate-all * --force-overwrite --set-startup
        griffon generate-all [domainClass]
        griffon generate-all --startup-group=[startupGroupName]
 
@@ -358,6 +361,7 @@ Domain class package location is retrieved from the value of griffon.simpleJpa.m
     startupGroup = argsMap['startup-group']
     forceOverwrite = argsMap.containsKey('force-overwrite')
     skipExcel = argsMap.containsKey('skip-excel')
+    setStartup = argsMap['set-startup']
 
     def config = new ConfigSlurper().parse(configFile.toURL())
     domainPackageName = config.griffon?.simpleJpa?.model?.package ?: 'domain'
