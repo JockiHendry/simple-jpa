@@ -9,7 +9,7 @@ import java.awt.event.*
 actions {
 <%
    domainClassLists.each { String name ->
-        out << "\taction(id: '${GriffonUtil.getPropertyName(name)}', name: '${GriffonUtil.getNaturalName(name)}', actionCommandKey: '${GriffonUtil.getPropertyName(name)}', closure: controller.switchPage)\n"
+        out << "\taction(id: '${prop(name)}', name: '${natural(name)}', actionCommandKey: '${prop(name)}', closure: controller.switchPage)\n"
    }
 %>
 }
@@ -24,7 +24,7 @@ application(title: 'Simple JPA Demo',
     toolBar(constraints: BorderLayout.PAGE_START, floatable: false) {
 <%
     domainClassLists.each { String name ->
-        out << "\t\tbutton(action: ${GriffonUtil.getPropertyName(name)}, verticalTextPosition: SwingConstants.BOTTOM, horizontalTextPosition: SwingConstants.CENTER)\n"
+        out << "\t\tbutton(action: ${prop(name)}, verticalTextPosition: SwingConstants.BOTTOM, horizontalTextPosition: SwingConstants.CENTER)\n"
     }
 %>
     }

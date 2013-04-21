@@ -35,6 +35,7 @@ class TransactionHolder {
                 em.transaction.commit()
                 LOG.info "Starting new transaction."
                 em.transaction.begin()
+                em.clear()
                 resumeLevel = 1
                 return true
             } else {
@@ -46,7 +47,7 @@ class TransactionHolder {
             LOG.info "Start a new transaction..."
             em.transaction.begin()
             em.clear()
-            resumeLevel++
+            resumeLevel = 1
             LOG.info "Now in tr [$resumeLevel]."
             return true
         }

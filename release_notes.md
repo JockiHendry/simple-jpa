@@ -32,9 +32,11 @@ First release into griffon artifacts portal.
 1.  Deprecated toXXX() used by binding converter; use the new numberTextField() node that will create a JFormattedTextField.
 2.  New maskTextField() node that will create a JFormattedTextField with MaskFormatter.
 3.  generate-all with --set-startup will automatically set startupGroups to the generated MVCGroup name.
-4.  Minor improvements on default templates.
+4.  Improvements on default templates to make them more readable.
 5.  remove() will try to merge entity with current persistence context if it is not managed.
 6.  Add a boolean parameter, resume, with default value true to beginTransaction().  Setting resume to false will force start a new transaction (no transaction propagation).
 7.  Add new functions that can be used inside template renderer: numberFormat, percentFormat, currentFormat, titleCase.
 8.  Add new softDelete(entity) method.
 9.  Add columnClasses to eventTableModel() to specify class type for each column (used by renderers).
+10. generate-all now support one-to-many relationship.
+11. generate-all will not generate mappedBy attributes (owned).

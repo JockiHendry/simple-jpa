@@ -18,47 +18,49 @@ class $className {
         execInsideUIAsync {
             model.${domainClassAsProp}List.clear()
 <%
-    fields.collect { field ->
-        if (field.info=="DOMAIN_CLASS") {
+    fields.each { field ->
+        if (field.info=="DOMAIN_CLASS" && !field.annotations?.containsAttribute('mappedBy')) {
             out << "\t\t\tmodel.${field.name}List.clear()\n"
         }
     }
-%>
-        }
+%>        }
+
         List ${domainClassAsProp}Result = findAll${domainClass}()
 <%
-    fields.collect { field ->
+    fields.each { field ->
+        if (field.info=="DOMAIN_CLASS" && field.annotations?.containsAttribute('mappedBy')) return
+
         if (field.info=="DOMAIN_CLASS") {
             out << "\t\tList ${field.name}Result = findAll${field.type}()\n"
-        } else if (field.type.toString()=="List" && field.info!="UNKNOWN") {
+        } else if (field.type.toString()=="List" && field.info!="UNKNOWN" && field.annotations?.get("OneToMany")==null) {
             out << "\t\tList ${field.name}Result = findAll${field.info}()\n"
         } else if (field.info=="UNKNOWN") {
             out << "\t\t// ${field.name} isn't supported! It must be coded manually!\n"
         }
-    }
-%>
+    }  %>
         execInsideUIAsync {
             model.${domainClassAsProp}List.addAll(${domainClassAsProp}Result)
             model.searchMessage = app.getMessage("simplejpa.search.all.message")
 <%
-    fields.collect { field ->
+    fields.each { field ->
+        if (field.info=="DOMAIN_CLASS" && field.annotations?.containsAttribute('mappedBy')) return
+
         if (field.info=="DOMAIN_CLASS") {
             out << "\t\t\tmodel.${field.name}List.addAll(${field.name}Result)\n"
-        } else if (field.type.toString()=="List" && field.info!="UNKNOWN") {
+        } else if (field.type.toString()=="List" && field.info!="UNKNOWN" && field.annotations?.get("OneToMany")==null) {
             out << "\t\t\tmodel.${field.name}.replaceValues(${field.name}Result)\n"
         }
     }
-%>
-        }
+%>        }
     }
 
     def search = {
         if (model.${firstField}Search?.length() > 0) {
             execInsideUIAsync { model.${domainClassAsProp}List.clear() }
-            List result = find${domainClass}By${firstFieldUppercase}(model.${firstField}Search)
+            List result = find${domainClass}By${cls(firstField)}(model.${firstField}Search)
             execInsideUIAsync {
                 model.${domainClassAsProp}List.addAll(result)
-                model.searchMessage = app.getMessage("simplejpa.search.result.message", ['${firstFieldNatural}', model.${firstField}Search])
+                model.searchMessage = app.getMessage("simplejpa.search.result.message", ['${natural(firstField)}', model.${firstField}Search])
             }
         }
     }
@@ -66,12 +68,18 @@ class $className {
     def save = {
         ${domainClass} ${domainClassAsProp} = new ${domainClass}(<%
     out << fields.collect { field ->
-        if (field.info=="DOMAIN_CLASS") {
-            return "model.${field.name}.selectedItem"
+        if (field.info=="DOMAIN_CLASS" && field.annotations?.containsAttribute('mappedBy')) {
+            return "'${field.name}': null"
+        } else if (field.info=="DOMAIN_CLASS") {
+            return "'${field.name}': model.${field.name}.selectedItem"
         } else if (field.type.toString()=="List" && field.info!="UNKNOWN") {
-            return "model.${field.name}.selectedValues"
+            if (field.annotations?.get("OneToMany")!=null) {
+                return "'${field.name}': new ArrayList(model.${field.name})"
+            } else {
+                return "'${field.name}': model.${field.name}.selectedValues"
+            }
         } else {
-            return "model.${field.name}"
+            return "'${field.name}': model.${field.name}"
         }
     }.join(", ")
 %>)
@@ -79,7 +87,7 @@ class $className {
 
         if (model.id == null) {
             // Insert operation
-            if (find${domainClass}By${firstFieldUppercase}(${domainClassAsProp}.${firstField})?.size() > 0) {
+            if (find${domainClass}By${cls(firstField)}(${domainClassAsProp}.${firstField})?.size() > 0) {
                 model.errors['${firstField}'] = app.getMessage("simplejpa.error.alreadyExist.message")
                 return_failed()
             }
@@ -89,30 +97,35 @@ class $className {
             // Update operation
             ${domainClass} selected${domainClass} = model.${domainClassAsProp}Selection.selected[0]
 <%
-    out << fields.collect { field ->
+    fields.each { field ->
+        if (field.info=="DOMAIN_CLASS" && field.annotations?.containsAttribute('mappedBy')) return ''
+
         if (field.info=="DOMAIN_CLASS") {
-            return "\t\t\tselected${domainClass}.${field.name} = model.${field.name}.selectedItem"
+            out << "\t\t\tselected${domainClass}.${field.name} = model.${field.name}.selectedItem\n"
         } else if (field.type.toString()=="List" && field.info!="UNKNOWN") {
-            return "\t\t\tselected${domainClass}.${field.name}.clear()\n" +
-                   "\t\t\tselected${domainClass}.${field.name}.addAll(model.${field.name}.selectedValues)"
+            if (field.annotations?.get("OneToMany")!=null) {
+                out << "\t\t\tselected${domainClass}.${field.name}.clear()\n"
+                out << "\t\t\tselected${domainClass}.${field.name}.addAll(model.${field.name})\n"
+            } else {
+                out << "\t\t\tselected${domainClass}.${field.name}.clear()\n"
+                out << "\t\t\tselected${domainClass}.${field.name}.addAll(model.${field.name}.selectedValues)\n"
+            }
         } else {
-            return "\t\t\tselected${domainClass}.${field.name} = model.${field.name}"
+            out << "\t\t\tselected${domainClass}.${field.name} = model.${field.name}\n"
         }
-    }.join("\n")
+    }
 %>
-            merge(selected${domainClass})
+            model.${domainClassAsProp}Selection.selected[0] = merge(selected${domainClass})
         }
         execInsideUIAsync { model.clear() }
     }
 
     def delete = {
         ${domainClass} ${domainClassAsProp} = model.${domainClassAsProp}Selection.selected[0]
-
 <% if (softDelete) {
         out << "\t\tsoftDelete${domainClass}(${domainClassAsProp}.id)\n"
    } else {
-        out << "\t\tdef ${domainClassAsProp}Persist = merge(${domainClassAsProp})\n"
-        out << "\t\tremove(${domainClassAsProp}Persist)"  } %>
+        out << "\t\tremove(${domainClassAsProp})"  } %>
         execInsideUIAsync { model.${domainClassAsProp}List.remove(${domainClassAsProp}) }
     }
 

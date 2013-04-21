@@ -8,6 +8,8 @@ import simplejpa.swing.TagChooser
 
 import javax.swing.*
 import java.awt.*
+import java.awt.event.ActionEvent
+import java.awt.event.ActionListener
 import java.awt.event.ItemEvent
 import java.awt.event.KeyEvent
 import java.beans.PropertyChangeEvent
@@ -112,6 +114,15 @@ class BasicClearErrorTrigger {
         component.selectedValueChanged = {
             errors.remove(errorPath)
         }
+    }
+
+    static enhanceJButton(JButton component, ObservableMap errors, String errorPath) {
+        component.addActionListener(new ActionListener() {
+            @Override
+            void actionPerformed(ActionEvent e) {
+                errors.remove(errorPath)
+            }
+        })
     }
 
 }

@@ -119,7 +119,11 @@ use `generatedPackage` parameter, for example:
 
     generate-all Student --generated-package=newPackage
 
-Previous commands will generate only one MVCGroup.  You will usually need to glue the MVCGroup together in one
+To update startUp Group to the generated MVCGroup, use the following command:
+
+    generate-all Student --set-startup
+
+You will usually need to glue the MVCGroup together in one
 main MVCGroup (that contains menu or toolbar to call available MVCGroup).  You can generate this kind of MVCGroup by
 using the following command:
 

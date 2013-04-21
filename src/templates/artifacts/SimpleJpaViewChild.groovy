@@ -16,14 +16,6 @@ application(title: '${natural(domainClass)}',
     panel(id: 'mainPanel') {
         borderLayout()
 
-        panel(constraints: PAGE_START) {
-            flowLayout(alignment: FlowLayout.LEADING)
-            label("${natural(firstField)}")
-            textField(columns: 4, text: bind('${firstField}Search', target: model))
-            button(app.getMessage('simplejpa.search.label'), actionPerformed: controller.search)
-            button(app.getMessage('simplejpa.search.all.label'), actionPerformed: controller.listAll)
-        }
-
         panel(constraints: CENTER) {
             borderLayout()
             panel(constraints: PAGE_START, layout: new FlowLayout(FlowLayout.LEADING)) {
@@ -67,22 +59,7 @@ application(title: '${natural(domainClass)}',
             out << "\t\t\tcomboBox(model: model.${field.name}, renderer: templateRenderer(template: '\${value}'), errorPath: '${field.name}')\n"
         } else if (field.type.toString()=="List" && field.info!="UNKNOWN") {
             if (field.annotations.containsAnnotation("OneToMany")) {
-                out << "\t\t\tbutton(id: '${field.name}', text: '${natural(field.name as String)}', errorPath: '${field.name}', actionPerformed: {\n"
-                out << """\
-                app.withMVCGroup("${prop(field.info)}AsChild", [parentList: model.${field.name}]) { m, v, c ->
-                    Window thisWindow = SwingUtilities.getWindowAncestor(mainPanel)
-                    new JDialog(thisWindow, "${natural(field.name as String)}", Dialog.ModalityType.DOCUMENT_MODAL).with {
-                        contentPane = v.mainPanel
-                        pack()
-                        setLocationRelativeTo(thisWindow)
-                        setVisible(true)
-
-                        model.${field.name}.clear()
-                        model.${field.name}.addAll(m.${prop(field.info)}List)
-                    }
-                }
-            })
-"""
+                out << "\t\t\tbutton(id: '${field.name}', text: '${natural(field.name as String)}')\n"
             } else {
                 out << "\t\t\ttagChooser(model: model.${field.name}, templateString: '\${value}', constraints: 'grow,push,span,wrap', errorPath: '${field.name}')\n"
             }
@@ -102,7 +79,7 @@ application(title: '${natural(domainClass)}',
             panel(constraints: 'span, growx, wrap') {
                 flowLayout(alignment: FlowLayout.LEADING)
                 button(app.getMessage("simplejpa.dialog.save.button"), actionPerformed: {
-                    if (model.id!=null) {
+                    if (!model.itemTransaksiSelection.selectionEmpty) {
                         if (JOptionPane.showConfirmDialog(mainPanel, app.getMessage("simplejpa.dialog.update.message"),
                             app.getMessage("simplejpa.dialog.update.title"), JOptionPane.YES_NO_OPTION, JOptionPane.WARNING_MESSAGE) != JOptionPane.YES_OPTION) {
                                 return
@@ -119,6 +96,9 @@ application(title: '${natural(domainClass)}',
                             app.getMessage("simplejpa.dialog.delete.title"), JOptionPane.YES_NO_OPTION, JOptionPane.WARNING_MESSAGE) == JOptionPane.YES_OPTION) {
                                 controller.delete()
                         }
+                })
+                button(app.getMessage("simplejpa.dialog.close.button"), actionPerformed: {
+                    SwingUtilities.getWindowAncestor(mainPanel)?.dispose()
                 })
             }
         }

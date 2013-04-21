@@ -15,6 +15,8 @@
  */
 
 import groovy.text.GStringTemplateEngine
+import groovy.text.SimpleTemplateEngine
+import groovy.transform.ToString
 import org.apache.poi.hssf.usermodel.HSSFWorkbook
 import org.codehaus.groovy.antlr.AntlrASTProcessor
 import org.codehaus.groovy.antlr.GroovySourceAST
@@ -52,98 +54,72 @@ def findDomainClasses = {
     }
 }
 
-def createView = {
-    println "Creating view..."
-    def templateFile = resolveTemplate(startupGroup?"StartupView":"SimpleJpaView", ".groovy")
-    if (!templateFile.exists()) {
-        println "Can't find $templateFile."
-        return
-    }
-    String viewClassName = GriffonUtil.getClassName(startupGroup?:domainClassName, "View")
-    File viewFile = new File("${basedir}/griffon-app/views/${generatedPackage.replace('.', '/')}/${viewClassName}.groovy")
-    if (viewFile.exists()) {
-        if (forceOverwrite) {
-            println "File $viewFile already exists and will be overwritten!"
-        } else {
-            println "File $viewFile already exists!"
+def createMVC = {  String parentDomainClass = null, String parentAttribute = null ->
+
+    boolean child = (parentDomainClass!=null)
+
+    ["Model", "View", "Controller"].each { String type ->
+        println "Creating $type..."
+
+        def templateFile = resolveTemplate(startupGroup?"Startup${type}":
+            (child?"SimpleJpa${type}Child":"SimpleJpa${type}"), ".groovy")
+
+        if (!templateFile.exists()) {
+            println "Can't find $templateFile."
             return
         }
-    }
-    ant.mkdir(dir: "${basedir}/griffon-app/views/${generatedPackage.replace('.', '/')}")
 
-    def template = new GStringTemplateEngine().createTemplate(templateFile.file)
-    def binding = ["packageName":generatedPackage, "domainPackage":domainPackageName, "className":viewClassName,
-            "domainClass": domainClassName, "domainClassAsProp": startupGroup?:GriffonUtil.getPropertyName(domainClassName),
-            "GriffonUtil": GriffonUtil,
+        String className = GriffonUtil.getClassName("${startupGroup?:domainClassName}${child?'AsChild':''}", type)
+
+        String dir = "${basedir}/griffon-app/"
+
+        switch (type) {
+            case "Model": dir += "models"; break
+            case "View": dir += "views"; break
+            case "Controller": dir+= "controllers"; break
+        }
+        dir = "${dir}/${generatedPackage.replace('.','/')}"
+
+        File file = new File("${dir}/${className}.groovy")
+
+        if (file.exists()) {
+            if (forceOverwrite) {
+                println "File $file already exists and will be overwritten!"
+            } else {
+                println "File $file already exists!"
+                return
+            }
+        }
+
+        ant.mkdir('dir': dir)
+
+        def template = new SimpleTemplateEngine().createTemplate(templateFile.file)
+
+        def binding = [
+            // values
+            "packageName": generatedPackage,
+            "domainPackage": domainPackageName,
+            "className": className,
+            "domainClass": domainClassName,
+            "domainClassAsProp": startupGroup?:GriffonUtil.getPropertyName(domainClassName),
             "domainClassLists": startupGroup?findDomainClasses():[],
-            "fields": fieldList, "firstField": startupGroup?:fieldList[0]?.name as String,
-            "firstFieldUppercase": startupGroup?:GriffonUtil.getClassNameRepresentation(fieldList[0]?.name as String),
-            "firstFieldNatural": startupGroup?:GriffonUtil.getNaturalName(fieldList[0]?.name as String)]
-    String result = template.make(binding)
-    viewFile.write(result)
+            "firstField": startupGroup?:fieldList[0]?.name as String,
+            "softDelete": softDelete,
+            "parentDomainClass": parentDomainClass,
+            "parentAttribute": parentAttribute,
+            "fields": fieldList,
 
-    println "File $viewFile created!"
-}
+            // functions
+            "prop": GriffonUtil.&getPropertyName,
+            "cls": GriffonUtil.&getClassNameRepresentation,
+            "natural": GriffonUtil.&getNaturalName,
+        ]
 
-def createController = {
-    println "Creating controller..."
-    def templateFile = resolveTemplate(startupGroup?"StartupController":"SimpleJpaController", ".groovy")
-    if (!templateFile.exists()) {
-        println "Can't find $templateFile."
-        return
+        String result = template.make(binding)
+        file.write(result)
+
+        println "File $file created!"
     }
-    String controllerClassName = GriffonUtil.getClassName(startupGroup?:domainClassName, "Controller")
-    File controllerFile = new File("${basedir}/griffon-app/controllers/${generatedPackage.replace('.', '/')}/${controllerClassName}.groovy")
-    if (controllerFile.exists()) {
-        if (forceOverwrite) {
-            println "File $controllerFile already exists and will be overwritten!"
-        } else {
-            println "File $controllerFile already exists!"
-            return
-        }
-    }
-    ant.mkdir(dir: "${basedir}/griffon-app/controllers/${generatedPackage.replace('.', '/')}")
-
-    def template = new GStringTemplateEngine().createTemplate(templateFile.file)
-    def binding = ["packageName":generatedPackage, "domainPackage":domainPackageName, "className":controllerClassName,
-        "domainClass": domainClassName, "domainClassAsProp": domainClassName?GriffonUtil.getPropertyName(domainClassName):null,
-        "fields":fieldList, "firstField":startupGroup?:fieldList[0]?.name as String,
-        "softDelete": softDelete,
-        "firstFieldUppercase": startupGroup?:GriffonUtil.getClassNameRepresentation(fieldList[0]?.name as String),
-        "firstFieldNatural": startupGroup?:GriffonUtil.getNaturalName(fieldList[0]?.name as String)]
-    String result = template.make(binding)
-    controllerFile.write(result)
-
-    println "File $controllerFile created!"
-}
-def createModel = {
-
-    println "Creating model..."
-    def templateFile = resolveTemplate(startupGroup?"StartupModel":"SimpleJpaModel", ".groovy")
-    if (!templateFile.exists()) {
-        println "Can't find $templateFile."
-        return
-    }
-    String modelClassName = GriffonUtil.getClassName(startupGroup?:domainClassName, "Model")
-    File modelFile = new File("${basedir}/griffon-app/models/${generatedPackage.replace('.', '/')}/${modelClassName}.groovy")
-    if (modelFile.exists()) {
-        if (forceOverwrite) {
-            println "File $modelFile already exists and will be overwritten!"
-        } else {
-            println "File $modelFile already exists!"
-            return
-        }
-    }
-    ant.mkdir(dir: "${basedir}/griffon-app/models/${generatedPackage.replace('.', '/')}")
-
-    def template = new GStringTemplateEngine().createTemplate(templateFile.file)
-    def binding = ["packageName":generatedPackage, "domainPackage":domainPackageName, "className":modelClassName,
-        "domainClass": domainClassName, "domainClassAsProp": startupGroup?:GriffonUtil.getPropertyName(domainClassName),
-        "fields":fieldList]
-    String result = template.make(binding)
-    modelFile.write(result)
-
-    println "File $modelFile created!"
 
 }
 
@@ -201,9 +177,13 @@ def createIntegrationTest = {
     println "File $testFile created!"
 }
 
-def createMVCGroup = { String mvcGroupName ->
+def createMVCGroup = { String mvcGroupName, String parentDomainClass = null, String parentAttribute = null ->
 
     println "Adding new MVC Group..."
+
+    boolean child = (parentDomainClass!=null)
+
+    if (child) mvcGroupName = "${mvcGroupName}AsChild"
 
     // create mvcGroup in an application
     def applicationConfigFile = new File("${basedir}/griffon-app/conf/Application.groovy")
@@ -248,13 +228,13 @@ ${parts.join('\n')}
 }
 
 def processStartupGroup = {
-    createModel()
-    createController()
-    createView()
+    createMVC()
     createMVCGroup(startupGroup)
 }
 
-def processDomainClass = { String name ->
+def processDomainClass
+
+processDomainClass = { String name, String parentDomainClass = null, String parentAttribute = null ->
 
     domainClassName = GriffonUtil.getClassNameRepresentation(name)
     String fullDomainClassName= "${domainPackageName ? domainPackageName : ''}${domainPackageName ? '.' : ''}$domainClassName"
@@ -310,12 +290,12 @@ def processDomainClass = { String name ->
 
         // Check if this is a List and has one of "ManyToMany" or "OneToMany" annotation
         if ("List"==(field.type as String)) {
-            if (field.annotations.find { ["ManyToMany","OneToMany"].contains(it.toString()) }) {
+            if (field.annotations.containsAnnotation(["ManyToMany","OneToMany"])) {
                 List typeArguments = field.type.childrenOfType(TYPE_ARGUMENTS)
                 if (typeArguments.size() > 0) {
                     def domainClass = typeArguments[0]?.childAt(0)?.childAt(0)?.childAt(0)
                     if (domainClass!=null) {
-                        field["info"] = domainClass
+                        field["info"] = domainClass.toString()
                     }
                 }
             }
@@ -329,11 +309,17 @@ def processDomainClass = { String name ->
 
     println "Found $fieldList"
 
-    createModel()
-    createController()
-    createView()
+    createMVC(parentDomainClass, parentAttribute)
     createIntegrationTest()
-    createMVCGroup(name)
+    createMVCGroup(name, parentDomainClass, parentAttribute)
+
+    // For one-to-many relation
+    fieldList.each { field ->
+        String currentDomainClassName = domainClassName
+        if (field.annotations.containsAnnotation("OneToMany")) {
+            processDomainClass(field["info"], domainClassName, field.name as String)
+        }
+    }
 }
 
 target(name: 'generateAll', description: "Create CRUD scaffolding for specified domain class", prehook: null, posthook: null) {
@@ -383,6 +369,7 @@ Domain class package location is retrieved from the value of griffon.simpleJpa.m
     ["simplejpa.dialog.save.button": "Save",
      "simplejpa.dialog.cancel.button": "Cancel",
      "simplejpa.dialog.delete.button": "Delete",
+     "simplejpa.dialog.close.button": "Close",
      "simplejpa.search.all.message": "Display all data",
      "simplejpa.search.result.message": "Display {0} search result for {1}",
      "simplejpa.error.alreadyExist.message": "already registered!",
@@ -399,11 +386,61 @@ Domain class package location is retrieved from the value of griffon.simpleJpa.m
     }
 }
 
+@ToString
+class Annotations {
+
+    Map annotations = [:]
+
+    void addAnnotation(String name) {
+        annotations[name] = new AnnotationFound('name': name)
+    }
+
+    void addAnnotation(AnnotationFound annotation) {
+        annotations[annotation.name] = annotation
+    }
+
+    AnnotationFound get(String annotation) {
+        annotations[annotation]
+    }
+
+    boolean containsAttribute(String attribute) {
+        boolean result = false
+        annotations.findAll { k, v -> v.getAttribute(attribute) }
+    }
+
+    boolean containsAnnotation(String search) {
+        annotations.keySet().find { it==search}
+    }
+
+    boolean containsAnnotation(List search) {
+        annotations.keySet().findAll { search.contains(it) }
+    }
+
+}
+
+@ToString
+class AnnotationFound {
+    String name
+    def value
+    Map attributes = [:]
+
+    void addAttribute(String name, def value) {
+        attributes[name] = value
+    }
+
+    def getAttribute(String name) {
+        attributes[name]
+    }
+}
+
+
+
 class DomainModelVisitor extends VisitorAdapter {
 
     List fields = []
     boolean ignoreMode = false
     boolean entity = false
+    AnnotationFound lastAnnotation = null
 
     public void visitVariableDef(GroovySourceAST node, int visitType) {
         if (visitType==Visitor.OPENING_VISIT && !ignoreMode)  {
@@ -425,13 +462,24 @@ class DomainModelVisitor extends VisitorAdapter {
         if (visitType==Visitor.OPENING_VISIT) {
             if (node.childAt(0).toString()=="Entity") entity = true
             if (fields.size() > 0) {
-                def list = fields.last().'annotations' ?: []
-                list << node.childAt(0)
-                fields.last().'annotations' = list
+                def annotations = fields.last().'annotations' ?: new Annotations()
+                lastAnnotation = new AnnotationFound(name: node.childAt(0).toString())
+                annotations.addAnnotation(lastAnnotation)
+                fields.last().'annotations' = annotations
+            }
+        }
+    }
+
+    public void visitAnnotationMemberValuePair(GroovySourceAST node, int visitType) {
+        if (visitType==Visitor.OPENING_VISIT) {
+            String memberName = node.childAt(0).toString()
+            if (fields.size() > 0 && lastAnnotation) {
+                lastAnnotation.addAttribute(memberName, node.childAt(1)?.toString())
             }
         }
     }
 
 }
+
 
 setDefaultTarget(generateAll)

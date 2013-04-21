@@ -27,6 +27,8 @@ class ${className} {
     // @NotNull @ManyToOne
     // ClassRoom classRoom
     //
+    // @NotEmpty @OneToMany(cascade=CascadeType.ALL, orphanRemoval=true)
+    // List<ItemTransaksi> listItemTransaksi = []
 
 }
 
