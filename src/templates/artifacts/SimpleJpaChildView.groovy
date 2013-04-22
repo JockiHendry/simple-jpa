@@ -16,14 +16,6 @@ application(title: '${natural(domainClass)}',
     panel(id: 'mainPanel') {
         borderLayout()
 
-        panel(constraints: PAGE_START) {
-            flowLayout(alignment: FlowLayout.LEADING)
-            label("${natural(firstField)}")
-            textField(columns: 4, text: bind('${firstField}Search', target: model))
-            button(app.getMessage('simplejpa.search.label'), actionPerformed: controller.search)
-            button(app.getMessage('simplejpa.search.all.label'), actionPerformed: controller.listAll)
-        }
-
         panel(constraints: CENTER) {
             borderLayout()
             panel(constraints: PAGE_START, layout: new FlowLayout(FlowLayout.LEADING)) {
@@ -115,7 +107,7 @@ application(title: '${natural(domainClass)}',
             panel(constraints: 'span, growx, wrap') {
                 flowLayout(alignment: FlowLayout.LEADING)
                 button(app.getMessage("simplejpa.dialog.save.button"), actionPerformed: {
-                    if (model.id!=null) {
+                    if (!model.itemTransaksiSelection.selectionEmpty) {
                         if (JOptionPane.showConfirmDialog(mainPanel, app.getMessage("simplejpa.dialog.update.message"),
                             app.getMessage("simplejpa.dialog.update.title"), JOptionPane.YES_NO_OPTION, JOptionPane.WARNING_MESSAGE) != JOptionPane.YES_OPTION) {
                                 return
@@ -132,6 +124,9 @@ application(title: '${natural(domainClass)}',
                             app.getMessage("simplejpa.dialog.delete.title"), JOptionPane.YES_NO_OPTION, JOptionPane.WARNING_MESSAGE) == JOptionPane.YES_OPTION) {
                                 controller.delete()
                         }
+                })
+                button(app.getMessage("simplejpa.dialog.close.button"), actionPerformed: {
+                    SwingUtilities.getWindowAncestor(mainPanel)?.dispose()
                 })
             }
         }

@@ -18,11 +18,15 @@ class $className {
         } else if ("UNKNOWN".equals(field.info)){
             out << "\t// ${field.name} is not supported by generator.  You will need to code it manually.\n"
             out << "\t@Bindable ${field.type} ${field.name}\n"
-        } else if (field.info=="DOMAIN_CLASS" && !field.annotations?.containsAttribute('mappedBy')) {
+        } else if (isOneToOne(field) && !isOwned(field)) {
+            out << "\t@Bindable ${field.type} ${field.name}\n"
+        } else if (isManyToOne(field) && !isOwned(field)) {
             out << "\tBasicEventList<${field.type}> ${field.name}List = new BasicEventList<>()\n"
             out << "\t@Bindable DefaultEventComboBoxModel<${field.type}> ${field.name} =\n"
             out << "\t\tGlazedListsSwing.eventComboBoxModelWithThreadProxyList(${field.name}List)\n"
-        } else if (field.type.toString()=="List" && field.info!="UNKNOWN" && field.annotations?.get("OneToMany")==null) {
+        } else if (isOneToMany(field)) {
+            out << "\tList<${field.info}> ${field.name} = []\n"
+        } else if (isManyToMany(field)) {
             out << "\tTagChooserModel ${field.name} = new TagChooserModel()\n"
         }
     }
@@ -42,11 +46,16 @@ class $className {
                 id = selected.id
 <%
     fields.each { field ->
+        if (isOwned(field)) return
+
         if (["BASIC_TYPE", "DATE"].contains(field.info)) {
             out << "\t\t\t\t${field.name} = selected.${field.name}\n"
-        } else if (field.info=="DOMAIN_CLASS" && !field.annotations?.containsAttribute('mappedBy')) {
+        } else if (isOneToOne(field) || isManyToOne(field)) {
             out << "\t\t\t\t${field.name}.selectedItem = selected.${field.name}\n"
-        } else if (field.type.toString()=="List" && field.info!="UNKNOWN" && field.annotations?.get("OneToMany")==null) {
+        } else if (isOneToMany(field)) {
+            out << "\t\t\t\t${field.name}.clear()\n"
+            out << "\t\t\t\t${field.name}.addAll(selected.${field.name})\n"
+        } else if (isManyToMany(field)) {
             out << "\t\t\t\t${field.name}.replaceSelectedValues(selected.${field.name})\n"
         } else if (field.info=="UNKNOWN") {
             out << "\t\t\t\t// ${field.name} is not supported by generator.  You will need to code it manually.\n"
@@ -61,11 +70,15 @@ class $className {
     def clear = {
         id = null
 <% fields.each { field ->
+        if (isOwned(field)) return
+
         if (["BASIC_TYPE", "DATE"].contains(field.info)) {
             out << "\t\t${field.name} = null\n"
-        } else if (field.info=="DOMAIN_CLASS" && !field.annotations?.containsAttribute('mappedBy')) {
+        } else if (isOneToOne(field) || isManyToOne(field)) {
             out << "\t\t${field.name}.selectedItem = null\n"
-        } else if (field.type.toString()=="List" && field.info!="UNKNOWN" && field.annotations?.get("OneToMany")==null) {
+        } else if (isOneToMany(field)) {
+            out << "\t\t${field.name}.clear()\n"
+        } else if (isManyToMany(field)) {
             out << "\t\t${field.name}.clearSelectedValues()\n"
         } else if (field.info=="UNKNOWN") {
             out << "\t\t// ${field.name} is not supported by generator.  You will need to code it manually.\n"

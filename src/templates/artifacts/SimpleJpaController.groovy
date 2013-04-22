@@ -19,7 +19,7 @@ class $className {
             model.${domainClassAsProp}List.clear()
 <%
     fields.each { field ->
-        if (field.info=="DOMAIN_CLASS" && !field.annotations?.containsAttribute('mappedBy')) {
+        if (isManyToOne(field) && !isOwned(field)) {
             out << "\t\t\tmodel.${field.name}List.clear()\n"
         }
     }
@@ -28,11 +28,11 @@ class $className {
         List ${domainClassAsProp}Result = findAll${domainClass}()
 <%
     fields.each { field ->
-        if (field.info=="DOMAIN_CLASS" && field.annotations?.containsAttribute('mappedBy')) return
+        if (isOwned(field)) return
 
-        if (field.info=="DOMAIN_CLASS") {
+        if (isManyToOne(field)) {
             out << "\t\tList ${field.name}Result = findAll${field.type}()\n"
-        } else if (field.type.toString()=="List" && field.info!="UNKNOWN" && field.annotations?.get("OneToMany")==null) {
+        } else if (isManyToMany(field)) {
             out << "\t\tList ${field.name}Result = findAll${field.info}()\n"
         } else if (field.info=="UNKNOWN") {
             out << "\t\t// ${field.name} isn't supported! It must be coded manually!\n"
@@ -43,11 +43,11 @@ class $className {
             model.searchMessage = app.getMessage("simplejpa.search.all.message")
 <%
     fields.each { field ->
-        if (field.info=="DOMAIN_CLASS" && field.annotations?.containsAttribute('mappedBy')) return
+        if (isOwned(field)) return
 
-        if (field.info=="DOMAIN_CLASS") {
+        if (isManyToOne(field)) {
             out << "\t\t\tmodel.${field.name}List.addAll(${field.name}Result)\n"
-        } else if (field.type.toString()=="List" && field.info!="UNKNOWN" && field.annotations?.get("OneToMany")==null) {
+        } else if (isManyToMany(field)) {
             out << "\t\t\tmodel.${field.name}.replaceValues(${field.name}Result)\n"
         }
     }
@@ -68,16 +68,14 @@ class $className {
     def save = {
         ${domainClass} ${domainClassAsProp} = new ${domainClass}(<%
     out << fields.collect { field ->
-        if (field.info=="DOMAIN_CLASS" && field.annotations?.containsAttribute('mappedBy')) {
+        if (isOwned(field)) {
             return "'${field.name}': null"
-        } else if (field.info=="DOMAIN_CLASS") {
+        } else if (isManyToOne(field)) {
             return "'${field.name}': model.${field.name}.selectedItem"
-        } else if (field.type.toString()=="List" && field.info!="UNKNOWN") {
-            if (field.annotations?.get("OneToMany")!=null) {
-                return "'${field.name}': new ArrayList(model.${field.name})"
-            } else {
-                return "'${field.name}': model.${field.name}.selectedValues"
-            }
+        } else if (isOneToMany(field)) {
+            return "'${field.name}': new ArrayList(model.${field.name})"
+        } else if (isManyToMany(field)) {
+            return "'${field.name}': model.${field.name}.selectedValues"
         } else {
             return "'${field.name}': model.${field.name}"
         }
@@ -98,24 +96,22 @@ class $className {
             ${domainClass} selected${domainClass} = model.${domainClassAsProp}Selection.selected[0]
 <%
     fields.each { field ->
-        if (field.info=="DOMAIN_CLASS" && field.annotations?.containsAttribute('mappedBy')) return ''
+        if (isOwned(field)) return
 
-        if (field.info=="DOMAIN_CLASS") {
+        if (isManyToOne(field)) {
             out << "\t\t\tselected${domainClass}.${field.name} = model.${field.name}.selectedItem\n"
-        } else if (field.type.toString()=="List" && field.info!="UNKNOWN") {
-            if (field.annotations?.get("OneToMany")!=null) {
-                out << "\t\t\tselected${domainClass}.${field.name}.clear()\n"
-                out << "\t\t\tselected${domainClass}.${field.name}.addAll(model.${field.name})\n"
-            } else {
-                out << "\t\t\tselected${domainClass}.${field.name}.clear()\n"
-                out << "\t\t\tselected${domainClass}.${field.name}.addAll(model.${field.name}.selectedValues)\n"
-            }
+        } else if (isOneToMany(field)) {
+            out << "\t\t\tselected${domainClass}.${field.name}.clear()\n"
+            out << "\t\t\tselected${domainClass}.${field.name}.addAll(model.${field.name})\n"
+        } else if (isManyToMany(field)) {
+            out << "\t\t\tselected${domainClass}.${field.name}.clear()\n"
+            out << "\t\t\tselected${domainClass}.${field.name}.addAll(model.${field.name}.selectedValues)\n"
         } else {
             out << "\t\t\tselected${domainClass}.${field.name} = model.${field.name}\n"
         }
     }
 %>
-            model.${domainClassAsProp}Selection.selected[0] = merge(selected${domainClass})
+            execInsideUIAsync { model.${domainClassAsProp}Selection.selected[0] = merge(selected${domainClass}) }
         }
         execInsideUIAsync { model.clear() }
     }

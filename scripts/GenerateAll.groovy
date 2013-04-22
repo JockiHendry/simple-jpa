@@ -38,6 +38,8 @@ import griffon.util.GriffonUtil
 
 includeTargets << griffonScript("_GriffonCreateArtifacts")
 
+enum RelationType { ONE_TO_ONE, ONE_TO_MANY, MANY_TO_MANY }
+
 String generatedPackage
 String domainClassName
 String domainPackageName
@@ -47,6 +49,9 @@ boolean softDelete
 boolean skipExcel
 boolean setStartup
 List fieldList
+RelationType relationType = null
+Map relationParameter = [:]
+List generated = []
 
 def findDomainClasses = {
     new File("${basedir}/src/main/${domainPackageName.replace('.', '/')}").list().grep { String name -> name.endsWith(".groovy") }.collect {
@@ -54,22 +59,40 @@ def findDomainClasses = {
     }
 }
 
-def createMVC = {  String parentDomainClass = null, String parentAttribute = null ->
-
-    boolean child = (parentDomainClass!=null)
+def createMVC = {
 
     ["Model", "View", "Controller"].each { String type ->
         println "Creating $type..."
 
-        def templateFile = resolveTemplate(startupGroup?"Startup${type}":
-            (child?"SimpleJpa${type}Child":"SimpleJpa${type}"), ".groovy")
+        String templateFileName
+        String className
 
+        if (startupGroup) {
+            templateFileName = "Startup${type}"
+            className = startupGroup
+        } else {
+            className = domainClassName
+            templateFileName = "SimpleJpa${type}"
+
+            switch (relationType) {
+                case RelationType.ONE_TO_MANY:
+                    templateFileName = "SimpleJpaChild${type}"
+                    className = "${className}AsChild"
+                    break
+                case RelationType.ONE_TO_ONE:
+                    templateFileName = "SimpleJpaPair${type}"
+                    className = "${className}AsPair"
+                    break
+            }
+        }
+
+        def templateFile = resolveTemplate(templateFileName, ".groovy")
         if (!templateFile.exists()) {
             println "Can't find $templateFile."
             return
         }
 
-        String className = GriffonUtil.getClassName("${startupGroup?:domainClassName}${child?'AsChild':''}", type)
+        className = GriffonUtil.getClassName(className, type)
 
         String dir = "${basedir}/griffon-app/"
 
@@ -105,14 +128,22 @@ def createMVC = {  String parentDomainClass = null, String parentAttribute = nul
             "domainClassLists": startupGroup?findDomainClasses():[],
             "firstField": startupGroup?:fieldList[0]?.name as String,
             "softDelete": softDelete,
-            "parentDomainClass": parentDomainClass,
-            "parentAttribute": parentAttribute,
+            "parentDomainClass": relationParameter['parentDomainClass'],
+            "parentAttribute": relationParameter['parentAttribute'],
             "fields": fieldList,
 
             // functions
             "prop": GriffonUtil.&getPropertyName,
             "cls": GriffonUtil.&getClassNameRepresentation,
             "natural": GriffonUtil.&getNaturalName,
+
+            // relational
+            "isOwned": {field -> field.annotations?.containsAttribute('mappedBy')}.&call,
+            "isManyToOne": {field -> field.info=="DOMAIN_CLASS" && field.annotations?.containsAnnotation("ManyToOne")}.&call,
+            "isManyToMany": {field -> field.type.toString()=='List' && field.info!='UNKNOWN' && field.annotations?.containsAnnotation("ManyToMany")}.&call,
+            "isOneToMany": {field -> field.type.toString()=='List' && field.info!='UNKNOWN' && field.annotations?.containsAnnotation("OneToMany")}.&call,
+            "isOneToOne": {field -> field.info=="DOMAIN_CLASS" && field.annotations?.containsAnnotation('OneToOne')}.&call,
+
         ]
 
         String result = template.make(binding)
@@ -177,13 +208,15 @@ def createIntegrationTest = {
     println "File $testFile created!"
 }
 
-def createMVCGroup = { String mvcGroupName, String parentDomainClass = null, String parentAttribute = null ->
+def createMVCGroup = { String mvcGroupName ->
 
     println "Adding new MVC Group..."
 
-    boolean child = (parentDomainClass!=null)
-
-    if (child) mvcGroupName = "${mvcGroupName}AsChild"
+    if (relationType==RelationType.ONE_TO_MANY) {
+        mvcGroupName+="AsChild"
+    } else if (relationType==RelationType.ONE_TO_ONE) {
+        mvcGroupName+="AsPair"
+    }
 
     // create mvcGroup in an application
     def applicationConfigFile = new File("${basedir}/griffon-app/conf/Application.groovy")
@@ -234,7 +267,7 @@ def processStartupGroup = {
 
 def processDomainClass
 
-processDomainClass = { String name, String parentDomainClass = null, String parentAttribute = null ->
+processDomainClass = { String name ->
 
     domainClassName = GriffonUtil.getClassNameRepresentation(name)
     String fullDomainClassName= "${domainPackageName ? domainPackageName : ''}${domainPackageName ? '.' : ''}$domainClassName"
@@ -288,7 +321,7 @@ processDomainClass = { String name, String parentDomainClass = null, String pare
             return
         }
 
-        // Check if this is a List and has one of "ManyToMany" or "OneToMany" annotation
+        // Check if this is a List and has one of relationship annotation
         if ("List"==(field.type as String)) {
             if (field.annotations.containsAnnotation(["ManyToMany","OneToMany"])) {
                 List typeArguments = field.type.childrenOfType(TYPE_ARGUMENTS)
@@ -309,15 +342,31 @@ processDomainClass = { String name, String parentDomainClass = null, String pare
 
     println "Found $fieldList"
 
-    createMVC(parentDomainClass, parentAttribute)
+    createMVC()
     createIntegrationTest()
-    createMVCGroup(name, parentDomainClass, parentAttribute)
+    createMVCGroup(name)
+
+    relationType = null
+    relationParameter.clear()
 
     // For one-to-many relation
     fieldList.each { field ->
         String currentDomainClassName = domainClassName
         if (field.annotations.containsAnnotation("OneToMany")) {
-            processDomainClass(field["info"], domainClassName, field.name as String)
+            if (!generated.contains(field["info"])) {
+                relationType = RelationType.ONE_TO_MANY
+                relationParameter['parentClass'] = domainClassName
+                relationParameter['parentAttribute'] = field.name as String
+                processDomainClass(field["info"])
+                generated << domainClassName
+            }
+        } else if (field.annotations.containsAnnotation("OneToOne") && !field.annotations.containsAttribute("mappedBy")) {
+            if (!generated.contains(field.type as String)) {
+                relationType = RelationType.ONE_TO_ONE
+                relationParameter['parentClass'] = domainClassName
+                processDomainClass(field.type as String)
+                generated << (field.type as String)
+            }
         }
     }
 }

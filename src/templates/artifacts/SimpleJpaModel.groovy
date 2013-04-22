@@ -22,16 +22,16 @@ class $className {
     @Bindable String ${fields[0]?.name ?: 'replaceThis'}Search
     @Bindable String searchMessage
 <%  fields.each { field ->
-        if (field.info=="DOMAIN_CLASS" && !field.annotations?.containsAttribute('mappedBy')) {
+        if (isOneToOne(field) && !isOwned(field)) {
+            out << "\t@Bindable ${field.type} ${field.name}\n"
+        } else if (isManyToOne(field) && !isOwned(field)) {
             out << "\tBasicEventList<${field.type}> ${field.name}List = new BasicEventList<>()\n"
             out << "\t@Bindable DefaultEventComboBoxModel<${field.type}> ${field.name} =\n"
             out << "\t\tGlazedListsSwing.eventComboBoxModelWithThreadProxyList(${field.name}List)\n"
-        } else if (field.type.toString()=="List" && field.info!="UNKNOWN") {
-            if (field.annotations?.get("OneToMany")!=null) {
-                out << "\tList<${field.info}> ${field.name} = []\n"
-            } else {
-                out << "\tTagChooserModel ${field.name} = new TagChooserModel()\n"
-            }
+        } else if (isOneToMany(field)) {
+            out << "\tList<${field.info}> ${field.name} = []\n"
+        } else if (isManyToMany(field)) {
+            out << "\tTagChooserModel ${field.name} = new TagChooserModel()\n"
         }
     }
 %>
@@ -50,17 +50,18 @@ class $className {
                 id = selected.id
 <%
     fields.each { field ->
-        if (["BASIC_TYPE", "DATE"].contains(field.info)) {
+        if (isOwned(field)) return
+
+        if (["BASIC_TYPE", "DATE"].contains(field.info) ||
+            (field.info=="DOMAIN_CLASS" && field.annotations?.containsAnnotation('OneToOne'))) {
             out << "\t\t\t\t${field.name} = selected.${field.name}\n"
-        } else if (field.info=="DOMAIN_CLASS" && !field.annotations?.containsAttribute('mappedBy')) {
+        } else if (isOneToOne(field) || isManyToOne(field)) {
             out << "\t\t\t\t${field.name}.selectedItem = selected.${field.name}\n"
-        } else if (field.type.toString()=="List" && field.info!="UNKNOWN") {
-            if (field.annotations?.get("OneToMany")!=null) {
-                out << "\t\t\t\t${field.name}.clear()\n"
-                out << "\t\t\t\t${field.name}.addAll(selected.${field.name})\n"
-            } else {
-                out << "\t\t\t\t${field.name}.replaceSelectedValues(selected.${field.name})\n"
-            }
+        } else if (isOneToMany(field)) {
+            out << "\t\t\t\t${field.name}.clear()\n"
+            out << "\t\t\t\t${field.name}.addAll(selected.${field.name})\n"
+        } else if (isManyToMany(field)) {
+            out << "\t\t\t\t${field.name}.replaceSelectedValues(selected.${field.name})\n"
         } else if (field.info=="UNKNOWN") {
             out << "\t\t\t\t// ${field.name} is not supported by generator.  You will need to code it manually.\n"
             out << "\t\t\t\t${field.name} = selected.${field.name}\n"
@@ -74,16 +75,17 @@ class $className {
     def clear = {
         id = null
 <% fields.collect { field ->
-        if (["BASIC_TYPE", "DATE"].contains(field.info)) {
+        if (isOwned(field)) return
+
+        if (["BASIC_TYPE", "DATE"].contains(field.info) ||
+            (field.info=="DOMAIN_CLASS" && field.annotations?.containsAnnotation('OneToOne'))) {
             out << "\t\t${field.name} = null\n"
-        } else if (field.info=="DOMAIN_CLASS" && !field.annotations?.containsAttribute('mappedBy')) {
+        } else if (isOneToOne(field) || isManyToOne(field)) {
             out << "\t\t${field.name}.selectedItem = null\n"
-        } else if (field.type.toString()=="List" && field.info!="UNKNOWN") {
-            if (field.annotations?.get("OneToMany")!=null) {
-                out << "\t\t${field.name}.clear()\n"
-            } else {
-                out << "\t\t${field.name}.clearSelectedValues()\n"
-            }
+        } else if (isOneToMany(field)) {
+            out << "\t\t${field.name}.clear()\n"
+        } else if (isManyToMany(field)) {
+            out << "\t\t${field.name}.clearSelectedValues()\n"
         } else if (field.info=="UNKNOWN") {
             out << "\t\t// ${field.name} is not supported by generator.  You will need to code it manually.\n"
             out << "\t\t${field.name} = null\n"

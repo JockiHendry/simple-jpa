@@ -16,32 +16,10 @@ application(title: '${natural(domainClass)}',
     panel(id: 'mainPanel') {
         borderLayout()
 
-        panel(constraints: CENTER) {
-            borderLayout()
-            panel(constraints: PAGE_START, layout: new FlowLayout(FlowLayout.LEADING)) {
-                label(text: bind('searchMessage', source: model))
-            }
-            scrollPane(constraints: CENTER) {
-                table(rowSelectionAllowed: true, id: 'table') {
-                    eventTableModel(list: model.${domainClassAsProp}List,
-                        columnNames: [<%
-    out << fields.collect { field ->
-        "'${natural(field.name as String)}'"
-    }.join(", ")
-%>],
-                        columnValues: [<%
-    out << fields.collect { field ->
-        "'\${value.${field.name}}'"
-    }.join(", ")%>])
-                    table.selectionModel = model.${domainClassAsProp}Selection
-                }
-            }
-        }
-
-        panel(id: "form", layout: new MigLayout('', '[right][left][left,grow]',''), constraints: PAGE_END, focusCycleRoot: true) {
+        panel(id: "form", layout: new MigLayout('', '[right][left][left,grow]',''), constraints: CENTER, focusCycleRoot: true) {
 <%
     fields.each { field ->
-        if (field.annotations?.containsAttribute('mappedBy')) return
+        if (isOwned(field)) return
 
         out << "\t\t\tlabel('${natural(field.name as String)}:')\n"
         if (field.info=="BASIC_TYPE" && ["Byte", "byte", "Short", "short", "Integer", "int", "Long", "long", "Float", "float", "Double", "double", "BigInteger"].contains(field.type as String)) {
@@ -55,20 +33,48 @@ application(title: '${natural(domainClass)}',
             if (field.type.toString().equals("LocalDate")) out << ", dateVisible: true, timeVisible: false"
             if (field.type.toString().equals("LocalTime")) out << ", dateVisible: false, timeVisible: true"
             out << ")\n"
-        } else if (field.info=="DOMAIN_CLASS") {
+        } else if (isManyToOne(field)) {
             out << "\t\t\tcomboBox(model: model.${field.name}, renderer: templateRenderer(template: '\${value}'), errorPath: '${field.name}')\n"
-        } else if (field.type.toString()=="List" && field.info!="UNKNOWN") {
-            if (field.annotations.containsAnnotation("OneToMany")) {
-                out << "\t\t\tbutton(id: '${field.name}', text: '${natural(field.name as String)}')\n"
-            } else {
-                out << "\t\t\ttagChooser(model: model.${field.name}, templateString: '\${value}', constraints: 'grow,push,span,wrap', errorPath: '${field.name}')\n"
-            }
+        } else if (isOneToOne(field)) {
+            out << "\t\t\tbutton(id: '${field.name}', text: '${natural(field.name as String)}', errorPath: '${field.name}', actionPerformed: {\n"
+            out << """\
+                app.withMVCGroup("${prop(field.type as String)}AsPair", [pair: model.${field.name}]) { m, v, c ->
+                    Window thisWindow = SwingUtilities.getWindowAncestor(mainPanel)
+                    new JDialog(thisWindow, "${natural(field.name as String)}", Dialog.ModalityType.DOCUMENT_MODAL).with {
+                        contentPane = v.mainPanel
+                        pack()
+                        setLocationRelativeTo(thisWindow)
+                        setVisible(true)
+                        model.${field.name} = m.${field.name}
+                    }
+                }
+            })
+"""
+        } else if (isOneToMany(field)) {
+            out << "\t\t\tbutton(id: '${field.name}', text: '${natural(field.name as String)}', errorPath: '${field.name}', actionPerformed: {\n"
+            out << """\
+                app.withMVCGroup("${prop(field.info)}AsChild", [parentList: model.${field.name}]) { m, v, c ->
+                    Window thisWindow = SwingUtilities.getWindowAncestor(mainPanel)
+                    new JDialog(thisWindow, "${natural(field.name as String)}", Dialog.ModalityType.DOCUMENT_MODAL).with {
+                        contentPane = v.mainPanel
+                        pack()
+                        setLocationRelativeTo(thisWindow)
+                        setVisible(true)
+
+                        model.${field.name}.clear()
+                        model.${field.name}.addAll(m.${prop(field.info)}List)
+                    }
+                }
+            })
+"""
+        } else if (isManyToMany(field)) {
+            out << "\t\t\ttagChooser(model: model.${field.name}, templateString: '\${value}', constraints: 'grow,push,span,wrap', errorPath: '${field.name}')\n"
         } else if (field.info=="UNKNOWN") {
             out << "\t\t\t// ${field.name} isn't supported by generator. It must be coded manually!\n"
             out << "\t\t\ttextField(id: '${field.name}', columns: 20, text: bind('${field.name}', target: model, mutual: true), errorPath: '${field.name}')\n"
         }
 
-        if (field.type.toString()=="List" && field.info!="UNKNOWN" && !field.annotations.containsAnnotation("OneToMany")) {
+        if (isManyToMany(field)) {
             out << "\t\t\terrorLabel(path: '${field.name}', constraints: 'skip 1,grow,span,wrap')\n"
         } else {
             out << "\t\t\terrorLabel(path: '${field.name}', constraints: 'wrap')\n"
@@ -79,27 +85,22 @@ application(title: '${natural(domainClass)}',
             panel(constraints: 'span, growx, wrap') {
                 flowLayout(alignment: FlowLayout.LEADING)
                 button(app.getMessage("simplejpa.dialog.save.button"), actionPerformed: {
-                    if (!model.itemTransaksiSelection.selectionEmpty) {
+                    if (model.${domainClassAsProp}!=null) {
                         if (JOptionPane.showConfirmDialog(mainPanel, app.getMessage("simplejpa.dialog.update.message"),
                             app.getMessage("simplejpa.dialog.update.title"), JOptionPane.YES_NO_OPTION, JOptionPane.WARNING_MESSAGE) != JOptionPane.YES_OPTION) {
                                 return
                         }
                     }
                     controller.save()
-                    form.getFocusTraversalPolicy().getFirstComponent(form).requestFocusInWindow()
                 })
-                button(app.getMessage("simplejpa.dialog.cancel.button"), visible: bind (source: model.${domainClassAsProp}Selection,
-                    sourceEvent: 'valueChanged', sourceValue: {!model.${domainClassAsProp}Selection.selectionEmpty}),actionPerformed: model.clear)
-                button(app.getMessage("simplejpa.dialog.delete.button"), visible: bind (source: model.${domainClassAsProp}Selection,
-                    sourceEvent: 'valueChanged', sourceValue: {!model.${domainClassAsProp}Selection.selectionEmpty}), actionPerformed: {
+                button(app.getMessage("simplejpa.dialog.delete.button"), visible: bind {model.${domainClassAsProp}!=null},
+                    actionPerformed: {
                         if (JOptionPane.showConfirmDialog(mainPanel, app.getMessage("simplejpa.dialog.delete.message"),
                             app.getMessage("simplejpa.dialog.delete.title"), JOptionPane.YES_NO_OPTION, JOptionPane.WARNING_MESSAGE) == JOptionPane.YES_OPTION) {
                                 controller.delete()
                         }
                 })
-                button(app.getMessage("simplejpa.dialog.close.button"), actionPerformed: {
-                    SwingUtilities.getWindowAncestor(mainPanel)?.dispose()
-                })
+                button(app.getMessage("simplejpa.dialog.close.button"), actionPerformed: { controller.close() })
             }
         }
     }
