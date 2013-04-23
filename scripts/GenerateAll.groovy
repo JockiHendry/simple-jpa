@@ -138,7 +138,7 @@ def createMVC = {
             "natural": GriffonUtil.&getNaturalName,
 
             // relational
-            "isOwned": {field -> field.annotations?.containsAttribute('mappedBy')}.&call,
+            "isMappedBy": {field -> field.annotations?.containsAttribute('mappedBy')}.&call,
             "isManyToOne": {field -> field.info=="DOMAIN_CLASS" && field.annotations?.containsAnnotation("ManyToOne")}.&call,
             "isManyToMany": {field -> field.type.toString()=='List' && field.info!='UNKNOWN' && field.annotations?.containsAnnotation("ManyToMany")}.&call,
             "isOneToMany": {field -> field.type.toString()=='List' && field.info!='UNKNOWN' && field.annotations?.containsAnnotation("OneToMany")}.&call,

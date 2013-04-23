@@ -22,9 +22,9 @@ class $className {
     @Bindable String ${fields[0]?.name ?: 'replaceThis'}Search
     @Bindable String searchMessage
 <%  fields.each { field ->
-        if (isOneToOne(field) && !isOwned(field)) {
+        if (isOneToOne(field) && !isMappedBy(field)) {
             out << "\t@Bindable ${field.type} ${field.name}\n"
-        } else if (isManyToOne(field) && !isOwned(field)) {
+        } else if (isManyToOne(field)) {
             out << "\tBasicEventList<${field.type}> ${field.name}List = new BasicEventList<>()\n"
             out << "\t@Bindable DefaultEventComboBoxModel<${field.type}> ${field.name} =\n"
             out << "\t\tGlazedListsSwing.eventComboBoxModelWithThreadProxyList(${field.name}List)\n"
@@ -50,7 +50,7 @@ class $className {
                 id = selected.id
 <%
     fields.each { field ->
-        if (isOwned(field)) return
+        if (isOneToOne(field) && isMappedBy(field)) return
 
         if (["BASIC_TYPE", "DATE"].contains(field.info) ||
             (field.info=="DOMAIN_CLASS" && field.annotations?.containsAnnotation('OneToOne'))) {
@@ -75,7 +75,7 @@ class $className {
     def clear = {
         id = null
 <% fields.collect { field ->
-        if (isOwned(field)) return
+        if (isOneToOne(field) && isMappedBy(field)) return
 
         if (["BASIC_TYPE", "DATE"].contains(field.info) ||
             (field.info=="DOMAIN_CLASS" && field.annotations?.containsAnnotation('OneToOne'))) {

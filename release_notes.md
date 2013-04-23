@@ -39,5 +39,4 @@ First release into griffon artifacts portal.
 8.  Add new softDelete(entity) method.
 9.  Add columnClasses to eventTableModel() to specify class type for each column (used by renderers).
 10.  generate-all now support one-to-many relationship.
-11.  generate-all will not generate mappedBy attributes (owned).
-12.  generate-all will generate one-to-one relationship as pair dialog (similiar to one-to-many child dialog).
+11.  generate-all will generate one-to-one relationship as pair dialog (similiar to one-to-many child dialog).

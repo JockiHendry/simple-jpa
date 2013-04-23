@@ -14,7 +14,7 @@ class $className {
         model.${domainClassAsProp} = args.'pair'
 <%
         fields.each { field ->
-            if (isOwned(field)) return
+            if (isOneToOne(field) && isMappedBy(field)) return
 
             if (["BASIC_TYPE", "DATE"].contains(field.info)) {
                 out << "\t\tmodel.${field.name} = args.'pair'?.${field.name}\n"
@@ -39,14 +39,12 @@ class $className {
     def listAll = {
 <%
     fields.each { field ->
-        if ((isManyToOne(field)) && !isOwned(field)) {
+        if ((isManyToOne(field))) {
             out << "\t\t\texecInsideUIAsync {model.${field.name}List.clear() }\n"
         }
     }
 
     fields.each { field ->
-        if (isOwned(field)) return
-
         if (isManyToOne(field)) {
             out << "\t\tList ${field.name}Result = findAll${field.type}()\n"
         } else if (isManyToMany(field)) {
@@ -57,8 +55,6 @@ class $className {
     }
 
     fields.each { field ->
-        if (isOwned(field)) return
-
         if (isManyToOne(field)) {
             out << "\t\t\texecInsideUIAsync{ model.${field.name}List.addAll(${field.name}Result) }\n"
         } else if (isManyToMany(field)) {
@@ -73,10 +69,8 @@ class $className {
 
     def save = {
         ${domainClass} ${domainClassAsProp} = new ${domainClass}(<%
-    out << fields.collect { field ->
-        if (isOwned(field)) {
-            return "'${field.name}': null"
-        } else if (isOneToOne(field)) {
+    out << fields.findAll{ !(isOneToOne(it) && isMappedBy(it)) }.collect { field ->
+        if (isOneToOne(field)) {
             return "'${field.name}': model.${field.name}"
         } else if (isManyToOne(field)) {
             return "'${field.name}': model.${field.name}.selectedItem"

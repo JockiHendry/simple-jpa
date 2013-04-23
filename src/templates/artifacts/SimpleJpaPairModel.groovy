@@ -17,9 +17,9 @@ class $className {
         } else if ("UNKNOWN".equals(field.info)){
             out << "\t// ${field.name} is not supported by generator.  You will need to code it manually.\n"
             out << "\t@Bindable ${field.type} ${field.name}\n"
-        } else if (isOneToOne(field) && !isOwned(field)) {
+        } else if (isOneToOne(field) && !isMappedBy(field)) {
             out << "\t@Bindable ${field.type} ${field.name}\n"
-        } else if (isManyToOne(field) && !isOwned(field)) {
+        } else if (isManyToOne(field)) {
             out << "\tBasicEventList<${field.type}> ${field.name}List = new BasicEventList<>()\n"
             out << "\t@Bindable DefaultEventComboBoxModel<${field.type}> ${field.name} =\n"
             out << "\t\tGlazedListsSwing.eventComboBoxModelWithThreadProxyList(${field.name}List)\n"

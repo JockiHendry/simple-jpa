@@ -18,14 +18,12 @@ class $className {
     def listAll = {
 <%
     fields.each { field ->
-        if (isManyToOne(field) && !isOwned(field)) {
+        if (isManyToOne(field)) {
             out << "\t\t\texecInsideUIAsync {model.${field.name}List.clear() }\n"
         }
     }
 
     fields.each { field ->
-        if (isOwned(field)) return
-
         if (isManyToOne(field)) {
             out << "\t\tList ${field.name}Result = findAll${field.type}()\n"
         } else if (isManyToMany(field)) {
@@ -36,8 +34,6 @@ class $className {
     }
 
     fields.each { field ->
-        if (isOwned(field)) return
-
         if (isManyToOne(field)) {
             out << "\t\t\texecInsideUIAsync{ model.${field.name}List.addAll(${field.name}Result) }\n"
         } else if (isManyToMany(field)) {
@@ -48,10 +44,8 @@ class $className {
 
     def save = {
         ${domainClass} ${domainClassAsProp} = new ${domainClass}(<%
-    out << fields.collect { field ->
-        if (isOwned(field)) {
-            return "'${field.name}': null"
-        } else if (isManyToOne(field)) {
+    out << fields.findAll{ !(isOneToOne(it) && isMappedBy(it)) }.collect { field ->
+        if (isManyToOne(field)) {
             return "'${field.name}': model.${field.name}.selectedItem"
         } else if (isOneToMany(field)) {
             return "'${field.name}': new ArrayList(model.${field.name})"
@@ -72,8 +66,6 @@ class $className {
             ${domainClass} selected${domainClass} = model.${domainClassAsProp}Selection.selected[0]
 <%
     fields.each { field ->
-        if (isOwned(field)) return
-
         if (isManyToOne(field)) {
             out << "\t\t\tselected${domainClass}.${field.name} = model.${field.name}.selectedItem\n"
         } else if (isOneToMany(field)) {
