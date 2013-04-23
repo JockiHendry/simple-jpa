@@ -64,7 +64,7 @@ class $className {
 %>)
         if (!validate(${domainClassAsProp})) return_failed()
 
-        if (model.itemTransaksiSelection.selectionEmpty) {
+        if (model.${domainClassAsProp}Selection.selectionEmpty) {
             // Insert operation
             execInsideUIAsync { model.${domainClassAsProp}List << ${domainClassAsProp} }
         } else {
