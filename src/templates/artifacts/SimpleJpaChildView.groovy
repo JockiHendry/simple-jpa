@@ -106,7 +106,7 @@ application(title: '${natural(domainClass)}',
 
             panel(constraints: 'span, growx, wrap') {
                 flowLayout(alignment: FlowLayout.LEADING)
-                button(app.getMessage("simplejpa.dialog.save.button"), actionPerformed: {
+                button(app.getMessage("simplejpa.dialog.ok.button"), actionPerformed: {
                     if (!model.itemTransaksiSelection.selectionEmpty) {
                         if (JOptionPane.showConfirmDialog(mainPanel, app.getMessage("simplejpa.dialog.update.message"),
                             app.getMessage("simplejpa.dialog.update.title"), JOptionPane.YES_NO_OPTION, JOptionPane.WARNING_MESSAGE) != JOptionPane.YES_OPTION) {

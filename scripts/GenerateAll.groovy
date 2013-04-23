@@ -418,6 +418,7 @@ Domain class package location is retrieved from the value of griffon.simpleJpa.m
     ["simplejpa.dialog.save.button": "Save",
      "simplejpa.dialog.cancel.button": "Cancel",
      "simplejpa.dialog.delete.button": "Delete",
+     "simplejpa.dialog.ok.button": "Ok",
      "simplejpa.dialog.close.button": "Close",
      "simplejpa.search.all.message": "Display all data",
      "simplejpa.search.result.message": "Display {0} search result for {1}",
