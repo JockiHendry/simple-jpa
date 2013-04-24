@@ -143,6 +143,8 @@ def createMVC = {
             "isManyToMany": {field -> field.type.toString()=='List' && field.info!='UNKNOWN' && field.annotations?.containsAnnotation("ManyToMany")}.&call,
             "isOneToMany": {field -> field.type.toString()=='List' && field.info!='UNKNOWN' && field.annotations?.containsAnnotation("OneToMany")}.&call,
             "isOneToOne": {field -> field.info=="DOMAIN_CLASS" && field.annotations?.containsAnnotation('OneToOne')}.&call,
+            "isRelation": {field -> field.annotations?.containsAnnotation(["ManyToMany", "OneToMany", "OneToOne", "ManyToOne"])}.&call,
+            "isCascaded": {field -> field.annotations?.containsAttribute('cascade') && field.annotations?.containsAttribute('orphanRemoval')}.&call,
 
         ]
 
@@ -453,8 +455,7 @@ class Annotations {
         annotations[annotation]
     }
 
-    boolean containsAttribute(String attribute) {
-        boolean result = false
+    def containsAttribute(String attribute) {
         annotations.findAll { k, v -> v.getAttribute(attribute) }
     }
 
@@ -462,7 +463,7 @@ class Annotations {
         annotations.keySet().find { it==search}
     }
 
-    boolean containsAnnotation(List search) {
+    def containsAnnotation(List search) {
         annotations.keySet().findAll { search.contains(it) }
     }
 
