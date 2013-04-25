@@ -75,6 +75,22 @@ class $className {
         }
     }.join(", ")
 %>)
+<%
+    def processOneToManyInSave(List fields, String currentClass, String currentAttribute = null, int numOfTab) {
+        if (!currentAttribute) currentAttribute = currentClass
+        def printTab = { n -> n.times { out << "\t" } }
+        fields.findAll{ isOneToMany(it) }.each { field ->
+            printTab(numOfTab)
+            out << "${currentClass}.${field.name}.each { ${field.info} ${prop(field.info)} ->\n"
+            printTab(numOfTab+1)
+            out << "${prop(field.info)}.${currentAttribute} = ${currentClass}\n"
+            processOneToManyInSave(getField(field.info), prop(field.info), numOfTab+1)
+            printTab(numOfTab)
+            out << "}\n"
+        }
+    }
+    processOneToManyInSave(fields, domainClassAsProp, 2)
+%>
         if (!validate(${domainClassAsProp})) return_failed()
 
         if (model.id == null) {
@@ -98,6 +114,7 @@ class $className {
             }
             out << "\t\t\tselected${domainClass}.${field.name}.clear()\n"
             out << "\t\t\tselected${domainClass}.${field.name}.addAll(model.${field.name})\n"
+            processOneToManyInSave(fields, "selected${domainClass}", domainClassAsProp, 3)
         } else if (isManyToMany(field)) {
             if (!isCascaded(field)) {
                 out << "\t\t\t// You may need to add code here because it seems that you haven't included cascade=CascadeType.ALL and orphanRemoval=true in your domain class's field\n"

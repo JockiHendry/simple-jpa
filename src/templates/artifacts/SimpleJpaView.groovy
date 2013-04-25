@@ -48,7 +48,9 @@ application(title: '${natural(domainClass)}',
 
         panel(id: "form", layout: new MigLayout('', '[right][left][left,grow]',''), constraints: PAGE_END, focusCycleRoot: true) {
 <%
+
     fields.findAll{ !(isOneToOne(it) && isMappedBy(it)) }.each { field ->
+
         out << "\t\t\tlabel('${natural(field.name as String)}:')\n"
         if (field.info=="BASIC_TYPE" && ["Byte", "byte", "Short", "short", "Integer", "int", "Long", "long", "Float", "float", "Double", "double", "BigInteger"].contains(field.type as String)) {
             out << "\t\t\tnumberTextField(id: '${field.name}', columns: 20, bindTo: '${field.name}', errorPath: '${field.name}')\n"

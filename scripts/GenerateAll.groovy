@@ -40,8 +40,11 @@ includeTargets << griffonScript("_GriffonCreateArtifacts")
 
 enum RelationType { ONE_TO_ONE, ONE_TO_MANY, MANY_TO_MANY }
 
-String generatedPackage
+final String PARENT_CLASS = "parentClass"
+final String PARENT_ATTRIBUTE = "parentAttribute"
+
 String domainClassName
+String generatedPackage
 String domainPackageName
 String startupGroup
 boolean forceOverwrite
@@ -52,6 +55,82 @@ List fieldList
 RelationType relationType = null
 Map relationParameter = [:]
 List generated = []
+
+def getFields =  { String name ->
+
+    String fullDomainClassName= "${domainPackageName ? domainPackageName : ''}${domainPackageName ? '.' : ''}${GriffonUtil.getClassNameRepresentation(name)}"
+    File fullDomainClassFile = new File("${basedir}/src/main/${fullDomainClassName.replace('.', '/')}.groovy")
+
+    if (!fullDomainClassFile.exists()) {
+        fail "Can't find domain class $fullDomainClassFile"
+    }
+
+    SourceBuffer sourceBuffer = new SourceBuffer()
+    UnicodeEscapingReader unicodeReader = new UnicodeEscapingReader(new FileReader(fullDomainClassFile), sourceBuffer)
+    GroovyLexer lexer = new GroovyLexer(unicodeReader)
+    unicodeReader.setLexer(lexer)
+    GroovyRecognizer parser = GroovyRecognizer.make(lexer)
+    parser.setSourceBuffer(sourceBuffer)
+    parser.compilationUnit()
+    GroovySourceAST ast = parser.getAST()
+
+    Visitor domainModelVisitor = new DomainModelVisitor()
+    AntlrASTProcessor traverser = new SourceCodeTraversal(domainModelVisitor)
+    traverser.process(ast)
+
+    if (!domainModelVisitor.isEntity()) {
+        println "Can't process $fullDomainClassFile because this is not an JPA entity.  This class didn't have @Entity annotation."
+        return
+    }
+
+    List fields = domainModelVisitor.fields;
+
+    def basicType = ["Boolean", "boolean", "Character", "char", "Byte", "byte", "Short", "short",
+            "Integer", "int", "Long", "long", "Float", "float", "Double", "double", "String", "BigInteger", "BigDecimal"]
+    def dateType = ["DateTime", "LocalDateTime", "LocalDate", "LocalTime"]
+
+    fields.each { field ->
+
+        // Check if primitive or wrapper for primitive
+        if (basicType.contains(field.type as String)) {
+            field["info"] = "BASIC_TYPE"
+            return
+        }
+
+        // Check if this is date
+        if (dateType.contains(field.type as String)) {
+            field["info"] = "DATE"
+            return
+        }
+
+        // Check if this is another domain model
+        if (new File("${basedir}/src/main/${domainPackageName.replace('.', '/')}/${field.type}.groovy").exists()) {
+            field["info"] = "DOMAIN_CLASS"
+            return
+        }
+
+        // Check if this is a List and has one of relationship annotation
+        if ("List"==(field.type as String)) {
+            if (field.annotations.containsAnnotation(["ManyToMany","OneToMany"])) {
+                List typeArguments = field.type.childrenOfType(TYPE_ARGUMENTS)
+                if (typeArguments.size() > 0) {
+                    def domainClass = typeArguments[0]?.childAt(0)?.childAt(0)?.childAt(0)
+                    if (domainClass!=null) {
+                        field["info"] = domainClass.toString()
+                    }
+                }
+            }
+            return
+        }
+
+        // Unknown
+        field["info"] = "UNKNOWN"
+
+    }
+
+    println "Found $fields"
+    fields
+}
 
 def findDomainClasses = {
     new File("${basedir}/src/main/${domainPackageName.replace('.', '/')}").list().grep { String name -> name.endsWith(".groovy") }.collect {
@@ -128,8 +207,8 @@ def createMVC = {
             "domainClassLists": startupGroup?findDomainClasses():[],
             "firstField": startupGroup?:fieldList[0]?.name as String,
             "softDelete": softDelete,
-            "parentDomainClass": relationParameter['parentDomainClass'],
-            "parentAttribute": relationParameter['parentAttribute'],
+            "parentDomainClass": relationParameter[PARENT_CLASS],
+            "parentAttribute": relationParameter[PARENT_ATTRIBUTE],
             "fields": fieldList,
 
             // functions
@@ -145,6 +224,9 @@ def createMVC = {
             "isOneToOne": {field -> field.info=="DOMAIN_CLASS" && field.annotations?.containsAnnotation('OneToOne')}.&call,
             "isRelation": {field -> field.annotations?.containsAnnotation(["ManyToMany", "OneToMany", "OneToOne", "ManyToOne"])}.&call,
             "isCascaded": {field -> field.annotations?.containsAttribute('cascade') && field.annotations?.containsAttribute('orphanRemoval')}.&call,
+
+            // utilities
+            "getField": {String name -> getFields(name)}
 
         ]
 
@@ -272,100 +354,30 @@ def processDomainClass
 processDomainClass = { String name ->
 
     domainClassName = GriffonUtil.getClassNameRepresentation(name)
-    String fullDomainClassName= "${domainPackageName ? domainPackageName : ''}${domainPackageName ? '.' : ''}$domainClassName"
-    File fullDomainClassFile = new File("${basedir}/src/main/${fullDomainClassName.replace('.', '/')}.groovy")
-
-    if (!fullDomainClassFile.exists()) {
-        fail "Can't find domain class $fullDomainClassFile"
-    }
-
-    SourceBuffer sourceBuffer = new SourceBuffer()
-    UnicodeEscapingReader unicodeReader = new UnicodeEscapingReader(new FileReader(fullDomainClassFile), sourceBuffer)
-    GroovyLexer lexer = new GroovyLexer(unicodeReader)
-    unicodeReader.setLexer(lexer)
-    GroovyRecognizer parser = GroovyRecognizer.make(lexer)
-    parser.setSourceBuffer(sourceBuffer)
-    parser.compilationUnit()
-    GroovySourceAST ast = parser.getAST()
-
-    Visitor domainModelVisitor = new DomainModelVisitor()
-    AntlrASTProcessor traverser = new SourceCodeTraversal(domainModelVisitor)
-    traverser.process(ast)
-
-    if (!domainModelVisitor.isEntity()) {
-        println "Can't process $fullDomainClassFile because this is not an JPA entity.  This class didn't have @Entity annotation."
-        return
-    }
-
-    fieldList = domainModelVisitor.fields;
-
-    def basicType = ["Boolean", "boolean", "Character", "char", "Byte", "byte", "Short", "short",
-            "Integer", "int", "Long", "long", "Float", "float", "Double", "double", "String", "BigInteger", "BigDecimal"]
-    def dateType = ["DateTime", "LocalDateTime", "LocalDate", "LocalTime"]
-
-    fieldList.each { field ->
-
-        // Check if primitive or wrapper for primitive
-        if (basicType.contains(field.type as String)) {
-            field["info"] = "BASIC_TYPE"
-            return
-        }
-
-        // Check if this is date
-        if (dateType.contains(field.type as String)) {
-            field["info"] = "DATE"
-            return
-        }
-
-        // Check if this is another domain model
-        if (new File("${basedir}/src/main/${domainPackageName.replace('.', '/')}/${field.type}.groovy").exists()) {
-            field["info"] = "DOMAIN_CLASS"
-            return
-        }
-
-        // Check if this is a List and has one of relationship annotation
-        if ("List"==(field.type as String)) {
-            if (field.annotations.containsAnnotation(["ManyToMany","OneToMany"])) {
-                List typeArguments = field.type.childrenOfType(TYPE_ARGUMENTS)
-                if (typeArguments.size() > 0) {
-                    def domainClass = typeArguments[0]?.childAt(0)?.childAt(0)?.childAt(0)
-                    if (domainClass!=null) {
-                        field["info"] = domainClass.toString()
-                    }
-                }
-            }
-            return
-        }
-
-        // Unknown
-        field["info"] = "UNKNOWN"
-
-    }
-
-    println "Found $fieldList"
+    fieldList = getFields(domainClassName)
 
     createMVC()
     createIntegrationTest()
     createMVCGroup(name)
+
 
     relationType = null
     relationParameter.clear()
 
     // For one-to-many relation
     fieldList.each { field ->
-        String currentDomainClassName = domainClassName
         if (field.annotations.containsAnnotation("OneToMany")) {
             if (!generated.contains(field["info"])) {
                 relationType = RelationType.ONE_TO_MANY
-                relationParameter['parentClass'] = domainClassName
-                relationParameter['parentAttribute'] = field.name as String
+                relationParameter[PARENT_CLASS] = new String(domainClassName)
+                relationParameter[PARENT_ATTRIBUTE] = field.name as String
                 processDomainClass(field["info"])
                 generated << domainClassName
             }
         } else if (field.annotations.containsAnnotation("OneToOne") && !field.annotations.containsAttribute("mappedBy")) {
             if (!generated.contains(field.type as String)) {
                 relationType = RelationType.ONE_TO_ONE
-                relationParameter['parentClass'] = domainClassName
+                relationParameter[PARENT_CLASS] = domainClassName
                 processDomainClass(field.type as String)
                 generated << (field.type as String)
             }

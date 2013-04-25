@@ -20,7 +20,7 @@ class $className {
             out << "\t@Bindable ${field.type} ${field.name}\n"
         } else if (isOneToOne(field) && !isMappedBy(field)) {
             out << "\t@Bindable ${field.type} ${field.name}\n"
-        } else if (isManyToOne(field)) {
+        } else if (isManyToOne(field) && !field.type.toString().equals(parentDomainClass)) {
             out << "\tBasicEventList<${field.type}> ${field.name}List = new BasicEventList<>()\n"
             out << "\t@Bindable DefaultEventComboBoxModel<${field.type}> ${field.name} =\n"
             out << "\t\tGlazedListsSwing.eventComboBoxModelWithThreadProxyList(${field.name}List)\n"
@@ -47,6 +47,7 @@ class $className {
 <%
     fields.each { field ->
         if (isOneToOne(field) && isMappedBy(field)) return
+        if (isManyToOne(field) && field.type.toString().equals(parentDomainClass)) return
 
         if (["BASIC_TYPE", "DATE"].contains(field.info)) {
             out << "\t\t\t\t${field.name} = selected.${field.name}\n"
@@ -71,6 +72,7 @@ class $className {
         id = null
 <% fields.each { field ->
         if (isOneToOne(field) && isMappedBy(field)) return
+        if (isManyToOne(field) && field.type.toString().equals(parentDomainClass)) return
 
         if (["BASIC_TYPE", "DATE"].contains(field.info)) {
             out << "\t\t${field.name} = null\n"

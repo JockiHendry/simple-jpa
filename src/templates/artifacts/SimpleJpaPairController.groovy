@@ -22,7 +22,7 @@ class $className {
                 out << "\t\tmodel.${field.name} = args.'pair'?.${field.name}\n"
             } else if (isManyToOne(field)) {
                 out << "\t\tmodel.${field.name}.selectedItem = args.'pair'?.${field.name}\n"
-            } else if (isOneToMany(field)) {
+            } else if (isOneToMany(field) && !isMappedBy(field)) {
                 out << "\t\tmodel.${field.name}.clear()\n"
                 out << "\t\tmodel.${field.name}.addAll(args.'pair'?.${field.name})\n"
             } else if (isManyToMany(field)) {
@@ -69,7 +69,8 @@ class $className {
 
     def save = {
         ${domainClass} ${domainClassAsProp} = new ${domainClass}(<%
-    out << fields.findAll{ !(isOneToOne(it) && isMappedBy(it)) }.collect { field ->
+    out << fields.findAll{ !(isOneToOne(it) && isMappedBy(it)) &&
+                           !(isManyToOne(it) && it.type.toString().equals(parentDomainClass))}.collect { field ->
         if (isOneToOne(field)) {
             return "'${field.name}': model.${field.name}"
         } else if (isManyToOne(field)) {
@@ -91,7 +92,8 @@ class $className {
 <%
     fields.each { field ->
 
-        if (field.info=="DOMAIN_CLASS" && field.annotations?.containsAttribute('mappedBy')) return ''
+        if (field.info=="DOMAIN_CLASS" && field.annotations?.containsAttribute('mappedBy')) return
+        if (isManyToOne(field) && field.type.toString().equals(parentDomainClass)) return
 
         if (field.type.toString()=="List" && field.info!="UNKNOWN" && field.annotations?.get("OneToMany")==null) {
             out << "\t\t\tmodel.${domainClassAsProp}.${field.name}.clear()\n"

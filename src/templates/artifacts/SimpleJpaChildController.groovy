@@ -18,13 +18,13 @@ class $className {
     def listAll = {
 <%
     fields.each { field ->
-        if (isManyToOne(field)) {
+        if (isManyToOne(field) && !field.type.toString().equals(parentDomainClass)) {
             out << "\t\t\texecInsideUIAsync {model.${field.name}List.clear() }\n"
         }
     }
 
     fields.each { field ->
-        if (isManyToOne(field)) {
+        if (isManyToOne(field) && !field.type.toString().equals(parentDomainClass)) {
             out << "\t\tList ${field.name}Result = findAll${field.type}()\n"
         } else if (isManyToMany(field)) {
             out << "\t\tList ${field.name}Result = findAll${field.info}()\n"
@@ -34,7 +34,7 @@ class $className {
     }
 
     fields.each { field ->
-        if (isManyToOne(field)) {
+        if (isManyToOne(field) && !field.type.toString().equals(parentDomainClass)) {
             out << "\t\t\texecInsideUIAsync{ model.${field.name}List.addAll(${field.name}Result) }\n"
         } else if (isManyToMany(field)) {
             out << "\t\t\texecInsideUIAsync{ model.${field.name}.replaceValues(${field.name}Result) }\n"
@@ -44,8 +44,9 @@ class $className {
 
     def save = {
         ${domainClass} ${domainClassAsProp} = new ${domainClass}(<%
-    out << fields.findAll{ !(isOneToOne(it) && isMappedBy(it)) }.collect { field ->
-        if (isManyToOne(field)) {
+    out << fields.findAll{ !(isOneToOne(it) && isMappedBy(it)) &&
+                           !(isManyToOne(it) && it.type.toString().equals(parentDomainClass))}.collect { field ->
+        if (isManyToOne(field) && !field.type.toString().equals(parentDomainClass)) {
             return "'${field.name}': model.${field.name}.selectedItem"
         } else if (isOneToMany(field)) {
             return "'${field.name}': new ArrayList(model.${field.name})"
@@ -66,7 +67,9 @@ class $className {
             ${domainClass} selected${domainClass} = model.${domainClassAsProp}Selection.selected[0]
 <%
     fields.each { field ->
-        if (isManyToOne(field)) {
+        if (isManyToOne(field) && field.type.toString().equals(parentDomainClass)) return
+
+        if (isManyToOne(field) && !field.type.toString().equals(parentDomainClass)) {
             out << "\t\t\tselected${domainClass}.${field.name} = model.${field.name}.selectedItem\n"
         } else if (isOneToMany(field)) {
             out << "\t\t\tselected${domainClass}.${field.name}.clear()\n"
