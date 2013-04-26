@@ -99,7 +99,7 @@ class $className {
                 model.errors['${firstField}'] = app.getMessage("simplejpa.error.alreadyExist.message")
                 return_failed()
             }
-            persist(${domainClassAsProp})
+            ${domainClassAsProp} = merge(${domainClassAsProp})
             execInsideUIAsync { model.${domainClassAsProp}List << ${domainClassAsProp} }
         } else {
             // Update operation

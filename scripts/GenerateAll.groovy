@@ -366,7 +366,7 @@ processDomainClass = { String name ->
 
     // For one-to-many relation
     fieldList.each { field ->
-        if (field.annotations.containsAnnotation("OneToMany")) {
+        if (field.annotations?.containsAnnotation("OneToMany")) {
             if (!generated.contains(field["info"])) {
                 relationType = RelationType.ONE_TO_MANY
                 relationParameter[PARENT_CLASS] = new String(domainClassName)
@@ -374,7 +374,7 @@ processDomainClass = { String name ->
                 processDomainClass(field["info"])
                 generated << domainClassName
             }
-        } else if (field.annotations.containsAnnotation("OneToOne") && !field.annotations.containsAttribute("mappedBy")) {
+        } else if (field.annotations?.containsAnnotation("OneToOne") && !field.annotations?.containsAttribute("mappedBy")) {
             if (!generated.contains(field.type as String)) {
                 relationType = RelationType.ONE_TO_ONE
                 relationParameter[PARENT_CLASS] = domainClassName

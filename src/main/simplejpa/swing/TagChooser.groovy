@@ -89,7 +89,7 @@ class TagChooser extends JPanel {
         AutoCompleteDecorator.decorate(cboInput, new ObjectToStringConverter() {
             @Override
             String getPreferredStringForItem(Object o) {
-                model.templateValues[o?.toString()]
+                model.templateValues[o?.toString()]?.toString()
             }
         })
         cboInput.preferredSize = size
@@ -212,7 +212,7 @@ class TagChooser extends JPanel {
             setLayout(new FlowLayout())
 
             this.data = data
-            lblData = new JLabel(model.templateValues[data?.toString()])
+            lblData = new JLabel(model.templateValues[data?.toString()]?.toString())
             background = getBackground()
             add(lblData)
 
@@ -263,7 +263,7 @@ class TagChooser extends JPanel {
                 setBackground(list.getBackground())
                 setForeground(list.getForeground())
             }
-            setText(model.templateValues[value?.toString()])
+            setText(model.templateValues[value?.toString()]?.toString())
             return this
         }
     }

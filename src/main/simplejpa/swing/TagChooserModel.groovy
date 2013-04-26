@@ -36,9 +36,9 @@ class TagChooserModel {
     boolean allowMultiple
     DefaultComboBoxModel comboBoxModel
 
-    private Template template
-    private Map templateValues
-    private PropertyChangeSupport pcs = new PropertyChangeSupport(this)
+    Template template
+    Map templateValues
+    PropertyChangeSupport pcs = new PropertyChangeSupport(this)
 
     public TagChooserModel() {
         templateValues = [:]
