@@ -56,7 +56,9 @@ RelationType relationType = null
 Map relationParameter = [:]
 List generated = []
 
-def getFields =  { String name ->
+def getFields
+
+getFields =  { String name, boolean processChild = true ->
 
     String fullDomainClassName= "${domainPackageName ? domainPackageName : ''}${domainPackageName ? '.' : ''}${GriffonUtil.getClassNameRepresentation(name)}"
     File fullDomainClassFile = new File("${basedir}/src/main/${fullDomainClassName.replace('.', '/')}.groovy")
@@ -111,12 +113,30 @@ def getFields =  { String name ->
 
         // Check if this is a List and has one of relationship annotation
         if ("List"==(field.type as String)) {
-            if (field.annotations.containsAnnotation(["ManyToMany","OneToMany"])) {
+            if (field.annotations?.containsAnnotation(["ManyToMany","OneToMany"])) {
                 List typeArguments = field.type.childrenOfType(TYPE_ARGUMENTS)
+                def domainClass
                 if (typeArguments.size() > 0) {
-                    def domainClass = typeArguments[0]?.childAt(0)?.childAt(0)?.childAt(0)
+                    domainClass = typeArguments[0]?.childAt(0)?.childAt(0)?.childAt(0)
                     if (domainClass!=null) {
                         field["info"] = domainClass.toString()
+                    }
+                }
+                if (processChild) {
+                    field["bidirectional"] = false
+                    if (field.annotations?.containsAnnotation("OneToMany")) {
+                        if (getFields(domainClass.toString(), false).findAll{
+                            it.annotations?.containsAnnotation("ManyToOne") && it.type.toString()==name }.size() > 0) {
+                            field["bidirectional"] = true
+                        }
+                    }
+
+                    if (field.annotations?.containsAnnotation("ManyToMany")) {
+                        if (getFields(domainClass.toString(), false).findAll {
+                            it.annotations?.containsAnnotation("ManyToMany") &&
+                            it.type.childrenOfType(TYPE_ARGUMENTS)[0]?.childAt(0)?.childAt(0)?.childAt(0)?.toString()==name }.size() > 0) {
+                                field["bidirectional"] = true
+                        }
                     }
                 }
             }
@@ -224,6 +244,7 @@ def createMVC = {
             "isOneToOne": {field -> field.info=="DOMAIN_CLASS" && field.annotations?.containsAnnotation('OneToOne')}.&call,
             "isRelation": {field -> field.annotations?.containsAnnotation(["ManyToMany", "OneToMany", "OneToOne", "ManyToOne"])}.&call,
             "isCascaded": {field -> field.annotations?.containsAttribute('cascade') && field.annotations?.containsAttribute('orphanRemoval')}.&call,
+            "isBidirectional": {field -> field.bidirectional}.&call,
 
             // utilities
             "getField": {String name -> getFields(name)}
