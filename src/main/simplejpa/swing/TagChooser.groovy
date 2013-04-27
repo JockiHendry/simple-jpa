@@ -26,25 +26,21 @@ import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 
 import javax.swing.BorderFactory
-import javax.swing.DefaultComboBoxModel
 import javax.swing.ImageIcon
 import javax.swing.JButton
 import javax.swing.JComboBox
+import javax.swing.JComponent
 import javax.swing.JLabel
 import javax.swing.JList
 import javax.swing.JPanel
-import javax.swing.JScrollPane
-import javax.swing.JTextField
 import javax.swing.ListCellRenderer
-import javax.swing.Scrollable
 import java.awt.BorderLayout
 import java.awt.Color
 import java.awt.Component
-import java.awt.Dimension
 import java.awt.FlowLayout
-import java.awt.Graphics
-import java.awt.Rectangle
 import java.awt.event.ActionEvent
+import java.awt.event.FocusEvent
+import java.awt.event.FocusListener
 import java.awt.event.MouseAdapter
 import java.awt.event.MouseEvent
 import java.beans.PropertyChangeEvent
@@ -105,6 +101,7 @@ class TagChooser extends JPanel {
 
         btnAdd = new JButton(addIcon)
         btnAdd.border = BorderFactory.createEmptyBorder()
+        btnAdd.addFocusListener(new BorderFocusListener())
         btnAdd.rolloverIcon = addRolloverIcon
         btnAdd.contentAreaFilled = false
         btnAdd.actionPerformed = { addSelectedItem() }
@@ -112,6 +109,7 @@ class TagChooser extends JPanel {
 
         btnAddAll = new JButton(addAllIcon)
         btnAddAll.border = BorderFactory.createEmptyBorder()
+        btnAddAll.addFocusListener(new BorderFocusListener())
         btnAddAll.rolloverIcon = addAllRolloverIcon
         btnAddAll.contentAreaFilled = false
         btnAddAll.actionPerformed = { addAllItem() }
@@ -219,6 +217,7 @@ class TagChooser extends JPanel {
             btnRemove = new JButton(removeIcon)
             btnRemove.setRolloverIcon(removeRolloverIcon)
             btnRemove.setBorder(BorderFactory.createEmptyBorder())
+            btnRemove.addFocusListener(new BorderFocusListener())
             btnRemove.setContentAreaFilled(false)
             btnRemove.actionPerformed = {
                 model.removeSelectedValue(data)
@@ -237,13 +236,10 @@ class TagChooser extends JPanel {
                     setBackground(background)
                 }
             })
+
+            setBorder(BorderFactory.createLineBorder(getBackground().darker()))
         }
 
-        @Override
-        protected void paintBorder(Graphics g) {
-            g.setColor(getBackground().darker())
-            g.drawRect(0,0, getWidth()-1, getHeight()-1)
-        }
     }
 
 
@@ -265,6 +261,23 @@ class TagChooser extends JPanel {
             }
             setText(model.render(value))
             return this
+        }
+    }
+
+    class BorderFocusListener implements FocusListener {
+
+        @Override
+        void focusGained(FocusEvent e) {
+            JComponent c = e.getComponent()
+            c.setBorder(BorderFactory.createDashedBorder(Color.GRAY))
+            c.repaint()
+        }
+
+        @Override
+        void focusLost(FocusEvent e) {
+            JComponent c = e.getComponent()
+            c.setBorder(BorderFactory.createEmptyBorder())
+            c.repaint()
         }
     }
 
