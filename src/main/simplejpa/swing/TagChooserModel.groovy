@@ -37,11 +37,9 @@ class TagChooserModel {
     DefaultComboBoxModel comboBoxModel
 
     Template template
-    Map templateValues
     PropertyChangeSupport pcs = new PropertyChangeSupport(this)
 
     public TagChooserModel() {
-        templateValues = [:]
         selectedValues = []
         values = []
         templateString = '${value}'
@@ -118,8 +116,14 @@ class TagChooserModel {
 
     public void refreshTemplateValues() {
         comboBoxModel = new DefaultComboBoxModel(values.toArray())
-        values.each { value ->
-            templateValues[value?.toString()] = TemplateRenderer.make(template,value) ?: value.toString()
+    }
+
+    String render(def value) {
+        if (value==null) return ""
+        if (template) {
+            return TemplateRenderer?.make(template,value) ?: value?.toString()
+        } else {
+            return value?.toString() ?: ""
         }
     }
 
