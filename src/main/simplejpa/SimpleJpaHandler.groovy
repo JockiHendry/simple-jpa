@@ -321,7 +321,7 @@ final class SimpleJpaHandler {
         executeInsideTransaction {
             EntityManager em = tlEntityManager.get()
             if (!em.contains(model)) {
-                model = em.merge(model)
+                model = em.find(model.class, model.id)
             }
             em.remove(model)
         }
