@@ -76,10 +76,13 @@ class $className {
     }.join(", ")
 %>)
 <%
+    def printTab(int n) {
+        n.times { out << "\t" }
+    }
+
     def processOneToManyInSave(List fields, String currentClass, String currentAttribute = null, int numOfTab) {
         if (!currentAttribute) currentAttribute = currentClass
-        def printTab = { n -> n.times { out << "\t" } }
-        fields.findAll{ isOneToMany(it) }.each { field ->
+        fields.findAll{ isOneToMany(it) && isBidirectional(it) }.each { field ->
             printTab(numOfTab)
             out << "${currentClass}.${field.name}.each { ${field.info} ${prop(field.info)} ->\n"
             printTab(numOfTab+1)
@@ -89,7 +92,26 @@ class $className {
             out << "}\n"
         }
     }
+
+    def processManyToManyInSave(List fields, String currentClass, String currentAttribute = null, int numOfTab) {
+        if (!currentAttribute) currentAttribute = currentClass
+        fields.findAll{ isManyToMany(it) && isBidirectional(it) }.each { field ->
+            printTab(numOfTab)
+            out << "${currentClass}.${field.name}.each { ${field.info} ${prop(field.info)} ->\n"
+            printTab(numOfTab+1)
+            out << "if (!${prop(field.info)}.${linkedAttribute(field).name}.find { it.id == ${currentClass}.id }) {\n"
+            printTab(numOfTab+2)
+            out << "${prop(field.info)}.${linkedAttribute(field).name}.add(${currentClass})\n"
+            processOneToManyInSave(getField(field.info), prop(field.info), numOfTab+2)
+            printTab(numOfTab+1)
+            out << "}\n"
+            printTab(numOfTab)
+            out << "}\n"
+        }
+    }
+
     processOneToManyInSave(fields, domainClassAsProp, 2)
+    processManyToManyInSave(fields, domainClassAsProp, 2)
 %>
         if (!validate(${domainClassAsProp})) return_failed()
 
@@ -121,6 +143,7 @@ class $className {
             }
             out << "\t\t\tselected${domainClass}.${field.name}.clear()\n"
             out << "\t\t\tselected${domainClass}.${field.name}.addAll(model.${field.name}.selectedValues)\n"
+            processManyToManyInSave(fields, "selected${domainClass}", domainClassAsProp, 3)
         } else {
             if (isOneToOne(field) && !isCascaded(field)) {
                 out << "\t\t\t// You may need to add code here because it seems that you haven't included cascade=CascadeType.ALL and orphanRemoval=true in your domain class's field\n"
