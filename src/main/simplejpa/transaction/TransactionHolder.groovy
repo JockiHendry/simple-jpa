@@ -45,8 +45,10 @@ class TransactionHolder {
             }
         } else if (resumeLevel==0) {
             LOG.info "Start a new transaction..."
-            em.transaction.begin()
-            em.clear()
+            if (!em.transaction.active) {
+                em.transaction.begin()
+                em.clear()
+            }
             resumeLevel = 1
             LOG.info "Now in tr [$resumeLevel]."
             return true
