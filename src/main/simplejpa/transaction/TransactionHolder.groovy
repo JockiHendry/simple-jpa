@@ -56,14 +56,14 @@ class TransactionHolder {
 
     }
 
-    public void commitTransaction() {
+    public boolean commitTransaction() {
         assert em != null
         LOG.info "Trying to ${isRollback?'rollback':'commit'} from tr [$resumeLevel] from thread ${Thread.currentThread().id}"
         if (resumeLevel>0) {
             if (resumeLevel==1) {
                 if (isRollback) {
                     rollbackTransaction()
-                    return
+                    return false
                 }
                 LOG.info "Commiting transaction..."
                 em.transaction.commit()
@@ -72,25 +72,30 @@ class TransactionHolder {
             }
             resumeLevel--
             LOG.info "Now in tr  [${resumeLevel>0?resumeLevel:'no transaction'}]."
+            return true
         } else if (resumeLevel==0) {
             LOG.info "Can't commit: Not inside a transaction."
+            return false
         }
     }
 
-    public void rollbackTransaction() {
+    public boolean rollbackTransaction() {
         assert em != null
         if (resumeLevel==0) {
             LOG.info "Can't rollback: Not inside a transaction."
+            return false
         } else if (resumeLevel==1) {
             LOG.info "Rollback transaction..."
             em.transaction.rollback()
             resumeLevel = 0
             LOG.info "Now in [no transaction]."
             isRollback = false
+            return true
         } else if (resumeLevel > 1) {
             LOG.info "No rollback yet [$resumeLevel]"
             isRollback = true
             resumeLevel--
+            return false
         }
     }
 
