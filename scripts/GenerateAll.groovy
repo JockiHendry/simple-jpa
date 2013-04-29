@@ -125,17 +125,21 @@ getFields =  { String name, boolean processChild = true ->
                 if (processChild) {
                     field["bidirectional"] = false
                     if (field.annotations?.containsAnnotation("OneToMany")) {
-                        if (getFields(domainClass.toString(), false).findAll{
-                            it.annotations?.containsAnnotation("ManyToOne") && it.type.toString()==name }.size() > 0) {
+                        List relatedAttributes = getFields(domainClass.toString(), false).findAll{
+                            it.annotations?.containsAnnotation("ManyToOne") && it.type.toString()==name }
+                        if (relatedAttributes.size() > 0) {
                             field["bidirectional"] = true
+                            field["linkedAttribute"] = relatedAttributes[0]
                         }
                     }
 
                     if (field.annotations?.containsAnnotation("ManyToMany")) {
-                        if (getFields(domainClass.toString(), false).findAll {
+                        List relatedAttributes = getFields(domainClass.toString(), false).findAll {
                             it.annotations?.containsAnnotation("ManyToMany") &&
-                            it.type.childrenOfType(TYPE_ARGUMENTS)[0]?.childAt(0)?.childAt(0)?.childAt(0)?.toString()==name }.size() > 0) {
-                                field["bidirectional"] = true
+                            it.type.childrenOfType(TYPE_ARGUMENTS)[0]?.childAt(0)?.childAt(0)?.childAt(0)?.toString()==name }
+                        if (relatedAttributes.size() > 0) {
+                            field["bidirectional"] = true
+                            field["linkedAttribute"] = relatedAttributes[0]
                         }
                     }
                 }
@@ -245,6 +249,7 @@ def createMVC = {
             "isRelation": {field -> field.annotations?.containsAnnotation(["ManyToMany", "OneToMany", "OneToOne", "ManyToOne"])}.&call,
             "isCascaded": {field -> field.annotations?.containsAttribute('cascade') && field.annotations?.containsAttribute('orphanRemoval')}.&call,
             "isBidirectional": {field -> field.bidirectional}.&call,
+            "linkedAttribute": {field -> field.linkedAttribute}.&call,
 
             // utilities
             "getField": {String name -> getFields(name)}
