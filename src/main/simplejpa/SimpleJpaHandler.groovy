@@ -48,6 +48,7 @@ final class SimpleJpaHandler {
     private final ThreadLocal<EntityManager> tlEntityManager = new ThreadLocal<EntityManager>() {
         @Override
         protected EntityManager initialValue() {
+            LOG.info "Creating new entity manager..."
             emf.createEntityManager()
         }
     }
@@ -106,31 +107,35 @@ final class SimpleJpaHandler {
     def commitTransaction = {
         TransactionHolder transactionHolder = tlTransactionHolder.get()
         transactionHolder.em = tlEntityManager.get()
-        transactionHolder.commitTransaction()
+        if (transactionHolder.commitTransaction()) {
+            tlEntityManager.remove()
+        }
     }
 
     def rollbackTransaction = {
         TransactionHolder transactionHolder = tlTransactionHolder.get()
         transactionHolder.em = tlEntityManager.get()
-        transactionHolder.rollbackTransaction()
+        if (transactionHolder.rollbackTransaction()) {
+            tlEntityManager.remove()
+        }
     }
 
     def executeInsideTransaction(Closure action) {
-        boolean notInsideTransaction = false
+        boolean insideTransaction = true
         def result
         if (!tlEntityManager.get().transaction.isActive()) {
-            notInsideTransaction = true
+            insideTransaction = false
             beginTransaction()
         }
-        LOG.info "Not inside a transaction? $notInsideTransaction"
+        LOG.info "Not in a transaction? ${!insideTransaction}"
         try {
             result = action()
-            if (notInsideTransaction) {
+            if (!insideTransaction) {
                 commitTransaction()
             }
         } catch (Exception ex) {
-            LOG.error "Error when not inside a transaction? $notInsideTransaction", ex
-            if (notInsideTransaction) {
+            LOG.error "Error when not in a transaction? ${!insideTransaction}", ex
+            if (!insideTransaction) {
                 rollbackTransaction()
             }
             throw new Exception(ex)
@@ -319,11 +324,15 @@ final class SimpleJpaHandler {
     def remove = { model ->
         LOG.info "Executing remove for [$model]"
         executeInsideTransaction {
+            def persistedModel = model
             EntityManager em = tlEntityManager.get()
             if (!em.contains(model)) {
-                model = em.find(model.class, model.id)
+                persistedModel = em.find(model.class, model.id)
+                if (!persistedModel) {
+                    persistedModel = em.merge(model)
+                }
             }
-            em.remove(model)
+            em.remove(persistedModel)
         }
     }
 
@@ -333,8 +342,15 @@ final class SimpleJpaHandler {
     }
 
     def newEntityManager = { ->
-        LOG.info "Discarding previous EntityManager and returning new EntityManager..."
+        LOG.info "Commit before discarding previous EntityManager..."
+        commitTransaction()
+
+        LOG.info "Discarding previous EntityManager..."
         tlEntityManager.remove()
+
+        LOG.info "Start transaction before creating new EntityManager..."
+        beginTransaction()
+
         return tlEntityManager.get()
     }
 
