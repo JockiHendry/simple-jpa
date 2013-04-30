@@ -23,7 +23,7 @@ class $className {
             out << "\tBasicEventList<${field.type}> ${field.name}List = new BasicEventList<>()\n"
             out << "\t@Bindable DefaultEventComboBoxModel<${field.type}> ${field.name} =\n"
             out << "\t\tGlazedListsSwing.eventComboBoxModelWithThreadProxyList(${field.name}List)\n"
-        } else if (isOneToMany(field) && !isMappedBy(field)) {
+        } else if (isOneToMany(field)) {
             out << "\tList<${field.info}> ${field.name} = []\n"
         } else if (isManyToMany(field)) {
             out << "\tTagChooserModel ${field.name} = new TagChooserModel()\n"

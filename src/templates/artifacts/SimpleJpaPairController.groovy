@@ -22,9 +22,11 @@ class $className {
                 out << "\t\tmodel.${field.name} = args.'pair'?.${field.name}\n"
             } else if (isManyToOne(field)) {
                 out << "\t\tmodel.${field.name}.selectedItem = args.'pair'?.${field.name}\n"
-            } else if (isOneToMany(field) && !isMappedBy(field)) {
-                out << "\t\tmodel.${field.name}.clear()\n"
-                out << "\t\tmodel.${field.name}.addAll(args.'pair'?.${field.name})\n"
+            } else if (isOneToMany(field)) {
+                out << "\t\tif (args.'pair'?.${field.name}!=null) {\n"
+                out << "\t\t\tmodel.${field.name}.clear()\n"
+                out << "\t\t\tmodel.${field.name}.addAll(args.'pair'?.${field.name})\n"
+                out << "\t\t}\n"
             } else if (isManyToMany(field)) {
                 out << "\t\tmodel.${field.name}.replaceSelectedValues(args.'pair'?.${field.name})\n"
             } else if (field.info=="UNKNOWN") {
@@ -82,6 +84,29 @@ class $className {
         }
     }.join(", ")
 %>)
+<%
+    def printTab(int n) {
+        n.times { out << "\t" }
+    }
+
+    def processOneToManyInSave(List fields, boolean updateMode = false, int numOfTab) {
+        fields.findAll{ isOneToMany(it) && isBidirectional(it) }.each { field ->
+            printTab(numOfTab)
+            out << "${domainClassAsProp}.${field.name}.each { ${field.info} ${prop(field.info)} ->\n"
+            printTab(numOfTab+1)
+            if (updateMode) {
+                out << "${prop(field.info)}.${domainClassAsProp} = model.${domainClassAsProp}\n"
+            } else {
+                out << "${prop(field.info)}.${domainClassAsProp} = ${domainClassAsProp}\n"
+            }
+            processOneToManyInSave(getField(field.info), updateMode, numOfTab+1)
+            printTab(numOfTab)
+            out << "}\n"
+        }
+    }
+
+    processOneToManyInSave(fields, 2)
+%>
         if (!validate(${domainClassAsProp})) return_failed()
 
         if (model.${domainClassAsProp}==null) {
@@ -95,7 +120,10 @@ class $className {
         if (field.info=="DOMAIN_CLASS" && field.annotations?.containsAttribute('mappedBy')) return
         if (isManyToOne(field) && field.type.toString().equals(parentDomainClass)) return
 
-        if (field.type.toString()=="List" && field.info!="UNKNOWN" && field.annotations?.get("OneToMany")==null) {
+        if (isOneToMany(field)) {
+            processOneToManyInSave(fields, true, 3)
+            out << "\t\t\tmodel.${domainClassAsProp}.${field.name} = ${domainClassAsProp}.${field.name}\n"
+        } else if (field.type.toString()=="List" && field.info!="UNKNOWN") {
             out << "\t\t\tmodel.${domainClassAsProp}.${field.name}.clear()\n"
             out << "\t\t\tmodel.${domainClassAsProp}.${field.name}.addAll(${domainClassAsProp}.${field.name})\n"
         } else {

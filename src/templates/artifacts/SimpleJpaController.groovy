@@ -141,12 +141,15 @@ class $className {
             out << "\t\t\tselected${domainClass}.${field.name}.clear()\n"
             out << "\t\t\tselected${domainClass}.${field.name}.addAll(model.${field.name}.selectedValues)\n"
             processManyToManyInSave(fields, "selected${domainClass}", domainClassAsProp, 3)
-        } else {
-            if (isOneToOne(field) && !isCascaded(field)) {
-                out << "\t\t\t// You may need to add code here because it seems that you haven't included cascade=CascadeType.ALL and orphanRemoval=true in your domain class's field\n"
+        } else if (isOneToOne(field)) {
+            if (!isMappedBy(field)) {
+                if (!isCascaded(field)) {
+                    out << "\t\t\t// You may need to add code here because it seems that you haven't included cascade=CascadeType.ALL and orphanRemoval=true in your domain class's field\n"
+                }
+                out << "\t\t\tselected${domainClass}.${field.name} = model.${field.name}\n"
             }
+        } else {
             out << "\t\t\tselected${domainClass}.${field.name} = model.${field.name}\n"
-
         }
     }
 %>
