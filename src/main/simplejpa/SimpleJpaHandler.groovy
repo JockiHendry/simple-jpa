@@ -108,6 +108,7 @@ final class SimpleJpaHandler {
         TransactionHolder transactionHolder = tlTransactionHolder.get()
         transactionHolder.em = tlEntityManager.get()
         if (transactionHolder.commitTransaction()) {
+            LOG.info "Discarding entity manager..."
             tlEntityManager.remove()
         }
     }
@@ -116,6 +117,7 @@ final class SimpleJpaHandler {
         TransactionHolder transactionHolder = tlTransactionHolder.get()
         transactionHolder.em = tlEntityManager.get()
         if (transactionHolder.rollbackTransaction()) {
+            LOG.info "Discarding entity manager..."
             tlEntityManager.remove()
         }
     }
