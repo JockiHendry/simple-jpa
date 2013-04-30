@@ -23,12 +23,14 @@ class $className {
             } else if (isManyToOne(field)) {
                 out << "\t\tmodel.${field.name}.selectedItem = args.'pair'?.${field.name}\n"
             } else if (isOneToMany(field)) {
-                out << "\t\tif (args.'pair'?.${field.name}!=null) {\n"
+                out << "\t\tif (args.'pair'?.${field.name}) {\n"
                 out << "\t\t\tmodel.${field.name}.clear()\n"
                 out << "\t\t\tmodel.${field.name}.addAll(args.'pair'?.${field.name})\n"
                 out << "\t\t}\n"
             } else if (isManyToMany(field)) {
-                out << "\t\tmodel.${field.name}.replaceSelectedValues(args.'pair'?.${field.name})\n"
+                out << "\t\tif (args.'pair'?.${field.name}) {\n"
+                out << "\t\t\tmodel.${field.name}.replaceSelectedValues(args.'pair'?.${field.name})\n"
+                out << "\t\t}\n"
             } else if (field.info=="UNKNOWN") {
                 out << "\t\t// ${field.name} is not supported by generator.  You will need to code it manually.\n"
                 out << "\t\tmodel.${field.name} = args.'pair'?.${field.name}\n"
@@ -89,8 +91,10 @@ class $className {
         n.times { out << "\t" }
     }
 
-    def processOneToManyInSave(List fields, boolean updateMode = false, int numOfTab) {
+    def processOneToManyInSave(List fields, boolean updateMode = false, int numOfTab, String currentField = null) {
         fields.findAll{ isOneToMany(it) && isBidirectional(it) }.each { field ->
+            if (currentField && field.name.toString()!=currentField) return
+
             printTab(numOfTab)
             out << "${domainClassAsProp}.${field.name}.each { ${field.info} ${prop(field.info)} ->\n"
             printTab(numOfTab+1)
@@ -105,7 +109,27 @@ class $className {
         }
     }
 
+    def processManyToManyInSave(List fields, boolean updateMode = false, int numOfTab, String currentField = null) {
+        fields.findAll{ isManyToMany(it) && isBidirectional(it) }.each { field ->
+            if (currentField && field.name.toString()!=currentField) return
+
+            printTab(numOfTab)
+            if (updateMode) out << "model."
+            out << "${domainClassAsProp}.${field.name}.each { ${field.info} ${prop(field.info)} ->\n"
+            printTab(numOfTab+1)
+            out << "if (!${prop(field.info)}.${linkedAttribute(field).name}.contains(${domainClassAsProp})) {\n"
+            printTab(numOfTab+2)
+            out << "${prop(field.info)}.${linkedAttribute(field).name}.add(${domainClassAsProp})\n"
+            processManyToManyInSave(getField(field.info), updateMode, numOfTab+2)
+            printTab(numOfTab+1)
+            out << "}\n"
+            printTab(numOfTab)
+            out << "}\n"
+        }
+    }
+
     processOneToManyInSave(fields, 2)
+    processManyToManyInSave(fields, 2)
 %>
         if (!validate(${domainClassAsProp})) return_failed()
 
@@ -121,16 +145,19 @@ class $className {
         if (isManyToOne(field) && field.type.toString().equals(parentDomainClass)) return
 
         if (isOneToMany(field)) {
-            processOneToManyInSave(fields, true, 3)
             out << "\t\t\tmodel.${domainClassAsProp}.${field.name} = ${domainClassAsProp}.${field.name}\n"
+            processOneToManyInSave(fields, true, 3, field.name.toString())
+        } else if (isManyToMany(field)) {
+            out << "\t\t\tmodel.${domainClassAsProp}.${field.name} = ${domainClassAsProp}.${field.name}\n"
+            processManyToManyInSave(fields, true, 3, field.name.toString())
         } else if (field.type.toString()=="List" && field.info!="UNKNOWN") {
             out << "\t\t\tmodel.${domainClassAsProp}.${field.name}.clear()\n"
             out << "\t\t\tmodel.${domainClassAsProp}.${field.name}.addAll(${domainClassAsProp}.${field.name})\n"
         } else {
             out << "\t\t\tmodel.${domainClassAsProp}.${field.name} = ${domainClassAsProp}.${field.name}\n"
         }
-    }
-%>}
+    }%>
+        }
         close()
     }
 

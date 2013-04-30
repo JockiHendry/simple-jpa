@@ -80,9 +80,10 @@ class $className {
         n.times { out << "\t" }
     }
 
-    def processOneToManyInSave(List fields, String currentClass, String currentAttribute = null, int numOfTab) {
+    def processOneToManyInSave(List fields, String currentClass, String currentAttribute = null, int numOfTab, String currentField=null) {
         if (!currentAttribute) currentAttribute = currentClass
         fields.findAll{ isOneToMany(it) && isBidirectional(it) }.each { field ->
+            if (currentField && field.name.toString()!=currentField) return
             printTab(numOfTab)
             out << "${currentClass}.${field.name}.each { ${field.info} ${prop(field.info)} ->\n"
             printTab(numOfTab+1)
@@ -93,16 +94,17 @@ class $className {
         }
     }
 
-    def processManyToManyInSave(List fields, String currentClass, String currentAttribute = null, int numOfTab) {
+    def processManyToManyInSave(List fields, String currentClass, String currentAttribute = null, int numOfTab, String currentField=null) {
         if (!currentAttribute) currentAttribute = currentClass
         fields.findAll{ isManyToMany(it) && isBidirectional(it) }.each { field ->
+            if (currentField && field.name.toString()!=currentField) return
             printTab(numOfTab)
             out << "${currentClass}.${field.name}.each { ${field.info} ${prop(field.info)} ->\n"
             printTab(numOfTab+1)
-            out << "if (!${prop(field.info)}.${linkedAttribute(field).name}.find { it.id == ${currentClass}.id }) {\n"
+            out << "if (!${prop(field.info)}.${linkedAttribute(field).name}.contains(${currentClass})) {\n"
             printTab(numOfTab+2)
             out << "${prop(field.info)}.${linkedAttribute(field).name}.add(${currentClass})\n"
-            processOneToManyInSave(getField(field.info), prop(field.info), numOfTab+2)
+            processManyToManyInSave(getField(field.info), prop(field.info), numOfTab+2)
             printTab(numOfTab+1)
             out << "}\n"
             printTab(numOfTab)
@@ -136,11 +138,11 @@ class $className {
             }
             out << "\t\t\tselected${domainClass}.${field.name}.clear()\n"
             out << "\t\t\tselected${domainClass}.${field.name}.addAll(model.${field.name})\n"
-            processOneToManyInSave(fields, "selected${domainClass}", domainClassAsProp, 3)
+            processOneToManyInSave(fields, "selected${domainClass}", domainClassAsProp, 3, field.name.toString())
         } else if (isManyToMany(field)) {
             out << "\t\t\tselected${domainClass}.${field.name}.clear()\n"
             out << "\t\t\tselected${domainClass}.${field.name}.addAll(model.${field.name}.selectedValues)\n"
-            processManyToManyInSave(fields, "selected${domainClass}", domainClassAsProp, 3)
+            processManyToManyInSave(fields, "selected${domainClass}", domainClassAsProp, 3, field.name.toString())
         } else if (isOneToOne(field)) {
             if (!isMappedBy(field)) {
                 if (!isCascaded(field)) {
