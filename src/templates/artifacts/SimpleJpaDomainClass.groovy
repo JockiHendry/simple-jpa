@@ -8,8 +8,7 @@ import javax.validation.constraints.*
 import org.hibernate.validator.constraints.*
 import org.joda.time.*
 
-@DomainModel @Entity
-@TupleConstructor @ToString
+@DomainModel @Entity @Canonical
 class ${className} {
 
     // Example of attribute declaration:
