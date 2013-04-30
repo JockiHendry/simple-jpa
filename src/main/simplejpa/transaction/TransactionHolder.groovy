@@ -60,6 +60,7 @@ class TransactionHolder {
         assert em != null
         LOG.info "Trying to ${isRollback?'rollback':'commit'} from tr [$resumeLevel] from thread ${Thread.currentThread().id}"
         if (resumeLevel>0) {
+            boolean commit = false
             if (resumeLevel==1) {
                 if (isRollback) {
                     rollbackTransaction()
@@ -67,12 +68,13 @@ class TransactionHolder {
                 }
                 LOG.info "Commiting transaction..."
                 em.transaction.commit()
+                commit = true
             } else {
                 LOG.info "Not committing yet [$resumeLevel]."
             }
             resumeLevel--
             LOG.info "Now in tr  [${resumeLevel>0?resumeLevel:'no transaction'}]."
-            return true
+            return commit
         } else if (resumeLevel==0) {
             LOG.info "Can't commit: Not inside a transaction."
             return false
