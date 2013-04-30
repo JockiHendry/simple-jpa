@@ -34,6 +34,7 @@ import javax.swing.JLabel
 import javax.swing.JList
 import javax.swing.JPanel
 import javax.swing.ListCellRenderer
+import javax.swing.SwingUtilities
 import java.awt.BorderLayout
 import java.awt.Color
 import java.awt.Component
@@ -164,7 +165,7 @@ class TagChooser extends JPanel {
                         break
                     case "selectedValues":
                         selectedValueChanged(model.selectedValues)
-                        swing.edt { panelSelectedItems.refresh() }
+                        panelSelectedItems.refresh()
                         break
                     case "templateString":
                         swing.edt { model.refreshTemplateValues() }
@@ -191,8 +192,12 @@ class TagChooser extends JPanel {
             model.selectedValues.each { value ->
                 add(new SelectedItem(value))
             }
-            revalidate()
-            repaint()
+
+            SwingBuilder swing = new SwingBuilder()
+            swing.edt {
+                SwingUtilities.getWindowAncestor(this).validate()
+                repaint()
+            }
         }
     }
 
