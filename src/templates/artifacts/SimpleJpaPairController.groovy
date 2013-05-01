@@ -110,7 +110,7 @@ class $className {
     }
 
     def processManyToManyInSave(List fields, boolean updateMode = false, int numOfTab, String currentField = null) {
-        fields.findAll{ isManyToMany(it) && isBidirectional(it) }.each { field ->
+        fields.findAll{ isManyToMany(it) && isBidirectional(it) && !isMappedBy(it) }.each { field ->
             if (currentField && field.name.toString()!=currentField) return
 
             printTab(numOfTab)

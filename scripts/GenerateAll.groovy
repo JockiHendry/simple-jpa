@@ -252,7 +252,7 @@ def createMVC = {
             "linkedAttribute": {field -> field.linkedAttribute}.&call,
 
             // utilities
-            "getField": {String name -> getFields(name, false)}
+            "getField": {String name -> getFields(name)}.&call,
 
         ]
 
