@@ -439,8 +439,8 @@ Domain class package location is retrieved from the value of griffon.simpleJpa.m
     setStartup = argsMap['set-startup']
 
     def config = new ConfigSlurper().parse(configFile.toURL())
-    domainPackageName = config.griffon?.simpleJpa?.model?.package ?: 'domain'
-    softDelete = config.griffon?.simpleJpa?.finder?.alwaysExcludeSoftDeleted ?: false
+    domainPackageName = config.griffon?.simplejpa?.model?.package ?: 'domain'
+    softDelete = config.griffon?.simplejpa?.finder?.alwaysExcludeSoftDeleted ?: false
 
     if (startupGroup!=null) {
         processStartupGroup()
