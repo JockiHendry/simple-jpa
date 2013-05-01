@@ -41,3 +41,4 @@ First release into griffon artifacts portal.
 10.  generate-all now support one-to-many relationship.
 11.  generate-all will generate one-to-one relationship as pair dialog (similiar to one-to-many child dialog).
 12.  Improvements on tagChooser().
+13.  Change HibernateTestCase to DbUnitTestCase that will retrieve JDBC connection based on current persistence.xml (user can choose which persistence unit to be used).

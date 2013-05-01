@@ -3,9 +3,9 @@ package ${packageName}
 import domain.*
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
-import simplejpa.testing.HibernateTestCase
+import simplejpa.testing.DbUnitTestCase
 
-class $className extends HibernateTestCase {
+class $className extends DbUnitTestCase {
 
     private static final Logger log = LoggerFactory.getLogger($className)
 
