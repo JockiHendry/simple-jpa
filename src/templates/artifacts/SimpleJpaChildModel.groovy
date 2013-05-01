@@ -51,13 +51,15 @@ class $className {
 
         if (["BASIC_TYPE", "DATE"].contains(field.info)) {
             out << "\t\t\t\t${field.name} = selected.${field.name}\n"
-        } else if (isOneToOne(field) || isManyToOne(field)) {
-            out << "\t\t\t\t${field.name}.selectedItem = selected.${field.name}\n"
+        } else if (isOneToOne(field)) {
+            out << "\t\t\t\t${field.name} = selected.${field.name}\n"
         } else if (isOneToMany(field)) {
             out << "\t\t\t\t${field.name}.clear()\n"
             out << "\t\t\t\t${field.name}.addAll(selected.${field.name})\n"
         } else if (isManyToMany(field)) {
             out << "\t\t\t\t${field.name}.replaceSelectedValues(selected.${field.name})\n"
+        } else if (isManyToOne(field)) {
+            out << "\t\t\t\t${field.name}.selectedItem = selected.${field.name}\n"
         } else if (field.info=="UNKNOWN") {
             out << "\t\t\t\t// ${field.name} is not supported by generator.  You will need to code it manually.\n"
             out << "\t\t\t\t${field.name} = selected.${field.name}\n"
@@ -76,12 +78,14 @@ class $className {
 
         if (["BASIC_TYPE", "DATE"].contains(field.info)) {
             out << "\t\t${field.name} = null\n"
-        } else if (isOneToOne(field) || isManyToOne(field)) {
-            out << "\t\t${field.name}.selectedItem = null\n"
+        } else if (isOneToOne(field)) {
+            out << "\t\t${field.name} = null\n"
         } else if (isOneToMany(field)) {
             out << "\t\t${field.name}.clear()\n"
         } else if (isManyToMany(field)) {
             out << "\t\t${field.name}.clearSelectedValues()\n"
+        } else if (isManyToOne(field)) {
+            out << "\t\t${field.name}.selectedItem = null\n"
         } else if (field.info=="UNKNOWN") {
             out << "\t\t// ${field.name} is not supported by generator.  You will need to code it manually.\n"
             out << "\t\t${field.name} = null\n"
