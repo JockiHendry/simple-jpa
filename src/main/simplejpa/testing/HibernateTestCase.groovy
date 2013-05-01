@@ -50,7 +50,6 @@ abstract class HibernateTestCase extends GriffonUnitTestCase {
         if (!connection.connection.autoCommit) {
             connection.connection.commit()
         }
-        controller.newEntityManager()
     }
 
     void deleteAll() {
@@ -58,7 +57,6 @@ abstract class HibernateTestCase extends GriffonUnitTestCase {
         if (!connection.connection.autoCommit) {
             connection.connection.commit()
         }
-        controller.newEntityManager()
     }
 
     void refresh() {
@@ -66,7 +64,6 @@ abstract class HibernateTestCase extends GriffonUnitTestCase {
         if (!connection.connection.autoCommit) {
             connection.connection.commit()
         }
-        controller.newEntityManager()
     }
 
 }
