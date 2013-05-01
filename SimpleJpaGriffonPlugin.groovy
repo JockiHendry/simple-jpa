@@ -502,12 +502,12 @@ Integration Testing
 simple-jpa uses dbUnit for integration testing to create consistent data for each test method.  generate-all command
 will create class for integration test, with content like this:
 
-    class StudentTest extends HibernateTestCase {
-       private static final Logger log = LoggerFactory.getLogger(MahasiswaTest)
+    class StudentTest extends DbUnitTestCase {
+       private static final Logger log = LoggerFactory.getLogger(StudentTest)
 
        protected void setUp() {
           super.setUp()
-          setUpDatabase("mahasiswa", "/project/data.xls")
+          setUpDatabase("student", "/project/data.xls")
        }
 
        protected void tearDown() {
