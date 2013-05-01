@@ -76,7 +76,7 @@ class TransactionHolder {
             LOG.info "Now in tr  [${resumeLevel>0?resumeLevel:'no transaction'}]."
             return commit
         } else if (resumeLevel==0) {
-            LOG.info "Can't commit: Not inside a transaction."
+            LOG.info "Can't commit: Not inside a transaction. This is normal if transaction was rollbacked due to exception."
             return false
         }
     }
