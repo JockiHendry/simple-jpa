@@ -119,7 +119,7 @@ class TagChooserModel {
     }
 
     String render(def value) {
-        if (value==null) return ""
+        if (value==null || value=="This is a prototype display") return ""
         if (template) {
             return TemplateRenderer?.make(template,value) ?: value?.toString()
         } else {
