@@ -357,7 +357,7 @@ ${parts.join('\n')}
     }
 
     // set startupGroup to this MVCGroup
-    if (setStartup || startupGroup) {
+    if (setStartup || (mvcGroupName==startupGroup)) {
         configText = configText.replaceFirst(/startupGroups = \['.*'\]/, "startupGroups = ['${GriffonUtil.getPropertyName(mvcGroupName)}']")
     }
 
@@ -385,7 +385,6 @@ processDomainClass = { String name ->
     createMVC()
     createIntegrationTest()
     createMVCGroup(name)
-
 
     relationType = null
     relationParameter.clear()
@@ -419,6 +418,7 @@ Usage: griffon generate-all *
        griffon generate-all * --force-overwrite --set-startup
        griffon generate-all [domainClass]
        griffon generate-all --startup-group=[startupGroupName]
+       griffon generate-all [domainClass] --startup-group=[startupGroupName]
 
 Parameter: --force-overwrite : will overwrite existing file without any warning!
            --skip-xml : will not generate XML for DbUnit data (integration testing).
@@ -442,16 +442,16 @@ Domain class package location is retrieved from the value of griffon.simpleJpa.m
     domainPackageName = config.griffon?.simplejpa?.model?.package ?: 'domain'
     softDelete = config.griffon?.simplejpa?.finder?.alwaysExcludeSoftDeleted ?: false
 
+    if (argsMap.params[0]=="*") {
+        findDomainClasses().each { String name -> processDomainClass(name)}
+    } else {
+        argsMap.params.each {
+            processDomainClass(it)
+        }
+    }
+
     if (startupGroup!=null) {
         processStartupGroup()
-    } else {
-        if (argsMap.params[0]=="*") {
-            findDomainClasses().each { String name -> processDomainClass(name)}
-        } else {
-            argsMap.params.each {
-                processDomainClass(it)
-            }
-        }
     }
 
     String validationMessages = "${basedir}/griffon-app/i18n/messages.properties"
