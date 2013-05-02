@@ -448,7 +448,9 @@ Domain class package location is retrieved from the value of griffon.simpleJpa.m
         if (argsMap.params[0]=="*") {
             findDomainClasses().each { String name -> processDomainClass(name)}
         } else {
-            processDomainClass(argsMap.params[0])
+            argsMap.params.each {
+                processDomainClass(it)
+            }
         }
     }
 
