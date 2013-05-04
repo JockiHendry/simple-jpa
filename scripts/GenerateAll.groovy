@@ -162,9 +162,9 @@ def findDomainClasses = {
     }
 }
 
-def createMVC = {
+def createMVC = { boolean createStartupGroup = false ->
 
-    ["Model", "View", "Controller"].each { String type, boolean createStartupGroup = false ->
+    ["Model", "View", "Controller"].each { String type ->
         println "Creating $type..."
 
         String templateFileName
