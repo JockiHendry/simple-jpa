@@ -16,7 +16,7 @@
 
 class SimpleJpaGriffonPlugin {
     // the plugin version
-    String version = '0.3'
+    String version = '0.3.1'
     // the version or versions of Griffon the plugin is designed for
     String griffonVersion = '1.2.0 > *'
     // the other plugins this plugin depends on

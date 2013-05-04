@@ -60,7 +60,7 @@ Example: griffon create-domain-class Student
     String persistenceXml = "${basedir}/griffon-app/conf/metainf/persistence.xml"
     File persistenceFile = new File(persistenceXml)
     if (!persistenceFile.exists()) {
-        fail "$persistenceXml doesn't exists! You can generate it by executing create-persistence-file command."
+        fail "$persistenceXml doesn't exists! You can generate it by executing create-simple-jpa command."
     }
     def persistenceRoot = new XmlSlurper(false, false).parse(persistenceFile)
 
