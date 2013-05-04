@@ -164,13 +164,13 @@ def findDomainClasses = {
 
 def createMVC = {
 
-    ["Model", "View", "Controller"].each { String type ->
+    ["Model", "View", "Controller"].each { String type, boolean createStartupGroup = false ->
         println "Creating $type..."
 
         String templateFileName
         String className
 
-        if (startupGroup) {
+        if (createStartupGroup) {
             templateFileName = "Startup${type}"
             className = startupGroup
         } else {
@@ -371,7 +371,7 @@ ${parts.join('\n')}
 }
 
 def processStartupGroup = {
-    createMVC()
+    createMVC(true)
     createMVCGroup(startupGroup)
 }
 
@@ -432,11 +432,11 @@ Domain class package location is retrieved from the value of griffon.simpleJpa.m
         return
     }
 
-    generatedPackage = argsMap['generated-package'] ?: 'project'
-    startupGroup = argsMap['startup-group']
-    forceOverwrite = argsMap.containsKey('force-overwrite')
-    skipExcel = argsMap.containsKey('skip-excel')
-    setStartup = argsMap['set-startup']
+    generatedPackage = argsMap['generated-package'] ?: (argsMap['generatedPackage'] ?: 'project')
+    startupGroup = argsMap['startup-group'] ?: argsMap['startupGroup']
+    forceOverwrite = argsMap.containsKey('force-overwrite') || argsMap.containsKey('forceOverwrite')
+    skipExcel = argsMap.containsKey('skip-excel') || argsMap.containsKey('skipExcel')
+    setStartup = argsMap['set-startup'] || argsMap['setStartup']
 
     def config = new ConfigSlurper().parse(configFile.toURL())
     domainPackageName = config.griffon?.simplejpa?.model?.package ?: 'domain'
