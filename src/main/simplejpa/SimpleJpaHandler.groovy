@@ -1,5 +1,6 @@
 package simplejpa
 
+import org.codehaus.groovy.runtime.metaclass.ConcurrentReaderHashMap
 import org.slf4j.*
 import simplejpa.transaction.ReturnFailedSignal
 import simplejpa.transaction.TransactionHolder
@@ -44,20 +45,31 @@ final class SimpleJpaHandler {
         this.alwaysExcludeSoftDeleted = alwaysExcludeSoftDeleted
     }
 
+    private final ConcurrentReaderHashMap mapTransactionHolder = new ConcurrentReaderHashMap()
 
-    private final ThreadLocal<EntityManager> tlEntityManager = new ThreadLocal<EntityManager>() {
-        @Override
-        protected EntityManager initialValue() {
-            LOG.info "Creating new entity manager..."
-            emf.createEntityManager()
+    private void debugEntityManager() {
+        if (LOG.isInfoEnabled()) {
+            def result = mapTransactionHolder.collect().join(', ')
+            LOG.info "List of cached EntityManager: $result"
         }
     }
 
-    private final ThreadLocal<TransactionHolder> tlTransactionHolder = new ThreadLocal<TransactionHolder>() {
-        @Override
-        protected TransactionHolder initialValue() {
-            new TransactionHolder()
-        }
+    def getEntityManager = {
+        LOG.info "Retrieving current EntityManager from thread ${Thread.currentThread().id}..."
+        EntityManager em = mapTransactionHolder.get(Thread.currentThread().id).em
+        debugEntityManager()
+        em
+    }
+
+    def createEntityManager = {
+        mapTransactionHolder.put(Thread.currentThread().id, new TransactionHolder(emf.createEntityManager()))
+        debugEntityManager()
+    }
+
+    def destroyEntityManager = {
+        mapTransactionHolder.each { long k, EntityManager v -> v.close() }
+        mapTransactionHolder.clear()
+        debugEntityManager()
     }
 
     private configureCriteria(CriteriaBuilder cb, CriteriaQuery c, Root model, Map config) {
@@ -99,48 +111,47 @@ final class SimpleJpaHandler {
     }
 
     def beginTransaction = { boolean resume = true ->
-        TransactionHolder transactionHolder = tlTransactionHolder.get()
-        transactionHolder.em = tlEntityManager.get()
-        transactionHolder.beginTransaction(resume)
+        mapTransactionHolder.get(Thread.currentThread().id).beginTransaction()
     }
 
     def commitTransaction = {
-        TransactionHolder transactionHolder = tlTransactionHolder.get()
-        transactionHolder.em = tlEntityManager.get()
-        if (transactionHolder.commitTransaction()) {
-            LOG.info "Discarding entity manager..."
-            tlEntityManager.remove()
-        }
+        mapTransactionHolder.get(Thread.currentThread().id).commitTransaction()
     }
 
     def rollbackTransaction = {
-        TransactionHolder transactionHolder = tlTransactionHolder.get()
-        transactionHolder.em = tlEntityManager.get()
-        if (transactionHolder.rollbackTransaction()) {
-            LOG.info "Discarding entity manager..."
-            tlEntityManager.remove()
-        }
+        mapTransactionHolder.get(Thread.currentThread().id).rollbackTransaction()
     }
 
     def executeInsideTransaction(Closure action) {
         boolean insideTransaction = true
+        boolean isError = false
+        EntityManager createdEM
         def result
-        if (!tlEntityManager.get().transaction.isActive()) {
+        if (!getEntityManager().transaction.isActive()) {
             insideTransaction = false
+            if (!getEntityManager()) {
+                createdEM = createEntityManager()
+            }
             beginTransaction()
         }
         LOG.info "Not in a transaction? ${!insideTransaction}"
         try {
             result = action()
-            if (!insideTransaction) {
-                commitTransaction()
-            }
         } catch (Exception ex) {
             LOG.error "Error when not in a transaction? ${!insideTransaction}", ex
             if (!insideTransaction) {
+                isError = true
                 rollbackTransaction()
             }
             throw new Exception(ex)
+        } finally {
+            if (!insideTransaction && !isError) {
+                commitTransaction()
+            }
+            if (createdEM) {
+                LOG.info "Removing EntityManager created by this standalone transaction"
+                mapTransactionHolder.remove(createdEM)
+            }
         }
         return result
     }
@@ -152,14 +163,14 @@ final class SimpleJpaHandler {
     def executeQuery = { String jpql, Map config = [:] ->
         LOG.info "Executing query $jpql"
         executeInsideTransaction {
-            configureQuery(tlEntityManager.get().createQuery(jpql), config).getResultList()
+            configureQuery(getEntityManager().createQuery(jpql), config).getResultList()
         }
     }
 
     def executeNativeQuery = { String sql, Map config = [:] ->
         LOG.info "Executing native query $sql"
         executeInsideTransaction {
-            configureQuery(tlEntityManager.get().createNativeQuery(sql), config).getResultList()
+            configureQuery(getEntityManager().createNativeQuery(sql), config).getResultList()
         }
     }
 
@@ -167,25 +178,25 @@ final class SimpleJpaHandler {
         return { Map config = [:] ->
             LOG.info "Executing findAll$model for $model"
             executeInsideTransaction {
-                CriteriaBuilder cb = tlEntityManager.get().getCriteriaBuilder()
+                CriteriaBuilder cb = getEntityManager().getCriteriaBuilder()
                 CriteriaQuery c = cb.createQuery()
                 Root rootModel = c.from(Class.forName(domainModelPackage + "." + model))
                 c.select(rootModel)
 
                 configureCriteria(cb, c, rootModel, config)
-                configureQuery(tlEntityManager.get().createQuery(c), config).getResultList()
+                configureQuery(getEntityManager().createQuery(c), config).getResultList()
             }
         }
     }
 
     def findModelById = { String model, boolean notSoftDeleted ->
         def modelClass = Class.forName(domainModelPackage + "." + model)
-        def idClass = tlEntityManager.get().metamodel.entity(modelClass).idType.javaType
+        def idClass = getEntityManager().metamodel.entity(modelClass).idType.javaType
 
         return { id ->
             LOG.info "Executing find$model for class $modelClass and id [$id]"
             executeInsideTransaction {
-                Object object = tlEntityManager.get().find(modelClass, idClass.newInstance(id))
+                Object object = getEntityManager().find(modelClass, idClass.newInstance(id))
                 if (notSoftDeleted) {
                     if (object."deleted"=="Y") return null
                 }
@@ -200,7 +211,7 @@ final class SimpleJpaHandler {
         return { Closure closure, Map config = [:] ->
             LOG.info "Executing find${model}ByDsl with config [$config]"
             executeInsideTransaction {
-                CriteriaBuilder cb = tlEntityManager.get().getCriteriaBuilder()
+                CriteriaBuilder cb = getEntityManager().getCriteriaBuilder()
                 CriteriaQuery c = cb.createQuery()
                 Root rootModel = c.from(modelClass)
                 c.select(rootModel)
@@ -210,7 +221,7 @@ final class SimpleJpaHandler {
                 c.where(closure.delegate.criteria)
 
                 configureCriteria(cb, c, rootModel, config)
-                configureQuery(tlEntityManager.get().createQuery(c), config).getResultList()
+                configureQuery(getEntityManager().createQuery(c), config).getResultList()
             }
         }
     }
@@ -221,7 +232,7 @@ final class SimpleJpaHandler {
         return { Map args, Map config = [:]  ->
             LOG.info "Executing find${model}By with argument [$args] and config [$config]"
             executeInsideTransaction {
-                CriteriaBuilder cb = tlEntityManager.get().getCriteriaBuilder()
+                CriteriaBuilder cb = getEntityManager().getCriteriaBuilder()
                 CriteriaQuery c = cb.createQuery()
                 Root rootModel = c.from(modelClass)
                 c.select(rootModel)
@@ -235,7 +246,7 @@ final class SimpleJpaHandler {
                 c.where(criteria)
 
                 configureCriteria(cb, c, rootModel, config)
-                configureQuery(tlEntityManager.get().createQuery(c), config).getResultList()
+                configureQuery(getEntityManager().createQuery(c), config).getResultList()
             }
         }
     }
@@ -246,7 +257,7 @@ final class SimpleJpaHandler {
         return { Object[] args ->
             LOG.info "Executing find${model}By${attribute} with argument [$args]"
             executeInsideTransaction {
-                CriteriaBuilder cb = tlEntityManager.get().getCriteriaBuilder()
+                CriteriaBuilder cb = getEntityManager().getCriteriaBuilder()
                 CriteriaQuery c = cb.createQuery()
                 Root rootModel = c.from(modelClass)
                 c.select(rootModel)
@@ -263,16 +274,16 @@ final class SimpleJpaHandler {
                 if (args.last() instanceof Map) {
                     Map configuration = (Map) args.last()
                     configureCriteria(cb, c, rootModel, configuration)
-                    return configureQuery(tlEntityManager.get().createQuery(c), configuration).getResultList()
+                    return configureQuery(getEntityManager().createQuery(c), configuration).getResultList()
                 } else {
-                    return tlEntityManager.get().createQuery(c).getResultList()
+                    return getEntityManager().createQuery(c).getResultList()
                 }
             }
         }
     }
 
     def doNamedQuery = { String namedQuery, String model ->
-        Query query = tlEntityManager.get().createNamedQuery("${model}.${namedQuery}")
+        Query query = getEntityManager().createNamedQuery("${model}.${namedQuery}")
 
         return { Map args, Map config = [:] ->
             LOG.info "Executing named query [${model}.${namedQuery}] with argument [$args]"
@@ -299,7 +310,7 @@ final class SimpleJpaHandler {
     def softDelete = { model ->
         LOG.info "Executing softDelete for [$model]"
         executeInsideTransaction {
-            EntityManager em = tlEntityManager.get()
+            EntityManager em = getEntityManager()
             if (!em.contains(model)) {
                 model = em.merge(model)
             }
@@ -310,7 +321,7 @@ final class SimpleJpaHandler {
     def persist = { model ->
         LOG.info "Executing persist for [$model]"
         executeInsideTransaction {
-            EntityManager em = tlEntityManager.get()
+            EntityManager em = getEntityManager()
             em.persist(model)
         }
     }
@@ -318,7 +329,7 @@ final class SimpleJpaHandler {
     def merge = { model ->
         LOG.info "Executing merge for [$model]"
         executeInsideTransaction {
-            EntityManager em = tlEntityManager.get()
+            EntityManager em = getEntityManager()
             return em.merge(model)
         }
     }
@@ -327,7 +338,7 @@ final class SimpleJpaHandler {
         LOG.info "Executing remove for [$model]"
         executeInsideTransaction {
             def persistedModel = model
-            EntityManager em = tlEntityManager.get()
+            EntityManager em = getEntityManager()
             if (!em.contains(model)) {
                 persistedModel = em.find(model.class, model.id)
                 if (!persistedModel) {
@@ -336,24 +347,6 @@ final class SimpleJpaHandler {
             }
             em.remove(persistedModel)
         }
-    }
-
-    def getEntityManager = { ->
-        LOG.info "Retrieving current EntityManager..."
-        return tlEntityManager.get()
-    }
-
-    def newEntityManager = { ->
-        LOG.info "Commit before discarding previous EntityManager..."
-        commitTransaction()
-
-        LOG.info "Discarding previous EntityManager..."
-        tlEntityManager.remove()
-
-        LOG.info "Start transaction before creating new EntityManager..."
-        beginTransaction()
-
-        return tlEntityManager.get()
     }
 
     def validate = { model, viewModel ->
@@ -387,6 +380,15 @@ final class SimpleJpaHandler {
             case "return_failed":
                 delegate.metaClass.return_failed = returnFailed
                 return returnFailed()
+            case "createEntityManager":
+                delegate.metaClass.createEntityManager = createEntityManager
+                return createEntityManager()
+            case "destoryEntityManager":
+                delegate.metaClass.destroyEntityManager = destroyEntityManager
+                return destroyEntityManager()
+            case "getEntityManager":
+                delegate.metaClass.getEntityManager = getEntityManager
+                return getEntityManager()
         }
 
         // Check for prefix
@@ -438,10 +440,6 @@ final class SimpleJpaHandler {
             case "getEntityManager":
                 delegate.metaClass.getEntityManager = getEntityManager
                 return getEntityManager()
-
-            case "newEntityManager":
-                delegate.metaClass.newEntityManager = newEntityManager
-                return newEntityManager()
 
             case "executeQuery":
                 delegate.metaClass.executeQuery = executeQuery
