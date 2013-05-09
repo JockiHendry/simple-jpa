@@ -40,15 +40,14 @@ class SimpleJpaGriffonAddon {
         final EntityManagerFactory emf = Persistence.createEntityManagerFactory("default")
         final Validator validator = Validation.buildDefaultValidatorFactory().getValidator()
 
-        // Creating new handler
-        SimpleJpaHandler simpleJpaHandler = new SimpleJpaHandler(emf, validator,
-            app.config.griffon?.simplejpa?.method?.prefix ?: '',
-            app.config.griffon?.simplejpa?.model?.package ?: 'domain',
-            (app.config.griffon?.simplejpa?.finder?.alwaysExcludeSoftDeleted ?: false) as boolean
-        )
-
         types.each {
             app.artifactManager.getClassesOfType(it).each { GriffonClass gc ->
+                // Creating new handler
+                SimpleJpaHandler simpleJpaHandler = new SimpleJpaHandler(emf, validator,
+                        app.config.griffon?.simplejpa?.method?.prefix ?: '',
+                        app.config.griffon?.simplejpa?.model?.package ?: 'domain',
+                        (app.config.griffon?.simplejpa?.finder?.alwaysExcludeSoftDeleted ?: false) as boolean
+                )
                 gc.metaClass.methodMissing =  simpleJpaHandler.methodMissingHandler
             }
         }

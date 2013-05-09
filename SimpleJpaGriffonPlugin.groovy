@@ -16,7 +16,7 @@
 
 class SimpleJpaGriffonPlugin {
     // the plugin version
-    String version = '0.3.1'
+    String version = '0.4'
     // the version or versions of Griffon the plugin is designed for
     String griffonVersion = '1.2.0 > *'
     // the other plugins this plugin depends on
@@ -272,6 +272,19 @@ all methods (or closures) in controller are wrapped inside transaction.
 simple-jpa will propagate transaction: if method A is calling method B and method C, all of these
 method will be executed in one single transaction.  If one method issues a rollback, for example method C,
 then all database operation from method A and method B will be cancelled.
+
+To use one EntityManager per mvcgroup, add the following code to controller:
+
+    public void mvcGroupInit(Map args) {
+        createEntityManager()
+    }
+
+    public void mvcGroupDestroy() {
+        destroyEntityManager()
+    }
+
+`createEntityManager()` is simple-jpa injected method that will create a new persistence context.  This persistence context
+will not be closed until `destroyEntityManager()` is called.
 
 Throwing any `Exception` will rollback transaction.  simple-jpa will also rollback and issue `onJpaError`
 if JPA related error occured.  Here is an example for JPA error handling:
