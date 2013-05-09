@@ -13,7 +13,8 @@ class TransactionHolder {
     private boolean isRollback
     private static Logger LOG = LoggerFactory.getLogger(TransactionHolder)
 
-    public TransactionHolder() {
+    public TransactionHolder(EntityManager em) {
+        this.em = em
         this.resumeLevel = 0
         this.isRollback = false
     }
@@ -35,22 +36,20 @@ class TransactionHolder {
                 em.transaction.commit()
                 LOG.info "Starting new transaction."
                 em.transaction.begin()
-                em.clear()
                 resumeLevel = 1
                 return true
             } else {
                 resumeLevel++
-                LOG.info "Resuming from previous transaction, now in tr [$resumeLevel]."
+                LOG.debug "Resuming from previous transaction, now in tr [$resumeLevel]."
                 return false
             }
         } else if (resumeLevel==0) {
             LOG.info "Start a new transaction..."
             if (!em.transaction.active) {
                 em.transaction.begin()
-                em.clear()
             }
             resumeLevel = 1
-            LOG.info "Now in tr [$resumeLevel]."
+            LOG.debug "Now in tr [$resumeLevel]."
             return true
         }
 
@@ -58,7 +57,7 @@ class TransactionHolder {
 
     public boolean commitTransaction() {
         assert em != null
-        LOG.info "Trying to ${isRollback?'rollback':'commit'} from tr [$resumeLevel] from thread ${Thread.currentThread().id}"
+        LOG.debug "Trying to ${isRollback?'rollback':'commit'} from tr [$resumeLevel] from thread ${Thread.currentThread().id}"
         if (resumeLevel>0) {
             boolean commit = false
             if (resumeLevel==1) {
@@ -73,7 +72,7 @@ class TransactionHolder {
                 LOG.info "Not committing yet [$resumeLevel]."
             }
             resumeLevel--
-            LOG.info "Now in tr  [${resumeLevel>0?resumeLevel:'no transaction'}]."
+            LOG.debug "Now in tr  [${resumeLevel>0?resumeLevel:'no transaction'}]."
             return commit
         } else if (resumeLevel==0) {
             LOG.info "Can't commit: Not inside a transaction. This is normal if transaction was rollbacked due to exception."
@@ -90,15 +89,19 @@ class TransactionHolder {
             LOG.info "Rollback transaction..."
             em.transaction.rollback()
             resumeLevel = 0
-            LOG.info "Now in [no transaction]."
+            LOG.debug "Now in [no transaction]."
             isRollback = false
             return true
         } else if (resumeLevel > 1) {
-            LOG.info "No rollback yet [$resumeLevel]"
+            LOG.debug "No rollback yet [$resumeLevel]"
             isRollback = true
             resumeLevel--
             return false
         }
     }
 
+    @Override
+    public java.lang.String toString() {
+        "TransactionHolder[em=$em, resumeLevel=$resumeLevel]"
+    }
 }
