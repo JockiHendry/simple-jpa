@@ -63,7 +63,24 @@ final class SimpleJpaHandler {
 
     def createEntityManager = {
         LOG.info "Creating a new entity manager..."
-        TransactionHolder th = new TransactionHolder(emf.createEntityManager())
+        EntityManager em
+        if (mapTransactionHolder.size() > 0) {
+            TransactionHolder th = mapTransactionHolder.elements().nextElement()
+            if (th.inTransaction) {
+                LOG.warn """You're trying to get entity manager from a different thread.  To prevent thread related problems,
+new entity manager will be created.  This may cause synchronization problem if you're accessing the same
+entity in the previous thread because changes in new entity manager will not be reflected to the old entity manager."""
+                em = emf.createEntityManager()
+            } else {
+                LOG.info "Reusing previous entity manager..."
+                em = th.em
+            }
+        } else {
+            LOG.info "Creating new entity manager..."
+            em = emf.createEntityManager()
+        }
+
+        TransactionHolder th = new TransactionHolder(em)
         mapTransactionHolder.put(Thread.currentThread().id, th)
         debugEntityManager()
         th
@@ -71,7 +88,9 @@ final class SimpleJpaHandler {
 
     def destroyEntityManager = {
         LOG.info "Destroying all entity managers..."
-        mapTransactionHolder.each { long k, TransactionHolder v -> v.em.close() }
+        mapTransactionHolder.each { long k, TransactionHolder v ->
+            if (v.em.isOpen()) v.em.close()
+        }
         mapTransactionHolder.clear()
         debugEntityManager()
     }
@@ -116,7 +135,17 @@ final class SimpleJpaHandler {
 
     def beginTransaction = { boolean resume = true ->
         LOG.info "Begin transaction from thread ${Thread.currentThread().id}..."
-        (mapTransactionHolder.get(Thread.currentThread().id) ?: createEntityManager()).beginTransaction()
+        TransactionHolder th = mapTransactionHolder.get(Thread.currentThread().id)
+        if (th) {
+            if (mapTransactionHolder.findAll { k, v -> v.em.is(th.em) && v.inTransaction }?.size() > 0) {
+                LOG.warn "Another thread in using this entity manager and in transaction, a new EntityManager will be created for this thread."
+                th = new TransactionHolder(emf.createEntityManager())
+                mapTransactionHolder.put(Thread.currentThread().id, th)
+            }
+        } else {
+            th = createEntityManager()
+        }
+        th.beginTransaction()
     }
 
     def commitTransaction = {
