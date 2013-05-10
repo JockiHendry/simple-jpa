@@ -48,20 +48,20 @@ class TagChooserModel {
         allowMultiple = false
     }
 
-    public void setValues(List values) {
+    public void setValues(Collection values) {
         this.values = values
         refreshTemplateValues()
         pcs.firePropertyChange("values", null, values)
     }
 
-    public void replaceValues(List values) {
+    public void replaceValues(Collection values) {
         this.values.clear()
         this.values.addAll(values)
         refreshTemplateValues()
         pcs.firePropertyChange("values", null, values)
     }
 
-    public void setSelectedValues(List selectedValues) {
+    public void setSelectedValues(Collection selectedValues) {
         this.selectedValues = selectedValues
         pcs.firePropertyChange("selectedValues", null, this.selectedValues)
     }
@@ -83,7 +83,7 @@ class TagChooserModel {
         pcs.firePropertyChange("selectedValues", null, selectedValues)
     }
 
-    public void replaceSelectedValues(List selectedValues) {
+    public void replaceSelectedValues(Collection selectedValues) {
         this.selectedValues.clear()
         this.selectedValues.addAll(new ArrayList(selectedValues))
         pcs.firePropertyChange("selectedValues", null, selectedValues)

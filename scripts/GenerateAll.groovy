@@ -112,7 +112,7 @@ getFields =  { String name, boolean processChild = true ->
         }
 
         // Check if this is a List and has one of relationship annotation
-        if ("List"==(field.type as String)) {
+        if (["List", "Set"].contains(field.type as String)) {
             if (field.annotations?.containsAnnotation(["ManyToMany","OneToMany"])) {
                 List typeArguments = field.type.childrenOfType(TYPE_ARGUMENTS)
                 def domainClass
@@ -243,8 +243,8 @@ def createMVC = { boolean createStartupGroup = false ->
             // relational
             "isMappedBy": {field -> field.annotations?.containsAttribute('mappedBy')}.&call,
             "isManyToOne": {field -> field.info=="DOMAIN_CLASS" && field.annotations?.containsAnnotation("ManyToOne")}.&call,
-            "isManyToMany": {field -> field.type.toString()=='List' && field.info!='UNKNOWN' && field.annotations?.containsAnnotation("ManyToMany")}.&call,
-            "isOneToMany": {field -> field.type.toString()=='List' && field.info!='UNKNOWN' && field.annotations?.containsAnnotation("OneToMany")}.&call,
+            "isManyToMany": {field -> field.info!='UNKNOWN' && field.annotations?.containsAnnotation("ManyToMany")}.&call,
+            "isOneToMany": {field -> field.info!='UNKNOWN' && field.annotations?.containsAnnotation("OneToMany")}.&call,
             "isOneToOne": {field -> field.info=="DOMAIN_CLASS" && field.annotations?.containsAnnotation('OneToOne')}.&call,
             "isRelation": {field -> field.annotations?.containsAnnotation(["ManyToMany", "OneToMany", "OneToOne", "ManyToOne"])}.&call,
             "isCascaded": {field -> field.annotations?.containsAttribute('cascade') && field.annotations?.containsAttribute('orphanRemoval')}.&call,
