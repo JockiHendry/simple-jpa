@@ -62,12 +62,16 @@ final class SimpleJpaHandler {
     }
 
     def createEntityManager = {
-        mapTransactionHolder.put(Thread.currentThread().id, new TransactionHolder(emf.createEntityManager()))
+        LOG.info "Creating a new entity manager..."
+        TransactionHolder th = new TransactionHolder(emf.createEntityManager())
+        mapTransactionHolder.put(Thread.currentThread().id, th)
         debugEntityManager()
+        th
     }
 
     def destroyEntityManager = {
-        mapTransactionHolder.each { long k, EntityManager v -> v.close() }
+        LOG.info "Destroying all entity managers..."
+        mapTransactionHolder.each { long k, TransactionHolder v -> v.em.close() }
         mapTransactionHolder.clear()
         debugEntityManager()
     }
@@ -111,14 +115,17 @@ final class SimpleJpaHandler {
     }
 
     def beginTransaction = { boolean resume = true ->
-        mapTransactionHolder.get(Thread.currentThread().id).beginTransaction()
+        LOG.info "Begin transaction from thread ${Thread.currentThread().id}..."
+        (mapTransactionHolder.get(Thread.currentThread().id) ?: createEntityManager()).beginTransaction()
     }
 
     def commitTransaction = {
+        LOG.info "Commit transaction from thread ${Thread.currentThread().id}..."
         mapTransactionHolder.get(Thread.currentThread().id).commitTransaction()
     }
 
     def rollbackTransaction = {
+        LOG.info "Rollback transaction from thread ${Thread.currentThread().id}..."
         mapTransactionHolder.get(Thread.currentThread().id).rollbackTransaction()
     }
 
@@ -383,7 +390,7 @@ final class SimpleJpaHandler {
             case "createEntityManager":
                 delegate.metaClass.createEntityManager = createEntityManager
                 return createEntityManager()
-            case "destoryEntityManager":
+            case "destroyEntityManager":
                 delegate.metaClass.destroyEntityManager = destroyEntityManager
                 return destroyEntityManager()
             case "getEntityManager":
