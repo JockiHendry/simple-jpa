@@ -14,6 +14,10 @@ class $className {
         listAll()
     }
 
+    void mvcGroupDestroy() {
+        destroyEntityManager()
+    }
+
     def listAll = {
         execInsideUIAsync {
             model.${domainClassAsProp}List.clear()
@@ -155,7 +159,8 @@ class $className {
         }
     }
 %>
-            execInsideUIAsync { model.${domainClassAsProp}Selection.selected[0] = merge(selected${domainClass}) }
+            selected${domainClass} = merge(selected${domainClass})
+            execInsideUIAsync { model.${domainClassAsProp}Selection.selected[0] = selected${domainClass} }
         }
         execInsideUIAsync { model.clear() }
     }
