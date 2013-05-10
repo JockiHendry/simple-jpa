@@ -8,18 +8,27 @@ class $className {
 
     def model
     def view
-    def group
+    def groupId
 
     def switchPage = { ActionEvent event ->
-        group?.destroy()
+        // destroying previous MVCGroup before switching to a new one
+        if (groupId) {
+            app.mvcGroupManager.destroyMVCGroup(groupId)
+        }
+
         execInsideUISync { view.busyLabel.visible = true }
 
-        String groupId = event.actionCommand
-        group = app.mvcGroupManager.buildMVCGroup(groupId)
-        execInsideUISync { view.mainPanel.add(group.view.mainPanel, groupId) }
-        group.controller.listAll()
+        groupId = event.actionCommand
+
+        // destroying current MVCGroup if it was not destroyed properly before
+        if (app.mvcGroupManager.findConfiguration(groupId)) {
+            app.mvcGroupManager.destroyMVCGroup(groupId)
+        }
+
+        def (m,v,c) = app.mvcGroupManager.createMVCGroup(groupId, groupId)
 
         execInsideUIAsync {
+            view.mainPanel.add(v.mainPanel, groupId)
             view.cardLayout.show(view.mainPanel, groupId)
             view.busyLabel.visible = false
         }
