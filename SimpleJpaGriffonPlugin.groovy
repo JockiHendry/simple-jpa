@@ -448,12 +448,12 @@ you can use numberFormat(), currencyFormat(), percentFormat() or titleCase(), fo
 The domain model will be binded as `value` inside the template. You can also use Groovy code inside the template by
 using `<% ... %>`.
 
-`templateRenderer()` will create a template renderer that can be used by JComboBox or JList.  For example:
+`templateRenderer` attribute will create a custom renderer that can be used by JComboBox or JList.  For example:
 
-    comboBox(model: model.selectedCar, renderer: templateRenderer(template: '${value?.type} - ${value?.name}'))
+    comboBox(model: model.selectedCar, templateRenderer: '${value?.type} - ${value?.name}')
 
 The example above will render domain object `Car(type: 'type', name: 'name')` as 'type - name'.
-When user select this JComboBox, the selected value will still be the a Car object.
+When user select this JComboBox, the selected value will still be the Car object.
 
 `dateTimePicker()` will create a simple date time picker.  This component supports LocalDate, LocalTime, LocalDateTime, and DateTime.  Usage example:
 
