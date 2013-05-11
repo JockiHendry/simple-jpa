@@ -19,15 +19,17 @@ import simplejpa.SimpleJpaHandler
 import simplejpa.swing.MaskTextFieldFactory
 import simplejpa.swing.DateTimePicker
 import simplejpa.swing.EventTableModelFactory
-import simplejpa.swing.ListCellRendererFactory
 import simplejpa.swing.NumberTextFieldFactory
 import simplejpa.swing.TagChooser
+import simplejpa.swing.TemplateListCellRenderer
 import simplejpa.validation.ConverterFactory
 import simplejpa.validation.ErrorLabelFactory
 import simplejpa.validation.NodeErrorNotificationFactory
 
 import javax.persistence.EntityManagerFactory
 import javax.persistence.Persistence
+import javax.swing.JComboBox
+import javax.swing.JList
 import javax.validation.Validation
 import javax.validation.Validator
 import java.util.concurrent.ConcurrentHashMap
@@ -67,7 +69,6 @@ class SimpleJpaGriffonAddon {
         errorLabel: new ErrorLabelFactory(),
         toInteger: new ConverterFactory(ConverterFactory.TYPE.INTEGER),
         toReverseString: new ConverterFactory(ConverterFactory.TYPE.REVERSE_STRING),
-        templateRenderer: new ListCellRendererFactory(),
         eventTableModel: new EventTableModelFactory(),
 
         tagChooser: new BeanFactory(TagChooser, false),
@@ -82,6 +83,16 @@ class SimpleJpaGriffonAddon {
                     ObservableMap errors = builder.model.errors
                     String errorPath = attributes.remove('errorPath')
                     NodeErrorNotificationFactory.addErrorNotification(node, errors, errorPath)
+                }
+                if (attributes.get('templateRenderer')!=null) {
+                    String templateString = attributes.remove('templateRenderer')
+                    if (node instanceof JComboBox) {
+                        node.setRenderer(new TemplateListCellRenderer(templateString))
+                    } else if (node instanceof JList) {
+                        node.setCellRenderer(new TemplateListCellRenderer(templateString))
+                    } else {
+                        throw new Exception("templateRenderer can't be applied to $node")
+                    }
                 }
             }
     ]
