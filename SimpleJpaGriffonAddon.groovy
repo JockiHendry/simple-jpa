@@ -22,8 +22,10 @@ import simplejpa.swing.EventTableModelFactory
 import simplejpa.swing.NumberTextFieldFactory
 import simplejpa.swing.TagChooser
 import simplejpa.swing.TemplateListCellRenderer
+import simplejpa.validation.BasicHighlightErrorNotification
 import simplejpa.validation.ConverterFactory
 import simplejpa.validation.ErrorLabelFactory
+import simplejpa.validation.ErrorNotification
 import simplejpa.validation.NodeErrorNotificationFactory
 
 import javax.persistence.EntityManagerFactory
@@ -78,23 +80,38 @@ class SimpleJpaGriffonAddon {
     ]
 
     List attributeDelegates = [
-            {builder, node, attributes ->
-                if (attributes.get('errorPath')!=null) {
-                    ObservableMap errors = builder.model.errors
-                    String errorPath = attributes.remove('errorPath')
-                    NodeErrorNotificationFactory.addErrorNotification(node, errors, errorPath)
+        {builder, node, attributes ->
+            if (attributes.get('errorPath')!=null) {
+
+                ObservableMap errors = builder.model.errors
+                ErrorNotification errorNotification
+
+                String errorPath = attributes.remove('errorPath')
+                def errorNotificationAttr = attributes.remove('errorNotification')
+
+                if (errorNotificationAttr) {
+                    errorNotification = errorNotificationAttr.newInstance([node, errors, errorPath].toArray())
+                } else  if (builder.app.config.griffon.simplejpa.validation.containsKey('defaultErrorNotificationClass')) {
+                    errorNotification = builder.app.config.griffon.simplejpa.validation.defaultErrorNotificationClass.newInstance([node, errors, errorPath].toArray())
+                } else {
+                    errorNotification = new BasicHighlightErrorNotification(node, errors, errorPath)
                 }
-                if (attributes.get('templateRenderer')!=null) {
-                    String templateString = attributes.remove('templateRenderer')
-                    if (node instanceof JComboBox) {
-                        node.setRenderer(new TemplateListCellRenderer(templateString))
-                    } else if (node instanceof JList) {
-                        node.setCellRenderer(new TemplateListCellRenderer(templateString))
-                    } else {
-                        throw new Exception("templateRenderer can't be applied to $node")
-                    }
+
+                errors.addPropertyChangeListener(errorNotification)
+
+                NodeErrorNotificationFactory.addErrorNotification(node, errors, errorPath)
+            }
+            if (attributes.get('templateRenderer')!=null) {
+                String templateString = attributes.remove('templateRenderer')
+                if (node instanceof JComboBox) {
+                    node.setRenderer(new TemplateListCellRenderer(templateString))
+                } else if (node instanceof JList) {
+                    node.setCellRenderer(new TemplateListCellRenderer(templateString))
+                } else {
+                    throw new Exception("templateRenderer can't be applied to $node")
                 }
             }
+        }
     ]
 
 

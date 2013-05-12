@@ -20,27 +20,56 @@ public class NodeErrorNotificationFactory {
     static Logger LOG = LoggerFactory.getLogger(NodeErrorNotificationFactory)
 
     public static void addErrorNotification(JComponent node, ObservableMap errors, String errorPath) {
-        errors.addPropertyChangeListener(new BasicHighlightErrorNotification(node, errors, errorPath))
         try {
             BasicClearErrorTrigger."enhance${node.class.simpleName}"(node, errors, errorPath)
         } catch (MissingMethodException ex) {
             BasicClearErrorTrigger.enhanceJTextField(node, errors, errorPath)
         }
     }
+
 }
 
-class BasicHighlightErrorNotification implements PropertyChangeListener {
+public abstract class ErrorNotification implements PropertyChangeListener {
 
-    Color normalBackgroundColor
+    JComponent node
     ObservableMap errors
     String errorPath
-    JComponent node
-    static final Logger LOG = LoggerFactory.getLogger(BasicHighlightErrorNotification)
 
-    public BasicHighlightErrorNotification(JComponent node, ObservableMap errors, String errorPath) {
+    protected ErrorNotification(JComponent node, ObservableMap errors, String errorPath) {
         this.node = node
         this.errors = errors
         this.errorPath = errorPath
+    }
+
+    @Override
+    void propertyChange(PropertyChangeEvent evt) {
+        performNotification()
+    }
+
+    abstract void performNotification()
+
+}
+
+public class NopErrorNotification extends ErrorNotification {
+
+    protected NopErrorNotification(JComponent node, ObservableMap errors, String errorPath) {
+        super(node, errors, errorPath)
+    }
+
+    @Override
+    void performNotification() {}
+
+}
+
+public class BasicHighlightErrorNotification extends ErrorNotification {
+
+    Color normalBackgroundColor
+    Color errorBackgroundColor = Color.PINK
+
+    static final Logger LOG = LoggerFactory.getLogger(BasicHighlightErrorNotification)
+
+    public BasicHighlightErrorNotification(JComponent node, ObservableMap errors, String errorPath) {
+        super(node, errors, errorPath)
         this.normalBackgroundColor = getBackground()
     }
 
@@ -61,11 +90,12 @@ class BasicHighlightErrorNotification implements PropertyChangeListener {
     }
 
     @Override
-    void propertyChange(PropertyChangeEvent evt) {
+    void performNotification() {
         def action = {
-            setBackground(normalBackgroundColor)
             if (errors.get(errorPath)?.length() > 0) {
-                setBackground(Color.PINK)
+                setBackground(errorBackgroundColor)
+            } else {
+                setBackground(normalBackgroundColor)
             }
         }
         if (!SwingUtilities.isEventDispatchThread()) {
@@ -79,7 +109,6 @@ class BasicHighlightErrorNotification implements PropertyChangeListener {
             action()
         }
     }
-
 }
 
 class BasicClearErrorTrigger {
