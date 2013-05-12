@@ -119,7 +119,7 @@ class $className {
     processOneToManyInSave(fields, domainClassAsProp, 2)
     processManyToManyInSave(fields, domainClassAsProp, 2)
 %>
-        if (!validate(${domainClassAsProp})) return_failed()
+        if (!validate(${domainClassAsProp})) return
 
         if (model.id == null) {
             // Insert operation
