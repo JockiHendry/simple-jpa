@@ -164,7 +164,7 @@ class TagChooser extends JPanel {
                         }
                         break
                     case "selectedValues":
-                        selectedValueChanged(model.selectedValues)
+                        selectedValueChanged?.call(model.selectedValues)
                         panelSelectedItems.refresh()
                         break
                     case "templateString":
