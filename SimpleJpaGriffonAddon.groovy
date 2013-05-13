@@ -24,9 +24,14 @@ import simplejpa.swing.TagChooser
 import simplejpa.swing.TemplateListCellRenderer
 import simplejpa.validation.BasicHighlightErrorNotification
 import simplejpa.validation.ConverterFactory
+import simplejpa.validation.DateTimePickerErrorCleaner
 import simplejpa.validation.ErrorLabelFactory
 import simplejpa.validation.ErrorNotification
-import simplejpa.validation.NodeErrorNotificationFactory
+import simplejpa.validation.JButtonErrorCleaner
+import simplejpa.validation.JComboBoxErrorCleaner
+import simplejpa.validation.JTextFieldErrorCleaner
+import simplejpa.validation.JXDatePickerErrorCleaner
+import simplejpa.validation.TagChooserErrorCleaner
 
 import javax.persistence.EntityManagerFactory
 import javax.persistence.Persistence
@@ -65,6 +70,20 @@ class SimpleJpaGriffonAddon {
                 return errorFound
             }
         }
+
+        // read error cleaners from configuration
+        if (app.config.griffon.simplejpa.validation.containsKey("errorCleaners") &&
+            !app.config.griffon.simplejpa.validation.errorCleaners.isEmpty()) {
+
+            Map values = app.config.griffon.simplejpa.validation.errorCleaners
+            values.each { k, v ->
+                if (v instanceof Class) {
+                    errorCleaners[k] = v.newInstance()
+                } else {
+                    errorCleaners[k] = v
+                }
+            }
+        }
     }
 
     Map factories = [
@@ -77,6 +96,17 @@ class SimpleJpaGriffonAddon {
         dateTimePicker: new BeanFactory(DateTimePicker, false),
         numberTextField: new NumberTextFieldFactory(),
         maskTextField: new MaskTextFieldFactory(),
+    ]
+
+    Map errorCleaners = [
+        'default': new JTextFieldErrorCleaner(),
+        'javax.swing.JTextField' : new JTextFieldErrorCleaner(),
+        'javax.swing.JComboBox': new JComboBoxErrorCleaner(),
+        'javax.swing.JButton': new JButtonErrorCleaner(),
+
+        'org.jdesktop.swingx.JXDatePicker': new JXDatePickerErrorCleaner(),
+        'simplejpa.swing.TagChooser': new TagChooserErrorCleaner(),
+        'simplejpa.swing.DateTimePicker': new DateTimePickerErrorCleaner(),
     ]
 
     List attributeDelegates = [
@@ -99,7 +129,14 @@ class SimpleJpaGriffonAddon {
 
                 errors.addPropertyChangeListener(errorNotification)
 
-                NodeErrorNotificationFactory.addErrorNotification(node, errors, errorPath)
+                if (errorCleaners.containsKey('*')) {
+                    errorCleaners.'*'.addErrorCleaning(node, errors, errorPath)
+                } else if (errorCleaners.containsKey(node.class.canonicalName)) {
+                    errorCleaners[node.class.canonicalName].addErrorCleaning(node, errors, errorPath)
+                } else {
+                    errorCleaners['default']?.addErrorCleaning(node, errors, errorPath)
+                }
+
             }
             if (attributes.get('templateRenderer')!=null) {
                 String templateString = attributes.remove('templateRenderer')
