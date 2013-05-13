@@ -40,6 +40,10 @@ class $className {
         listAll()
     }
 
+    void mvcGroupDestroy() {
+        destroyEntityManager()
+    }
+
     def listAll = {
 <%
     fields.each { field ->
