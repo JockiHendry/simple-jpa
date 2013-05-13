@@ -18,16 +18,35 @@ class ErrorLabel extends JLabel {
         this.path = path
         setForeground(Color.RED)
         setVisible(false)
-        errors.addPropertyChangeListener(new PropertyChangeListener() {
-            @Override
-            void propertyChange(PropertyChangeEvent evt) {
-                setVisible(false)
-                if (errors.get(path)?.length() > 0) {
-                    setText(errors.get(path))
-                    setVisible(true)
-                }
-            }
-        })
 
+        errors.getPropertyChangeListeners().findAll { PropertyChangeListener pcl ->
+            (pcl instanceof ErrorLabelPropertyChangeListener) &&
+            (pcl.path == path)
+        }.each { PropertyChangeListener pcl ->
+            errors.removePropertyChangeListener(pcl)
+        }
+
+        errors.addPropertyChangeListener(new ErrorLabelPropertyChangeListener(path, errors))
+    }
+
+    class ErrorLabelPropertyChangeListener implements PropertyChangeListener {
+
+        String path
+        ObservableMap errors
+
+        public ErrorLabelPropertyChangeListener(String path, ObservableMap errors) {
+            this.path = path
+            this.errors = errors
+        }
+
+        @Override
+        void propertyChange(PropertyChangeEvent evt) {
+            if (errors.get(path)?.length() > 0) {
+                setText(errors.get(path))
+                setVisible(true)
+            } else {
+                setVisible(false)
+            }
+        }
     }
 }

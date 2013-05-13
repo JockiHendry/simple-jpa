@@ -48,3 +48,5 @@ First release into griffon artifacts portal.
 1.  Change transaction behaviour and uses session-per-mvcgroup.
 2.  If controller is called from new thread and the previous thread is not in transaction, entity manager will reused.  Otherwise, new entity manager will be created.
 3.  Fixes creating new entity manager when transaction was rollbacked.
+4.  Fixes PropertyChangeListener duplication in validation.
+5.  Extensible ErrorNotification and ErrorCleaner for customizing validation.

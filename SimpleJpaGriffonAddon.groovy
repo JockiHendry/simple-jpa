@@ -39,6 +39,7 @@ import javax.swing.JComboBox
 import javax.swing.JList
 import javax.validation.Validation
 import javax.validation.Validator
+import java.beans.PropertyChangeListener
 import java.util.concurrent.ConcurrentHashMap
 
 class SimpleJpaGriffonAddon {
@@ -125,6 +126,14 @@ class SimpleJpaGriffonAddon {
                     errorNotification = builder.app.config.griffon.simplejpa.validation.defaultErrorNotificationClass.newInstance([node, errors, errorPath].toArray())
                 } else {
                     errorNotification = new BasicHighlightErrorNotification(node, errors, errorPath)
+                }
+
+                // Remove existing PropertyChangeListener
+                errors.getPropertyChangeListeners().findAll { PropertyChangeListener pcl ->
+                    (pcl instanceof ErrorNotification) &&
+                    ((ErrorNotification) pcl).errorPath == errorNotification.errorPath
+                }.each { PropertyChangeListener pcl ->
+                    errors.removePropertyChangeListener(pcl)
                 }
 
                 errors.addPropertyChangeListener(errorNotification)
