@@ -56,7 +56,7 @@ final class SimpleJpaHandler {
 
     def getEntityManager = {
         LOG.info "Retrieving current EntityManager from thread ${Thread.currentThread().id}..."
-        EntityManager em = mapTransactionHolder.get(Thread.currentThread().id).em
+        EntityManager em = mapTransactionHolder.get(Thread.currentThread().id)?.em
         debugEntityManager()
         em
     }
@@ -163,10 +163,10 @@ entity in the previous thread because changes in new entity manager will not be 
         boolean isError = false
         EntityManager createdEM
         def result
-        if (!getEntityManager().transaction.isActive()) {
+        if (!getEntityManager()?.transaction?.isActive()) {
             insideTransaction = false
             if (!getEntityManager()) {
-                createdEM = createEntityManager()
+                createdEM = createEntityManager().em
             }
             beginTransaction()
         }
@@ -186,7 +186,7 @@ entity in the previous thread because changes in new entity manager will not be 
             }
             if (createdEM) {
                 LOG.info "Removing EntityManager created by this standalone transaction"
-                mapTransactionHolder.remove(createdEM)
+                mapTransactionHolder.remove(Thread.currentThread().id)
             }
         }
         return result
