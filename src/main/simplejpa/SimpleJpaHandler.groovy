@@ -136,14 +136,14 @@ entity in the previous thread because changes in new entity manager will not be 
     def beginTransaction = { boolean resume = true ->
         LOG.info "Begin transaction from thread ${Thread.currentThread().id}..."
         TransactionHolder th = mapTransactionHolder.get(Thread.currentThread().id)
-        if (th) {
+        if (!th) {
+            th = createEntityManager()
+        } else if (th.resumeLevel==0) {
             if (mapTransactionHolder.findAll { k, v -> v.em.is(th.em) && v.inTransaction }?.size() > 0) {
-                LOG.warn "Another thread in using this entity manager and in transaction, a new EntityManager will be created for this thread."
+                LOG.warn "Another thread is using this entity manager and in transaction, a new EntityManager will be created for this thread."
                 th = new TransactionHolder(emf.createEntityManager())
                 mapTransactionHolder.put(Thread.currentThread().id, th)
             }
-        } else {
-            th = createEntityManager()
         }
         th.beginTransaction()
     }
