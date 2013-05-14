@@ -30,23 +30,52 @@ public class TransactionTransformation extends AbstractASTTransformation {
 
     public void visit(ASTNode[] astNodes, SourceUnit sourceUnit) {
         LOG.info "AST Transformation for SimpleJPATransaction is being executed..."
-        checkNodesForAnnotationAndType(astNodes[0], astNodes[1])
 
-        ClassNode classNode = astNodes[1]
+        AnnotationNode annotation = astNodes[0]
+        AnnotatedNode node = astNodes[1]
 
-        classNode.fields?.each { FieldNode field ->
-            LOG.info "Inspecting field $field.name..."
-            if (field.initialExpression instanceof ClosureExpression) {
-                wrapStatements(field.initialExpression, classNode)
+        if (getPolicy(annotation)==SimpleJpaTransaction.Policy.SKIP) return
+
+        if (node instanceof ClassNode) {
+
+            ClassNode annotationClass = new ClassNode(SimpleJpaTransaction.class)
+
+            node.fields?.each { FieldNode field ->
+                if (field.initialExpression instanceof ClosureExpression &&
+                    field.getAnnotations(annotationClass).isEmpty()) {
+                        LOG.info "Processing field $field.name..."
+                        wrapStatements(field.initialExpression, node, annotation)
+                }
             }
-        }
 
-        classNode.methods?.each { MethodNode method ->
-            LOG.info "Inspecting method $method.name..."
-            if (GriffonClassUtils.isPlainMethod(methodDescriptorFor(method))) {
-                wrapStatements(method, classNode)
+            node.methods?.each { MethodNode method ->
+                if (GriffonClassUtils.isPlainMethod(methodDescriptorFor(method)) &&
+                    method.getAnnotations(annotationClass).isEmpty()) {
+                        LOG.info "Processing method $method.name..."
+                        wrapStatements(method, node, annotation)
+                }
             }
+
+        } else if (node instanceof FieldNode) {
+
+            if (node.initialExpression instanceof ClosureExpression) {
+                LOG.info "Processing field $node.name..."
+                wrapStatements(node.initialExpression, node, annotation)
+            }
+
+        } else if (node instanceof MethodNode) {
+
+            if (GriffonClassUtils.isPlainMethod(methodDescriptorFor(node))) {
+                LOG.info "Processing method $node.name..."
+                wrapStatements(node, node, annotation)
+            }
+
         }
+    }
+
+    private static SimpleJpaTransaction.Policy getPolicy(AnnotationNode annotation) {
+        PropertyExpression value = (PropertyExpression) annotation.getMember("value")
+        value? SimpleJpaTransaction.Policy.valueOf(value.getPropertyAsString()): SimpleJpaTransaction.Policy.PROPAGATE
     }
 
     private static GriffonClassUtils.MethodDescriptor methodDescriptorFor(MethodNode method) {
@@ -55,27 +84,27 @@ public class TransactionTransformation extends AbstractASTTransformation {
         new GriffonClassUtils.MethodDescriptor(method.name, parameterTypes, method.modifiers)
     }
 
-    private static void wrapStatements(MethodNode method, ClassNode classNode) {
+    private static void wrapStatements(MethodNode method, AnnotatedNode node, AnnotationNode annotation) {
         LOG.info "Transforming method..."
         Statement code = method.getCode()
-        Statement wrappedCode = wrapStatements(code, classNode)
+        Statement wrappedCode = wrapStatements(code, node, annotation)
         if (code!=wrappedCode) {
             LOG.info "Set a new code to method..."
             method.setCode(wrappedCode)
         }
     }
 
-    private static void wrapStatements(ClosureExpression closure, ClassNode classNode) {
+    private static void wrapStatements(ClosureExpression closure, AnnotatedNode node, AnnotationNode annotation) {
         LOG.info "Transforming closure..."
         Statement code = closure.getCode()
-        Statement wrappedCode = wrapStatements(code, classNode)
+        Statement wrappedCode = wrapStatements(code, node, annotation)
         if (code!=wrappedCode) {
             LOG.info "Set a new code to closure..."
             closure.setCode(wrappedCode)
         }
     }
 
-    private static Statement wrapStatements(Statement code, ClassNode classNode) {
+    private static Statement wrapStatements(Statement code, AnnotatedNode node, AnnotationNode annotation) {
         if (!(code instanceof BlockStatement)) return code
 
         BlockStatement originalBlock = (BlockStatement) code
@@ -138,9 +167,16 @@ public class TransactionTransformation extends AbstractASTTransformation {
         tryCatchStatement.addCatch(new CatchStatement(new Parameter(new ClassNode(Exception.class), "ex"),
             catchGenericBlock))
 
-        newBlock.addStatement(new AstBuilder().buildFromCode(CompilePhase.SEMANTIC_ANALYSIS, true) {
-            beginTransaction()
-        })
+        SimpleJpaTransaction.Policy policy = getPolicy(annotation)
+        if (policy == SimpleJpaTransaction.Policy.PROPAGATE) {
+            newBlock.addStatement(new AstBuilder().buildFromCode(CompilePhase.SEMANTIC_ANALYSIS, true) {
+                beginTransaction()
+            })
+        } else if (policy == SimpleJpaTransaction.Policy.NO_PROPAGATE) {
+            newBlock.addStatement(new AstBuilder().buildFromCode(CompilePhase.SEMANTIC_ANALYSIS, true) {
+                beginTransaction(false)
+            })
+        }
         newBlock.addStatement(tryCatchStatement)
 
         LOG.info "New code for closure has been created"

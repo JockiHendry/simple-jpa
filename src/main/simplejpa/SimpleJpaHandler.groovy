@@ -145,7 +145,7 @@ entity in the previous thread because changes in new entity manager will not be 
                 mapTransactionHolder.put(Thread.currentThread().id, th)
             }
         }
-        th.beginTransaction()
+        th.beginTransaction(resume)
     }
 
     def commitTransaction = {

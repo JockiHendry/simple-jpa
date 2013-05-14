@@ -9,7 +9,7 @@ import javax.persistence.EntityTransaction
 class TransactionHolder {
 
     EntityManager em
-    private int resumeLevel
+    int resumeLevel
     private boolean isRollback
     private static Logger LOG = LoggerFactory.getLogger(TransactionHolder)
 
