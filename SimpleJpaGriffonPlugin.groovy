@@ -300,6 +300,26 @@ to control JPA transaction manually.  But it is not recommended to call them if
 you have added `@SimpleJpaTransaction` to controller.  Calling `beginTransaction(false)` will always start a new transaction,
 while calling `beginTransaction()` or `beginTransaction(true)` will resume previous transaction.
 
+@SimpleJpaTransaction can be called with the following values:
+* **Policy.PROPAGATE** - this is the default value
+* **Policy.NO_PROPAGATE**
+* **Policy.SKIP**
+
+For example:
+
+   @SimpleJpaTransaction
+   class MyController {
+
+      @SimpleJpaTransaction(SimpleJpaTransaction.Policy.SKIP)
+      def simpleMethod = {
+         // will not have transaction
+      }
+
+      def save = {
+         // will be inside a transaction
+      }
+   }
+
 Domain Model
 ------------
 
