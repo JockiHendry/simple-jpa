@@ -286,6 +286,19 @@ To use one EntityManager per mvcgroup, add the following code to controller:
 `createEntityManager()` is simple-jpa injected method that will create a new persistence context.  This persistence context
 will not be closed until `destroyEntityManager()` is called.
 
+To destroy all open EntityManager automatically when a method is called, add the @SimpleJpaTransaction(newSession=true)
+annotation to the method/closure definition.   For example:
+
+    @SimpleJpaTransaction(newSession = true)
+    def listAll = {
+        ...
+    }
+
+If you want to create EntityManager per transaction, you add the following code to Config.groovy:
+(this not recommended because lazy loading will not work when transaction is done)
+
+    griffon.simplejpa.entityManager.lifespan = "Transaction"
+
 Throwing any `Exception` will rollback transaction.  simple-jpa will also rollback and issue `onJpaError`
 if JPA related error occured.  Here is an example for JPA error handling:
 

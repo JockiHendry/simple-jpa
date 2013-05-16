@@ -78,6 +78,19 @@ public class TransactionTransformation extends AbstractASTTransformation {
         value? SimpleJpaTransaction.Policy.valueOf(value.getPropertyAsString()): SimpleJpaTransaction.Policy.PROPAGATE
     }
 
+    private static boolean isResume(AnnotationNode annotation) {
+        if (getPolicy(annotation)==SimpleJpaTransaction.Policy.NO_PROPAGATE) {
+            return false
+        } else {
+            return true
+        }
+    }
+
+    private static boolean isNewSession(AnnotationNode annotation) {
+        ConstantExpression value = (ConstantExpression) annotation.getMember("newSession")
+        value?.getValue()?:false
+    }
+
     private static GriffonClassUtils.MethodDescriptor methodDescriptorFor(MethodNode method) {
         if (method==null) return null
         String[] parameterTypes = method.getParameters().collect { it.getType().getPlainNodeReference().getName() }
@@ -167,16 +180,13 @@ public class TransactionTransformation extends AbstractASTTransformation {
         tryCatchStatement.addCatch(new CatchStatement(new Parameter(new ClassNode(Exception.class), "ex"),
             catchGenericBlock))
 
-        SimpleJpaTransaction.Policy policy = getPolicy(annotation)
-        if (policy == SimpleJpaTransaction.Policy.PROPAGATE) {
-            newBlock.addStatement(new AstBuilder().buildFromCode(CompilePhase.SEMANTIC_ANALYSIS, true) {
-                beginTransaction()
-            })
-        } else if (policy == SimpleJpaTransaction.Policy.NO_PROPAGATE) {
-            newBlock.addStatement(new AstBuilder().buildFromCode(CompilePhase.SEMANTIC_ANALYSIS, true) {
-                beginTransaction(false)
-            })
-        }
+        List beginTransactionParams = []
+        beginTransactionParams << new ConstantExpression(isResume(annotation))
+        beginTransactionParams << new ConstantExpression(isNewSession(annotation))
+
+        MethodCallExpression beginTransactionCall = new MethodCallExpression(new VariableExpression("this"),
+            "beginTransaction", new ArgumentListExpression(beginTransactionParams))
+        newBlock.addStatement(new ExpressionStatement(beginTransactionCall))
         newBlock.addStatement(tryCatchStatement)
 
         LOG.info "New code for closure has been created"

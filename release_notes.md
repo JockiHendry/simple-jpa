@@ -47,8 +47,8 @@ First release into griffon artifacts portal.
 
 1.  @SimpleJpaTransaction can now be used in individual method & closure declaration.
 2.  @SimplaJpaTransaction can be configured to use Policy.PROPAGATE, Policy.NO_PROPAGATE, or Policy.SKIP.
-3.  Change transaction behaviour and uses session-per-mvcgroup.
-4.  If controller is called from new thread and the previous thread is not in transaction, entity manager will reused.  Otherwise, new entity manager will be created.
+3.  @SimpleJpaTransaction(newSession=true) will automatically destroy previous EntityManager before executing the method/closure.
+4.  Add `griffon.simplejpa.entityManager.lifespan` with default value `MANUAL`.  Change this to `TRANSACTION` to make simple-jpa create EntityManager per transaction.
 5.  Fixes creating new entity manager when transaction was rollbacked.
 6.  Fixes PropertyChangeListener duplication in validation.
 7.  Extensible ErrorNotification and ErrorCleaner for customizing validation.

@@ -18,6 +18,7 @@ class $className {
         destroyEntityManager()
     }
 
+    @SimpleJpaTransaction(newSession = true)
     def listAll = {
         execInsideUIAsync {
             model.${domainClassAsProp}List.clear()
@@ -54,6 +55,7 @@ class $className {
 %>        }
     }
 
+    @SimpleJpaTransaction(newSession = true)
     def search = {
         if (model.${firstField}Search?.length() > 0) {
             execInsideUIAsync { model.${domainClassAsProp}List.clear() }

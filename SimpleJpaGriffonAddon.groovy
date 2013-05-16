@@ -22,6 +22,7 @@ import simplejpa.swing.EventTableModelFactory
 import simplejpa.swing.NumberTextFieldFactory
 import simplejpa.swing.TagChooser
 import simplejpa.swing.TemplateListCellRenderer
+import simplejpa.transaction.EntityManagerLifespan
 import simplejpa.validation.BasicHighlightErrorNotification
 import simplejpa.validation.ConverterFactory
 import simplejpa.validation.DateTimePickerErrorCleaner
@@ -47,6 +48,11 @@ class SimpleJpaGriffonAddon {
     void addonPostInit(GriffonApplication app) {
         def types = app.config.griffon?.simplejpa?.injectInto ?: ['controller']
 
+        def entityManagerLifespan = EntityManagerLifespan.MANUAL
+        if (app.config.griffon.simplejpa.entityManager.containsKey('lifespan')) {
+            entityManagerLifespan = EntityManagerLifespan.valueOf(app.config.griffon.simplejpa.entityManager.lifespan.toUpperCase())
+        }
+
         final EntityManagerFactory emf = Persistence.createEntityManagerFactory("default")
         final Validator validator = Validation.buildDefaultValidatorFactory().getValidator()
 
@@ -54,9 +60,10 @@ class SimpleJpaGriffonAddon {
             app.artifactManager.getClassesOfType(it).each { GriffonClass gc ->
                 // Creating new handler
                 SimpleJpaHandler simpleJpaHandler = new SimpleJpaHandler(emf, validator,
-                        app.config.griffon?.simplejpa?.method?.prefix ?: '',
-                        app.config.griffon?.simplejpa?.model?.package ?: 'domain',
-                        (app.config.griffon?.simplejpa?.finder?.alwaysExcludeSoftDeleted ?: false) as boolean
+                    app.config.griffon?.simplejpa?.method?.prefix ?: '',
+                    app.config.griffon?.simplejpa?.model?.package ?: 'domain',
+                    (app.config.griffon?.simplejpa?.finder?.alwaysExcludeSoftDeleted ?: false) as boolean,
+                    entityManagerLifespan
                 )
                 gc.metaClass.methodMissing =  simpleJpaHandler.methodMissingHandler
             }
@@ -80,8 +87,8 @@ class SimpleJpaGriffonAddon {
             values.each { k, v ->
                 if (v instanceof Class) {
                     errorCleaners[k] = v.newInstance()
-                } else {
-                    errorCleaners[k] = v
+                } else if (v instanceof String) {
+                    errorCleaners[k] = Class.forName(v).newInstance()
                 }
             }
         }
@@ -123,7 +130,8 @@ class SimpleJpaGriffonAddon {
                 if (errorNotificationAttr) {
                     errorNotification = errorNotificationAttr.newInstance([node, errors, errorPath].toArray())
                 } else  if (builder.app.config.griffon.simplejpa.validation.containsKey('defaultErrorNotificationClass')) {
-                    errorNotification = builder.app.config.griffon.simplejpa.validation.defaultErrorNotificationClass.newInstance([node, errors, errorPath].toArray())
+                    errorNotification = Class.forName(builder.app.config.griffon.simplejpa.validation.defaultErrorNotificationClass)
+                        .newInstance([node, errors, errorPath].toArray())
                 } else {
                     errorNotification = new BasicHighlightErrorNotification(node, errors, errorPath)
                 }

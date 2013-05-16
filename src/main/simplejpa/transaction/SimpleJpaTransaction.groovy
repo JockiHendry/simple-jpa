@@ -15,6 +15,8 @@ public @interface SimpleJpaTransaction {
 
     Policy value() default Policy.PROPAGATE
 
+    boolean newSession() default false
+
     public enum Policy { PROPAGATE, NO_PROPAGATE, SKIP }
 
 }

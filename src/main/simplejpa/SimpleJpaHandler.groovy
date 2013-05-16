@@ -2,6 +2,7 @@ package simplejpa
 
 import org.codehaus.groovy.runtime.metaclass.ConcurrentReaderHashMap
 import org.slf4j.*
+import simplejpa.transaction.EntityManagerLifespan
 import simplejpa.transaction.ReturnFailedSignal
 import simplejpa.transaction.TransactionHolder
 
@@ -35,60 +36,45 @@ final class SimpleJpaHandler {
     final EntityManagerFactory emf
     final Validator validator
     final boolean alwaysExcludeSoftDeleted
+    final EntityManagerLifespan entityManagerLifespan
 
     public SimpleJpaHandler(EntityManagerFactory emf, Validator validator, String prefix, String domainModelPackage,
-            boolean alwaysExcludeSoftDeleted) {
+            boolean alwaysExcludeSoftDeleted, EntityManagerLifespan entityManagerLifespan) {
         this.emf = emf
         this.validator = validator
         this.prefix = (prefix==null || prefix=="" || prefix=="[]") ? "" : prefix
         this.domainModelPackage = domainModelPackage
         this.alwaysExcludeSoftDeleted = alwaysExcludeSoftDeleted
+        this.entityManagerLifespan = entityManagerLifespan
     }
 
     private final ConcurrentReaderHashMap mapTransactionHolder = new ConcurrentReaderHashMap()
 
     private void debugEntityManager() {
         if (LOG.isInfoEnabled()) {
-            def result = mapTransactionHolder.collect().join(', ')
-            LOG.info "List of cached EntityManager: $result"
+            def result = mapTransactionHolder.collect{k,v -> "${k.id}=$v"}.join('\n')
+            LOG.info "List of cached EntityManager:\n$result"
         }
     }
 
     def getEntityManager = {
         LOG.info "Retrieving current EntityManager from thread ${Thread.currentThread().id}..."
-        EntityManager em = mapTransactionHolder.get(Thread.currentThread().id)?.em
+        EntityManager em = mapTransactionHolder.get(Thread.currentThread())?.em
         debugEntityManager()
         em
     }
 
     def createEntityManager = {
         LOG.info "Creating a new entity manager..."
-        EntityManager em
-        if (mapTransactionHolder.size() > 0) {
-            TransactionHolder th = mapTransactionHolder.elements().nextElement()
-            if (th.inTransaction) {
-                LOG.warn """You're trying to get entity manager from a different thread.  To prevent thread related problems,
-new entity manager will be created.  This may cause synchronization problem if you're accessing the same
-entity in the previous thread because changes in new entity manager will not be reflected to the old entity manager."""
-                em = emf.createEntityManager()
-            } else {
-                LOG.info "Reusing previous entity manager..."
-                em = th.em
-            }
-        } else {
-            LOG.info "Creating new entity manager..."
-            em = emf.createEntityManager()
-        }
-
-        TransactionHolder th = new TransactionHolder(em)
-        mapTransactionHolder.put(Thread.currentThread().id, th)
+        TransactionHolder th = new TransactionHolder(emf.createEntityManager())
+        mapTransactionHolder.put(Thread.currentThread(), th)
         debugEntityManager()
         th
     }
 
     def destroyEntityManager = {
         LOG.info "Destroying all entity managers..."
-        mapTransactionHolder.each { long k, TransactionHolder v ->
+        mapTransactionHolder.each { Thread k, TransactionHolder v ->
             if (v.em.isOpen()) v.em.close()
         }
         mapTransactionHolder.clear()
@@ -97,6 +83,7 @@ entity in the previous thread because changes in new entity manager will not be 
 
     private configureCriteria(CriteriaBuilder cb, CriteriaQuery c, Root model, Map config) {
         LOG.info "Processing configuration [$config]..."
+
         if (alwaysExcludeSoftDeleted || config["notSoftDeleted"]==true) {
             LOG.info "Applying not soft deleted..."
             Predicate p = c.getRestriction()
@@ -133,29 +120,47 @@ entity in the previous thread because changes in new entity manager will not be 
         query
     }
 
-    def beginTransaction = { boolean resume = true ->
+    def beginTransaction = { boolean resume = true, boolean newSession = false ->
         LOG.info "Begin transaction from thread ${Thread.currentThread().id}..."
-        TransactionHolder th = mapTransactionHolder.get(Thread.currentThread().id)
-        if (!th) {
+        if (newSession) {
+            LOG.info "Start a new session..."
+            destroyEntityManager()
+        }
+
+        TransactionHolder th
+        if (entityManagerLifespan==EntityManagerLifespan.TRANSACTION) {
+            // always create new EntityManager for each transaction
             th = createEntityManager()
-        } else if (th.resumeLevel==0) {
-            if (mapTransactionHolder.findAll { k, v -> v.em.is(th.em) && v.inTransaction }?.size() > 0) {
-                LOG.warn "Another thread is using this entity manager and in transaction, a new EntityManager will be created for this thread."
-                th = new TransactionHolder(emf.createEntityManager())
-                mapTransactionHolder.put(Thread.currentThread().id, th)
+        } else if (entityManagerLifespan==EntityManagerLifespan.MANUAL) {
+            // reuse previous EntityManager if possible
+            th = mapTransactionHolder.get(Thread.currentThread())
+            if (!th) {
+                th = createEntityManager()
             }
         }
         th.beginTransaction(resume)
     }
 
+    def closeAndRemoveCurrentEntityManager = {
+        TransactionHolder th = mapTransactionHolder.get(Thread.currentThread())
+        th.em.close()
+        mapTransactionHolder.remove(th)
+    }
+
     def commitTransaction = {
-        LOG.info "Commit transaction from thread ${Thread.currentThread().id}..."
-        mapTransactionHolder.get(Thread.currentThread().id).commitTransaction()
+        LOG.info "Commit transaction from thread ${Thread.currentThread()} (${Thread.currentThread().id})..."
+        mapTransactionHolder.get(Thread.currentThread()).commitTransaction()
+        if (entityManagerLifespan==EntityManagerLifespan.TRANSACTION) {
+            closeAndRemoveCurrentEntityManager()
+        }
     }
 
     def rollbackTransaction = {
-        LOG.info "Rollback transaction from thread ${Thread.currentThread().id}..."
-        mapTransactionHolder.get(Thread.currentThread().id).rollbackTransaction()
+        LOG.info "Rollback transaction from thread ${Thread.currentThread()} (${Thread.currentThread().id})..."
+        mapTransactionHolder.get(Thread.currentThread()).rollbackTransaction()
+        if (entityManagerLifespan==EntityManagerLifespan.TRANSACTION) {
+            closeAndRemoveCurrentEntityManager()
+        }
     }
 
     def executeInsideTransaction(Closure action) {
@@ -186,7 +191,7 @@ entity in the previous thread because changes in new entity manager will not be 
             }
             if (createdEM) {
                 LOG.info "Removing EntityManager created by this standalone transaction"
-                mapTransactionHolder.remove(Thread.currentThread().id)
+                mapTransactionHolder.remove(Thread.currentThread())
             }
         }
         return result
