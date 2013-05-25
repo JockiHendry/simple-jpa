@@ -52,6 +52,262 @@
 <p><strong>Swing nodes for database application</strong> - simple-jpa provides template renderer for effortlessly represent domain object in JTable, JList or JComboBox.  It also provides new nodes that can be used in Griffon’s view such as tagChooser, numberTextField, maskTextField, and dateTimePicker.</p>
 
 <p><strong>Integration testing</strong> – simple-jpa is using dbUnit in integration testing to fill database with predefined data from a Microsoft Excel file (or csv file).  This way, every test cases will be executed with the same table data.</p>
+
+<h3>Bookstore Tutorial</h3>
+
+<p>This tutorial will assume that you are using the following software:</p>
+
+<ol>
+<li>Windows operating system</li>
+<li>Java Development Kit 7</li>
+<li>Griffon 1.2</li>
+<li>simple-jpa 0.4</li>
+<li>IntelliJ IDEA</li>
+<li>MySQL Server</li>
+</ol><p>The first step is creating a new Griffon application.  You can do this by opening Command Prompt and entering the following commands:</p>
+
+<pre><code>mkdir c:\projects
+cd c:\projects
+griffon create-app bookstore
+</code></pre>
+
+<p>You can change <em>c:\projects</em> in the above commands to another directory.  If that directory already exists, you can skip the ‘mkdir` command.</p>
+
+<p>Griffon will create a subdirectory called <em>bookstore</em> that contains your project’s files, including source code.  You will need to move to this directory by entering the following command:</p>
+
+<pre><code>cd bookstore
+</code></pre>
+
+<p>Next, you will install simple-jpa plugin by entering the following command:</p>
+
+<pre><code>griffon install-plugin simple-jpa 0.4
+</code></pre>
+
+<p>If simple-jpa has never been installed on your computer, Griffon will download required files for the first time.  simple-jpa is a fat plugin with a lot of dependencies, so you may need to wait.</p>
+
+<p>After simple-jpa has been downloaded and installed, the next step is integrating your project with IntelliJ IDEA by entering the following command:</p>
+
+<pre><code>griffon integrate-with -–idea
+</code></pre>
+
+<p>You can also replace <em>--idea</em> with <em>--eclipse</em> if you’re using Eclipse.  In the above command, Griffon will create an IntelliJ IDEA project in your current directory.  You can also create a new Griffon’s project in IntelliJ IDEA from the beginning, without using any command line as in this tutorial, but there is a drawback. If you create project and install simple-jpa from inside IntelliJ IDEA, dependencies for current project will not setup properly and autocomplete for project dependencies will not work.</p>
+
+<p>You can start IntelliJ IDEA now.  With IntelliJ IDEA running, select <em>Open Project</em>, browse to <em>C:\projects\bookstore</em>, and then click on <em>OK</em> button to open your project.</p>
+
+<p><img src="images/picture1.PNG" alt="Opening Griffon's project in IntelliJ IDEA"></p>
+
+<p>JPA application development usually starts with creating <em>persistence.xml</em>.  This file will contain information required for database connection and JPA configurations.  It will also contain a list of entities that will be managed by JPA.   </p>
+
+<p>The next most common thing to start with is creating database user and schema.</p>
+
+<p>To keep things simple, you will use <code>create-simple-jpa</code> command.  This command will generate <em>persistence.xml</em> for you.  If you want it to also generate database schema and a new user, you will need to provide MySQL’s root password.  Note that MySQL’s root password will not be saved and will not be used inside application.</p>
+
+<p>In this step, you will create <em>persistence.xml</em>, a new database named <em>bookstore</em> and a database user <em>steven</em> (whose password is <em>12345</em>).   You will need to select <em>Tools</em>, <em>Griffon</em>, <em>Run Target</em> (or press Ctrl+Alt+G) and enter the following command:</p>
+
+<pre><code>create-simple-jpa --user=steven --password=12345 --database=bookstore --rootPassword=adminpassword
+</code></pre>
+
+<p><img src="images/picture2.PNG" alt="Entering Griffon's command in IntelliJ IDEA"></p>
+
+<p>The command above is assuming that your root password is <em>adminpassword</em>.  In some cases, your root password may be empty, so you will need to use the following command instead:</p>
+
+<pre><code>create-simple-jpa --user=steven --password=12345 --database=bookstore --rootPassword=
+</code></pre>
+
+<p>If you only want to generate <em>persistence.xml</em> without performing any database operations, you can use the following command instead:</p>
+
+<pre><code>create-simple-jpa --user=steven --password=12345 --database=bookstore --skipDatabase=true
+</code></pre>
+
+<p>The next step will be creating domain classes.  Your bookstore application will have the following domain classes: <em>TransactionOrder</em>, <em>OrderItem</em>, <em>Book</em>, and <em>Author</em>.  To create domain classes and add their location to <em>persistence.xml</em>, you will need to enter the following command:</p>
+
+<pre><code>create-domain-class TransactionOrder OrderItem Book Author
+</code></pre>
+
+<p>You will find all generated domain classes in the <em>domain</em> package.  They are plain JPA entities that follow JPA rules.</p>
+
+<p><img src="images/picture3.PNG" alt="simple-jpa domain classes"></p>
+
+<p>Open <em>TransactionOrder.groovy</em> and add some members to this domain class:</p>
+
+<pre><code>package domain
+import …
+
+@DomainModel @Entity @Canonical
+class TransactionOrder {
+
+   @NotEmpty @Size(min=5, max=5)
+   String orderNumber
+
+   @Type(type="org.jadira.usertype.dateandtime.joda.PersistentLocalDate")
+   LocalDate orderDate
+
+   @OneToMany(cascade = CascadeType.ALL, orphanRemoval = true , mappedBy="transactionOrder")
+   List&lt;OrderItem&gt; orderItemList = []
+
+   BigDecimal getAmount() {
+      orderItemList.sum { it.amount }
+   }
+
+}
+</code></pre>
+
+<p>P.S.: If you didn’t add <code>cascade</code> and <code>orphanRemoval</code> to <code>@OneToMany</code> annotation, the code generated by scaffolding will not work.  You’re also expected to initialize the <code>Collection</code>.</p>
+
+<p>Open <em>OrderItem.groovy</em> and add some members to this domain class:</p>
+
+<pre><code>package domain
+
+import ...
+
+@DomainModel @Entity @Canonical (excludes = "transactionOrder")
+class OrderItem {
+
+   @NotNull @ManyToOne
+   Book book
+
+   @NotNull @Min(1l)
+   Integer quantity
+
+   @ManyToOne
+   TransactionOrder transactionOrder
+
+   BigDecimal getAmount() {
+      book.price * quantity
+   }
+
+}
+</code></pre>
+
+<p>Open <em>Author.groovy</em> and add some members to this domain class:</p>
+
+<pre><code>package domain
+
+import ...
+
+@DomainModel @Entity @Canonical (excludes = "bookList")
+class Author {
+
+   @NotEmpty @Size(min=2, max=100)
+   String firstName
+
+   @Size(min=2, max=100)
+   String lastName
+
+   @Email
+   String email
+
+   @ManyToMany(mappedBy="authorList")
+   List&lt;Book&gt; bookList
+
+}
+</code></pre>
+
+<p>Open <em>Book.groovy</em> and add some members to this domain class:</p>
+
+<pre><code>package domain
+
+import ...
+
+@DomainModel @Entity @Canonical
+class Book {
+
+   @NotEmpty @Size(min=9, max=13)
+   String isbn
+
+   @NotEmpty @Size(min=2, max=100)
+   String title
+
+   @NotNull @Min(1l)
+   BigDecimal price
+
+   @NotEmpty @ManyToMany
+   List&lt;Author&gt; authorList
+
+}
+</code></pre>
+
+<p>Your next step will be generating Griffon’s <code>MVCGroup</code>s based on your domain classes.  To do this, enter the following command:</p>
+
+<pre><code>generate-all * --startupGroup=MainGroup
+</code></pre>
+
+<p>simple-jpa will create one <code>MVCGroup</code> per domain class.  Each <code>MVCGroup</code> has model, view and controller that are capable of performing create, read, update and delete operation.</p>
+
+<p>The above command will also generate one special <code>MVCGroup</code> named <em>MainGroup</em> which is a startup group.  This <code>MVCGroup</code> will act as a main window that provides button to launch other <code>MVCGroup</code>s.</p>
+
+<p>By default, <code>generate-all</code> will not replace existing files.  If you really want to overwrite existing files, you can use the following command instead:</p>
+
+<pre><code>generate-all * --startupGroup=MainGroup --force-overwrite
+</code></pre>
+
+<p>Up to this point, you already have a working bookstore application. You don’t need to worry about creating database tables because simple-jpa has added <code>hibernate.hbm2ddl.auto</code> to <em>persistence.xml</em>.  This configuration will instruct Hibernate JPA to automatically create tables for domain classes in application startup.  </p>
+
+<p>You can start your application by entering the following command:</p>
+
+<pre><code>run-app
+</code></pre>
+
+<p>The startup group’s view contains buttons that link to the others.</p>
+
+<p><img src="images/picture4.PNG" alt="simple-jpa startup group"></p>
+
+<p>P.S.: Every time you start your application, data in tables will be discarded.  You will need to remove <code>hibernate.hbm2dll.auto</code> in <em>persistence.xml</em> if you want to preserve data in your tables.</p>
+
+<p>One of simple-jpa’s nice features is that it knows about your domain classes’ relationship.  simple-jpa will generate a special <code>MVCGroup</code> if it finds one-to-one and one-to-many relationship.  For example, if you open Transaction Order view, you will find an Order Item List button.  This is an example of one-to-many relationship.  If you click on the button, a dialog to input one or more <code>OrderItem</code> will be displayed.</p>
+
+<p><img src="images/picture5.PNG" alt="scaffolding one-to-many"></p>
+
+<p>If you have examined the startup group clearly, you will find that there is an Order Item menu in your startup group.  This is usually undesirable, because, user will always open Order Item view from Transaction Order view.  You can remove it by opening <em>MainGroupView.groovy</em>, deleting line 12 and 27 as shown below:</p>
+
+<pre><code>actions {
+   …
+   action(id: 'orderItem', name: 'Order Item', actionCommandKey: 'orderItem', closure: controller.switchPage)
+    …
+}
+
+toolBar(constraints: BorderLayout.PAGE_START, floatable: false) {
+    …
+    button(action: orderItem, verticalTextPosition: SwingConstants.BOTTOM, horizontalTextPosition: SwingConstants.CENTER)
+    …
+}
+</code></pre>
+
+<p>Your bookstore application will perform validation based on the annotations in domain classes.  For example, <code>firstName</code> in <code>Author</code> class has <code>@NotEmpty</code> annotation.  If user didn’t input author’s first name when entering new data, your application will display an error message.</p>
+
+<p><img src="images/picture6.PNG" alt="simple-jpa validation"></p>
+
+<p>If user input a new <code>Book</code>, he will need to choose authors (one or more) from simple-jpa’s <em>tagChooser</em>.  By default, simple-jpa will use <em>tagChooser</em> if it encounters many-to-many relationship.  <em>tagChooser</em> will display String version of domain object which is obtained by calling <code>toString()</code>.  This is often seen as undesirable.</p>
+
+<p><img src="images/picture7.PNG" alt="simple-jpa tagChooser"></p>
+
+<p>You can use template renderer to represent domain object in more informative text.  For example, open <em>BookView.groovy</em> and change line 53 to the following:</p>
+
+<pre><code>tagChooser(model: model.authorList, templateString: '${value.firstName} - ${value.lastName}',
+   constraints: 'grow,push,span,wrap', errorPath: 'authorList')
+</code></pre>
+
+<p>In the code above, you’re using simple-jpa’s template renderer to display <code>Author</code>’s first name and last name in <em>tagChooser</em>.  Template renderer can accept any valid Groovy expression.</p>
+
+<p><img src="images/picture8.PNG" alt="simple-jpa template renderer"></p>
+
+<p>You can also use template renderer in table.  For example, in the picture above, the fourth column (author list) is hard to read.  Open <em>BookView.groovy</em> and change line 36 to the following:</p>
+
+<pre><code>columnValues: ['${value.isbn}', '${value.title}', '${value.price}',
+    '&lt;% out &lt;&lt; value.authorList.collect{ "${it.firstName} - ${it.lastName}"}.join(", ") %&gt;'])
+</code></pre>
+
+<p>The expression above will display a comma separated list of authors for each book.</p>
+
+<p><img src="images/picture9.PNG" alt="Using simple-jpa template renderer in table"></p>
+
+<p>If you are displaying number or money amount in template renderer, you can also use simple-jpa’s formatter functions such as <code>numberFormat()</code> or <code>currencyFormat()</code>.  For example, open <em>TransactionOrderView.groovy</em> and change line 36 to the following:</p>
+
+<pre><code>columnValues: ['${value.orderNumber}', '${value.orderDate}',
+    '${value.orderItemList.size()} items, Total ${currencyFormat(value.amount)}'])
+</code></pre>
+
+<p><img src="images/picture10.PNG" alt="Using formatter in template renderer"></p>
         </section>
 
         <footer>
@@ -59,7 +315,17 @@
           This page was generated by <a href="http://pages.github.com">GitHub Pages</a>. Tactile theme by <a href="http://twitter.com/jasonlong">Jason Long</a>.
         </footer>
 
-        
+                  <script type="text/javascript">
+            var gaJsHost = (("https:" == document.location.protocol) ? "https://ssl." : "http://www.");
+            document.write(unescape("%3Cscript src='" + gaJsHost + "google-analytics.com/ga.js' type='text/javascript'%3E%3C/script%3E"));
+          </script>
+          <script type="text/javascript">
+            try {
+              var pageTracker = _gat._getTracker("UA-41202290-1");
+            pageTracker._trackPageview();
+            } catch(err) {}
+          </script>
+
       </div>
     </div>
   </body>
