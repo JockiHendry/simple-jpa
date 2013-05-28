@@ -32,10 +32,12 @@ class DomainModelTransformation extends AbstractASTTransformation {
         checkNodesForAnnotationAndType(astNodes[0], astNodes[1])
 
         ClassNode classNode = astNodes[1]
-        LOG.info "AST Transformation for domain class $classNode is being executed..."
 
         // If superclass is also a domain class, than do not inject any fields.
-        if (classNode.superClass.annotations.find { it.classNode.typeClass == DomainModel.class }) {
+        if (classNode.superClass.annotations.find {
+                    it.classNode.typeClass == DomainModel.class ||
+                    it.classNode.typeClass == Entity.class
+                }) {
             LOG.info "Didn't inject attributes to $classNode because its superclass is a domain class!"
             return
         }
