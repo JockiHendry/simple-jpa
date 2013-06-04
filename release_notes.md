@@ -52,3 +52,7 @@ First release into griffon artifacts portal.
 5.  Fixes creating new entity manager when transaction was rollbacked.
 6.  Fixes PropertyChangeListener duplication in validation.
 7.  Extensible ErrorNotification and ErrorCleaner for customizing validation.
+
+### 0.4.1
+1. Fixes fail to prevent AST on a domain class when only compiling one class (partial compile).
+1. Fixes can't use another AbstractEventList besides BasicEventList in eventTableModel() node.

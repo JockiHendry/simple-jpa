@@ -16,12 +16,8 @@
 
 package simplejpa.swing
 
-import ca.odell.glazedlists.BasicEventList
 import ca.odell.glazedlists.swing.GlazedListsSwing
-
-import javax.swing.JLabel
 import javax.swing.table.TableModel
-
 
 class EventTableModelFactory extends AbstractFactory {
 
@@ -39,10 +35,10 @@ class EventTableModelFactory extends AbstractFactory {
         if (!attributes.containsKey('columnValues')) {
             throw new IllegalArgumentException("In $name you must defined a value for columnValues for type List<String>")
         }
-        BasicEventList list = attributes.remove('list')
-        List columnNames = attributes.remove('columnNames')
-        List columnValues = attributes.remove('columnValues')
-        List columnClasses = attributes.remove('columnClasses')
+        def list = attributes.remove('list')
+        def columnNames = attributes.remove('columnNames')
+        def columnValues = attributes.remove('columnValues')
+        def columnClasses = attributes.remove('columnClasses')
 
         return GlazedListsSwing.eventTableModelWithThreadProxyList(list,
             new TemplateTableFormat(columnNames, columnValues, columnClasses))
