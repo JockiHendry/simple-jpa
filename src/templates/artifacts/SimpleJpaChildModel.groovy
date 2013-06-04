@@ -77,7 +77,11 @@ class $className {
         if (isManyToOne(field) && field.type.toString().equals(parentDomainClass)) return
 
         if (["BASIC_TYPE", "DATE"].contains(field.info)) {
-            out << "\t\t${field.name} = null\n"
+            if (["Boolean", "boolean"].contains(field.type as String)) {
+                out << "\t\t${field.name} = false\n"
+            } else {
+                out << "\t\t${field.name} = null\n"
+            }
         } else if (isOneToOne(field)) {
             out << "\t\t${field.name} = null\n"
         } else if (isOneToMany(field)) {

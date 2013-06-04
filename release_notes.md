@@ -56,3 +56,4 @@ First release into griffon artifacts portal.
 ### 0.4.1
 1. Fixes fail to prevent AST on a domain class when only compiling one class (partial compile).
 1. Fixes can't use another AbstractEventList besides BasicEventList in eventTableModel() node.
+1. Fixes boolean rendered as textfield not checkbox.

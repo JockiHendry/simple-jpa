@@ -26,6 +26,8 @@ application(title: '${natural(domainClass)}',
             out << "\t\t\tnumberTextField(id: '${field.name}', columns: 20, bindTo: '${field.name}', errorPath: '${field.name}')\n"
         } else if (field.info=="BASIC_TYPE" && ["BigDecimal"].contains(field.type as String)) {
             out << "\t\t\tnumberTextField(id: '${field.name}', columns: 20, bindTo: '${field.name}', nfParseBigDecimal: true, errorPath: '${field.name}')\n"
+        } else if (field.info=="BASIC_TYPE" && ["Boolean", "boolean"].contains(field.type as String)) {
+            out << "\t\t\tcheckBox(id: '${field.name}', selected: bind('${field.name}', target: model, mutual: true), errorPath: '${field.name}')\n"
         } else if (field.info=="BASIC_TYPE") {
             out << "\t\t\ttextField(id: '${field.name}', columns: 20, text: bind('${field.name}', target: model, mutual: true), errorPath: '${field.name}')\n"
         } else if (field.info=="DATE") {

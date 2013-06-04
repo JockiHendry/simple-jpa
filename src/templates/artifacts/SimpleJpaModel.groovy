@@ -79,7 +79,11 @@ class $className {
 
         if (["BASIC_TYPE", "DATE"].contains(field.info) ||
             (field.info=="DOMAIN_CLASS" && field.annotations?.containsAnnotation('OneToOne'))) {
-            out << "\t\t${field.name} = null\n"
+                if (["Boolean", "boolean"].contains(field.type as String)) {
+                    out << "\t\t${field.name} = false\n"
+                } else {
+                    out << "\t\t${field.name} = null\n"
+                }
         } else if (isOneToOne(field) || isManyToOne(field)) {
             out << "\t\t${field.name}.selectedItem = null\n"
         } else if (isOneToMany(field)) {
