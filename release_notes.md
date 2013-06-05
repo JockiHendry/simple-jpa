@@ -57,3 +57,4 @@ First release into griffon artifacts portal.
 1. Fixes fail to prevent AST on a domain class when only compiling one class (partial compile).
 1. Fixes can't use another AbstractEventList besides BasicEventList in eventTableModel() node.
 1. Fixes boolean rendered as textfield not checkbox.
+1. Add 'tableColumnConfig' node to configure table columns such as resizeable and maxWidth without actually creating a new TableColumnModel.

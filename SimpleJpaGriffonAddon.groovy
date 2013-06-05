@@ -20,6 +20,7 @@ import simplejpa.swing.MaskTextFieldFactory
 import simplejpa.swing.DateTimePicker
 import simplejpa.swing.EventTableModelFactory
 import simplejpa.swing.NumberTextFieldFactory
+import simplejpa.swing.TableColumnConfig
 import simplejpa.swing.TagChooser
 import simplejpa.swing.TemplateListCellRenderer
 import simplejpa.transaction.EntityManagerLifespan
@@ -99,6 +100,7 @@ class SimpleJpaGriffonAddon {
         toInteger: new ConverterFactory(ConverterFactory.TYPE.INTEGER),
         toReverseString: new ConverterFactory(ConverterFactory.TYPE.REVERSE_STRING),
         eventTableModel: new EventTableModelFactory(),
+        tableColumnConfig: new TableColumnConfig(),
 
         tagChooser: new BeanFactory(TagChooser, false),
         dateTimePicker: new BeanFactory(DateTimePicker, false),
