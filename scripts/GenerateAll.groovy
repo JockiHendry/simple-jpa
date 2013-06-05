@@ -111,6 +111,12 @@ getFields =  { String name, boolean processChild = true ->
             return
         }
 
+        // Check if this is an enumerated property
+        if (field.annotations?.containsAnnotation("Enumerated")) {
+            field["info"] = "ENUMERATED"
+            return
+        }
+
         // Check if this is a List and has one of relationship annotation
         if (["List", "Set"].contains(field.type as String)) {
             if (field.annotations?.containsAnnotation(["ManyToMany","OneToMany"])) {
@@ -239,6 +245,9 @@ def createMVC = { boolean createStartupGroup = false ->
             "prop": GriffonUtil.&getPropertyName,
             "cls": GriffonUtil.&getClassNameRepresentation,
             "natural": GriffonUtil.&getNaturalName,
+
+            // information
+            "isEnumerated": {field -> field.annotations?.containsAnnotation("Enumerated")}.&call,
 
             // relational
             "isMappedBy": {field -> field.annotations?.containsAttribute('mappedBy')}.&call,

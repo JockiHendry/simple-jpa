@@ -7,6 +7,7 @@ import groovy.beans.Bindable
 import org.joda.time.*
 import javax.swing.event.*
 import simplejpa.swing.*
+import org.jdesktop.swingx.combobox.EnumComboBoxModel
 
 class $className {
 
@@ -18,6 +19,8 @@ class $className {
         } else if ("UNKNOWN".equals(field.info)){
             out << "\t// ${field.name} is not supported by generator.  You will need to code it manually.\n"
             out << "\t@Bindable ${field.type} ${field.name}\n"
+        } else if (isEnumerated(field)) {
+            out << "\tEnumComboBoxModel<${field.type}> ${field.name} = new EnumComboBoxModel<${field.type}>(${field.type}.class)\n"
         } else if (isOneToOne(field) && !isMappedBy(field)) {
             out << "\t@Bindable ${field.type} ${field.name}\n"
         } else if (isManyToOne(field) && !field.type.toString().equals(parentDomainClass)) {
@@ -58,7 +61,7 @@ class $className {
             out << "\t\t\t\t${field.name}.addAll(selected.${field.name})\n"
         } else if (isManyToMany(field)) {
             out << "\t\t\t\t${field.name}.replaceSelectedValues(selected.${field.name})\n"
-        } else if (isManyToOne(field)) {
+        } else if (isManyToOne(field) || isEnumerated(field)) {
             out << "\t\t\t\t${field.name}.selectedItem = selected.${field.name}\n"
         } else if (field.info=="UNKNOWN") {
             out << "\t\t\t\t// ${field.name} is not supported by generator.  You will need to code it manually.\n"
@@ -88,7 +91,7 @@ class $className {
             out << "\t\t${field.name}.clear()\n"
         } else if (isManyToMany(field)) {
             out << "\t\t${field.name}.clearSelectedValues()\n"
-        } else if (isManyToOne(field)) {
+        } else if (isManyToOne(field) || isEnumerated(field)) {
             out << "\t\t${field.name}.selectedItem = null\n"
         } else if (field.info=="UNKNOWN") {
             out << "\t\t// ${field.name} is not supported by generator.  You will need to code it manually.\n"

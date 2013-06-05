@@ -58,3 +58,4 @@ First release into griffon artifacts portal.
 1. Fixes can't use another AbstractEventList besides BasicEventList in eventTableModel() node.
 1. Fixes boolean rendered as textfield not checkbox.
 1. Add 'tableColumnConfig' node to configure table columns such as resizeable and maxWidth without actually creating a new TableColumnModel.
+1. Scaffolding feature will generate @Enumerated property as a JComboBox that uses SwingX's EnumComboBoxModel.

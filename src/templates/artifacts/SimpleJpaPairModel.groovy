@@ -7,6 +7,7 @@ import groovy.beans.Bindable
 import org.joda.time.*
 import javax.swing.event.*
 import simplejpa.swing.*
+import org.jdesktop.swingx.combobox.EnumComboBoxModel
 
 class $className {
 
@@ -19,6 +20,8 @@ class $className {
             out << "\t@Bindable ${field.type} ${field.name}\n"
         } else if (isOneToOne(field) && !isMappedBy(field)) {
             out << "\t@Bindable ${field.type} ${field.name}\n"
+        } else if (isEnumerated(field)) {
+            out << "\tEnumComboBoxModel<${field.type}> ${field.name} = new EnumComboBoxModel<${field.type}>(${field.type}.class)\n"
         } else if (isManyToOne(field)) {
             out << "\tBasicEventList<${field.type}> ${field.name}List = new BasicEventList<>()\n"
             out << "\t@Bindable DefaultEventComboBoxModel<${field.type}> ${field.name} =\n"

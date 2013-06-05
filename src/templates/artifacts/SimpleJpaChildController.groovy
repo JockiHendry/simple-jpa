@@ -52,6 +52,8 @@ class $className {
                            !(isManyToOne(it) && it.type.toString().equals(parentDomainClass))}.collect { field ->
         if (isManyToOne(field) && !field.type.toString().equals(parentDomainClass)) {
             return "'${field.name}': model.${field.name}.selectedItem"
+        } else if (isEnumerated(field)) {
+            return "'${field.name}': model.${field.name}.selectedItem"
         } else if (isOneToMany(field)) {
             return "'${field.name}': new ArrayList(model.${field.name})"
         } else if (isManyToMany(field)) {
@@ -74,6 +76,8 @@ class $className {
         if (isManyToOne(field) && field.type.toString().equals(parentDomainClass)) return
 
         if (isManyToOne(field) && !field.type.toString().equals(parentDomainClass)) {
+            out << "\t\t\tselected${domainClass}.${field.name} = model.${field.name}.selectedItem\n"
+        } else if (isEnumerated(field)) {
             out << "\t\t\tselected${domainClass}.${field.name} = model.${field.name}.selectedItem\n"
         } else if (isOneToMany(field)) {
             out << "\t\t\tselected${domainClass}.${field.name}.clear()\n"

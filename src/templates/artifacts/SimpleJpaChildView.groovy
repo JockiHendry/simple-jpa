@@ -58,6 +58,8 @@ application(title: '${natural(domainClass)}',
             if (field.type.toString().equals("LocalDate")) out << ", dateVisible: true, timeVisible: false"
             if (field.type.toString().equals("LocalTime")) out << ", dateVisible: false, timeVisible: true"
             out << ")\n"
+        } else if (isEnumerated(field)) {
+            out << "\t\t\tcomboBox(id: '${field.name}', model: model.${field.name}, errorPath: '${field.name}')\n"
         } else if (isOneToOne(field)) {
             out << "\t\t\tbutton(id: '${field.name}', text: '${natural(field.name as String)}', errorPath: '${field.name}', actionPerformed: {\n"
             out << """\
@@ -74,7 +76,7 @@ application(title: '${natural(domainClass)}',
             })
 """
         } else if (isManyToOne(field)) {
-            out << "\t\t\tcomboBox(model: model.${field.name}, templateRenderer: '\${value}', errorPath: '${field.name}')\n"
+            out << "\t\t\tcomboBox(id: '${field.name}', model: model.${field.name}, templateRenderer: '\${value}', errorPath: '${field.name}')\n"
         } else if (isOneToMany(field)) {
             out << "\t\t\tbutton(id: '${field.name}', text: '${natural(field.name as String)}', errorPath: '${field.name}', actionPerformed: {\n"
             out << """\

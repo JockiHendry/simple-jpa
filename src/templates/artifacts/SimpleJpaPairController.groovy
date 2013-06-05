@@ -20,7 +20,7 @@ class $className {
                 out << "\t\tmodel.${field.name} = args.'pair'?.${field.name}\n"
             } else if (isOneToOne(field)) {
                 out << "\t\tmodel.${field.name} = args.'pair'?.${field.name}\n"
-            } else if (isManyToOne(field)) {
+            } else if (isManyToOne(field) || isEnumerated(field)) {
                 out << "\t\tmodel.${field.name}.selectedItem = args.'pair'?.${field.name}\n"
             } else if (isOneToMany(field)) {
                 out << "\t\tif (args.'pair'?.${field.name}) {\n"
@@ -81,7 +81,7 @@ class $className {
                            !(isManyToOne(it) && it.type.toString().equals(parentDomainClass))}.collect { field ->
         if (isOneToOne(field)) {
             return "'${field.name}': model.${field.name}"
-        } else if (isManyToOne(field)) {
+        } else if (isManyToOne(field) || isEnumerated(field)) {
             return "'${field.name}': model.${field.name}.selectedItem"
         } else if (isManyToMany(field)) {
             return "'${field.name}': model.${field.name}.selectedValues"

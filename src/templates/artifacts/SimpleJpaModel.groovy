@@ -7,6 +7,7 @@ import groovy.beans.Bindable
 import org.joda.time.*
 import javax.swing.event.*
 import simplejpa.swing.*
+import org.jdesktop.swingx.combobox.EnumComboBoxModel
 
 class $className {
 
@@ -22,7 +23,9 @@ class $className {
     @Bindable String ${fields[0]?.name ?: 'replaceThis'}Search
     @Bindable String searchMessage
 <%  fields.each { field ->
-        if (isOneToOne(field) && !isMappedBy(field)) {
+        if (isEnumerated(field)) {
+            out << "\tEnumComboBoxModel<${field.type}> ${field.name} = new EnumComboBoxModel<${field.type}>(${field.type}.class)\n"
+        } else if (isOneToOne(field) && !isMappedBy(field)) {
             out << "\t@Bindable ${field.type} ${field.name}\n"
         } else if (isManyToOne(field)) {
             out << "\tBasicEventList<${field.type}> ${field.name}List = new BasicEventList<>()\n"
@@ -55,7 +58,7 @@ class $className {
         if (["BASIC_TYPE", "DATE"].contains(field.info) ||
             (field.info=="DOMAIN_CLASS" && field.annotations?.containsAnnotation('OneToOne'))) {
             out << "\t\t\t\t${field.name} = selected.${field.name}\n"
-        } else if (isOneToOne(field) || isManyToOne(field)) {
+        } else if (isOneToOne(field) || isManyToOne(field) || isEnumerated(field)) {
             out << "\t\t\t\t${field.name}.selectedItem = selected.${field.name}\n"
         } else if (isOneToMany(field)) {
             out << "\t\t\t\t${field.name}.clear()\n"
@@ -84,7 +87,7 @@ class $className {
                 } else {
                     out << "\t\t${field.name} = null\n"
                 }
-        } else if (isOneToOne(field) || isManyToOne(field)) {
+        } else if (isOneToOne(field) || isManyToOne(field) || isEnumerated(field)) {
             out << "\t\t${field.name}.selectedItem = null\n"
         } else if (isOneToMany(field)) {
             out << "\t\t${field.name}.clear()\n"

@@ -70,7 +70,7 @@ class $className {
     def save = {
         ${domainClass} ${domainClassAsProp} = new ${domainClass}(<%
     out << fields.findAll{ !(isOneToOne(it) && isMappedBy(it)) }.collect { field ->
-        if (isManyToOne(field)) {
+        if (isManyToOne(field) || isEnumerated(field)) {
             return "'${field.name}': model.${field.name}.selectedItem"
         } else if (isOneToMany(field)) {
             return "'${field.name}': new ArrayList(model.${field.name})"
@@ -136,7 +136,7 @@ class $className {
             ${domainClass} selected${domainClass} = model.${domainClassAsProp}Selection.selected[0]
 <%
     fields.each { field ->
-        if (isManyToOne(field)) {
+        if (isManyToOne(field) || isEnumerated(field)) {
             out << "\t\t\tselected${domainClass}.${field.name} = model.${field.name}.selectedItem\n"
         } else if (isOneToMany(field)) {
             if (!isCascaded(field)) {
