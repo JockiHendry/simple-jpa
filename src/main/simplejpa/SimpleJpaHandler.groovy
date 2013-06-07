@@ -15,6 +15,7 @@ import javax.persistence.criteria.Predicate
 import javax.persistence.criteria.Root
 import javax.validation.ConstraintViolation
 import javax.validation.Validator
+import java.lang.reflect.Method
 
 final class SimpleJpaHandler {
 
@@ -571,8 +572,19 @@ final class SimpleJpaHandler {
 
             // Nothing found
             default:
-                LOG.error "Missing method $name !"
-                throw new MissingMethodException(name, delegate.class, (Object[])args)
+                // Is this one of EntityManager's methods?
+                Method method = EntityManager.methods.find { it.name == nameWithoutPrefix }
+                if (method) {
+                    LOG.info "Executing EntityManager.${nameWithoutPrefix}"
+                    executeInsideTransaction {
+                        EntityManager em = getEntityManager()
+                        return method.invoke(em, args)
+                    }
+                } else {
+                    // No, this is unknown name
+                    LOG.error "Missing method $name !"
+                    throw new MissingMethodException(name, delegate.class, (Object[])args)
+                }
         }
     }
 }

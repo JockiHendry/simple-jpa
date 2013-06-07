@@ -59,3 +59,4 @@ First release into griffon artifacts portal.
 1. Fixes boolean rendered as textfield not checkbox.
 1. Add 'tableColumnConfig' node to configure table columns such as resizeable and maxWidth without actually creating a new TableColumnModel.
 1. Scaffolding feature will generate @Enumerated property as a JComboBox that uses SwingX's EnumComboBoxModel.
+1. Expose all EntityManager's methods as its name (ex: 'refresh(args)' will call 'refresh' method of current EntityManager).
