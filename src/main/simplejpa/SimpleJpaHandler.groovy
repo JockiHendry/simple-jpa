@@ -76,7 +76,9 @@ final class SimpleJpaHandler {
     def destroyEntityManager = {
         LOG.info "Destroying all entity managers..."
         mapTransactionHolder.each { Thread k, TransactionHolder v ->
-            if (v.em.isOpen()) v.em.close()
+            if (v.em.isOpen()) {
+                v.em.close()
+            }
         }
         mapTransactionHolder.clear()
         debugEntityManager()
@@ -145,7 +147,7 @@ final class SimpleJpaHandler {
     def closeAndRemoveCurrentEntityManager = {
         TransactionHolder th = mapTransactionHolder.get(Thread.currentThread())
         th.em.close()
-        mapTransactionHolder.remove(th)
+        mapTransactionHolder.remove(Thread.currentThread())
     }
 
     def commitTransaction = {
@@ -192,7 +194,7 @@ final class SimpleJpaHandler {
             }
             if (createdEM) {
                 LOG.info "Removing EntityManager created by this standalone transaction"
-                mapTransactionHolder.remove(Thread.currentThread())
+                closeAndRemoveCurrentEntityManager()
             }
         }
         return result
