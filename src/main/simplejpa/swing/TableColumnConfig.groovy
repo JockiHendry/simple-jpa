@@ -16,9 +16,13 @@
 
 package simplejpa.swing
 
+import javax.swing.JLabel
 import javax.swing.JTable
+import javax.swing.table.DefaultTableCellRenderer
+import javax.swing.table.TableCellRenderer
 import javax.swing.table.TableColumn
 import javax.swing.table.TableColumnModel
+import java.awt.Component
 
 
 class TableColumnConfig extends AbstractFactory {
@@ -34,8 +38,25 @@ class TableColumnConfig extends AbstractFactory {
 
         attributes.each { index, configs ->
             TableColumn column = columnModel.getColumn(index)
-            configs.each { method, v ->
-                column."$method" = v
+            configs.each { String method, v ->
+                def m = method.tokenize('.')
+                if (m[0]=='cellRenderer') {
+                    if (!column.cellRenderer) {
+                        column.cellRenderer = new DefaultTableCellRenderer()
+                    }
+                    column.cellRenderer."${m[1]}" = v
+                } else if(m[0]=='headerRenderer') {
+                    if (!column.headerRenderer) {
+                        column.headerRenderer = new HeaderRenderer(table)
+                    }
+                    if (column.headerRenderer instanceof HeaderRenderer) {
+                        column.headerRenderer.mapCustomize."${m[1]}" = v
+                    } else {
+                        column.headerRenderer."${m[1]}" = v
+                    }
+                } else {
+                    column."$method" = v
+                }
             }
         }
         attributes.clear()
@@ -43,7 +64,25 @@ class TableColumnConfig extends AbstractFactory {
         columnModel
     }
 
+    class HeaderRenderer implements TableCellRenderer {
 
+        DefaultTableCellRenderer renderer
+        Map mapCustomize = [:]
+
+        public HeaderRenderer(JTable table) {
+            this.renderer = (DefaultTableCellRenderer) table.getTableHeader().getDefaultRenderer()
+        }
+
+        @Override
+        Component getTableCellRendererComponent(JTable table, Object value, boolean isSelected, boolean hasFocus, int row, int column) {
+            JLabel label = renderer.getTableCellRendererComponent(table, value, isSelected, hasFocus, row, column)
+            mapCustomize.each { String k, def v ->
+                label."$k" = v
+            }
+            label
+        }
+    }
 
 
 }
+
