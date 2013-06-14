@@ -12,7 +12,8 @@ class $className extends DbUnitTestCase {
     protected void setUp() {
         super.setUp()
         setUpDatabase("${domainClassAsProp}", "/${packageName.replace('.','/')}/data.xls")
-        controller.getEntityManager().clear()
+        controller.destroyEntityManager()
+        model.errors.clear()
     }
 
     protected void tearDown() {
