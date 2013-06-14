@@ -58,6 +58,10 @@ First release into griffon artifacts portal.
 1. Fixes can't use another AbstractEventList besides BasicEventList in eventTableModel() node.
 1. Fixes boolean rendered as textfield not checkbox.
 1. Fixes bug in transaction holder that causes EntityManager didn't closed properly.
+1. Fixes @SimpleJpaTransaction(newSession=true) was not working properly.
+1. Fixes bug in validation logs.
+1. Fixes EntityManager operations can't be used after an Exception is thrown or transaction rollback.
+1. Updates integration test templates.
 1. Add 'tableColumnConfig' node to configure table columns such as resizeable and maxWidth without actually creating a new TableColumnModel.
 1. Scaffolding feature will generate @Enumerated property as a JComboBox that uses SwingX's EnumComboBoxModel.
 1. Expose all EntityManager's methods as its name (ex: 'refresh(args)' will call 'refresh' method of current EntityManager).

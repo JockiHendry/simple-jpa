@@ -8,15 +8,22 @@ import javax.persistence.EntityTransaction
 
 class TransactionHolder {
 
+    private static Logger LOG = LoggerFactory.getLogger(TransactionHolder)
+
     EntityManager em
     int resumeLevel
-    private boolean isRollback
-    private static Logger LOG = LoggerFactory.getLogger(TransactionHolder)
+    boolean isRollback
 
     public TransactionHolder(EntityManager em) {
         this.em = em
         this.resumeLevel = 0
         this.isRollback = false
+    }
+
+    public TransactionHolder(EntityManager em, TransactionHolder another) {
+        this.em = em
+        this.resumeLevel = another.resumeLevel
+        this.isRollback = another.isRollback
     }
 
     public boolean isInTransaction() {

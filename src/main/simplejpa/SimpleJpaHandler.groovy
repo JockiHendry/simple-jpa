@@ -65,9 +65,15 @@ final class SimpleJpaHandler {
         em
     }
 
-    def createEntityManager = {
-        LOG.info "Creating a new entity manager..."
-        TransactionHolder th = new TransactionHolder(emf.createEntityManager())
+    def createEntityManager = { TransactionHolder copy = null ->
+        TransactionHolder th
+        if (copy) {
+            LOG.info "Creating a new entity manager based on $copy..."
+            th = new TransactionHolder(emf.createEntityManager(), copy)
+        } else {
+            LOG.info "Creating a new entity manager..."
+            th = new TransactionHolder(emf.createEntityManager())
+        }
         mapTransactionHolder.put(Thread.currentThread(), th)
         debugEntityManager()
         th
@@ -124,7 +130,7 @@ final class SimpleJpaHandler {
     }
 
     def beginTransaction = { boolean resume = true, boolean newSession = false ->
-        LOG.info "Begin transaction from thread ${Thread.currentThread().id}..."
+        LOG.info "Begin transaction from thread ${Thread.currentThread().id} (resume=$resume) (newSession=$newSession)..."
         if (newSession) {
             LOG.info "Start a new session..."
             destroyEntityManager()
@@ -146,8 +152,12 @@ final class SimpleJpaHandler {
 
     def closeAndRemoveCurrentEntityManager = {
         TransactionHolder th = mapTransactionHolder.get(Thread.currentThread())
-        th.em.close()
-        mapTransactionHolder.remove(Thread.currentThread())
+        if (th) {
+            th.em.close()
+            LOG.info "EntityManager for $th is closed!"
+            mapTransactionHolder.remove(Thread.currentThread())
+            LOG.info "EntityManager for thread ${Thread.currentThread()} is removed!"
+        }
     }
 
     def commitTransaction = {
@@ -160,22 +170,21 @@ final class SimpleJpaHandler {
 
     def rollbackTransaction = {
         LOG.info "Rollback transaction from thread ${Thread.currentThread()} (${Thread.currentThread().id})..."
-        mapTransactionHolder.get(Thread.currentThread()).rollbackTransaction()
-        if (entityManagerLifespan==EntityManagerLifespan.TRANSACTION) {
-            closeAndRemoveCurrentEntityManager()
+        TransactionHolder th = mapTransactionHolder.get(Thread.currentThread())
+        th.em.clear()
+        th.rollbackTransaction()
+        closeAndRemoveCurrentEntityManager()
+        if (entityManagerLifespan==EntityManagerLifespan.MANUAL) {
+            createEntityManager(th)
         }
     }
 
     def executeInsideTransaction(Closure action) {
         boolean insideTransaction = true
         boolean isError = false
-        EntityManager createdEM
         def result
         if (!getEntityManager()?.transaction?.isActive()) {
             insideTransaction = false
-            if (!getEntityManager()) {
-                createdEM = createEntityManager().em
-            }
             beginTransaction()
         }
         LOG.info "Not in a transaction? ${!insideTransaction}"
@@ -191,10 +200,6 @@ final class SimpleJpaHandler {
         } finally {
             if (!insideTransaction && !isError) {
                 commitTransaction()
-            }
-            if (createdEM) {
-                LOG.info "Removing EntityManager created by this standalone transaction"
-                closeAndRemoveCurrentEntityManager()
             }
         }
         return result
@@ -400,9 +405,10 @@ final class SimpleJpaHandler {
         if (viewModel.hasError()) return false
 
         validator.validate(model).each { ConstraintViolation cv ->
-            log.info "Adding error path [${cv.propertyPath}] with message [${cv.message}]"
+            LOG.info "Adding error path [${cv.propertyPath}] with message [${cv.message}]"
             viewModel.errors[cv.propertyPath.toString()] = cv.message
         }
+
         return !viewModel.hasError()
     }
 
@@ -414,7 +420,7 @@ final class SimpleJpaHandler {
         switch (name) {
             case "beginTransaction":
                 delegate.metaClass.beginTransaction = beginTransaction
-                return beginTransaction()
+                return beginTransaction(*args)
             case "commitTransaction":
                 delegate.metaClass.commitTransaction = commitTransaction
                 return commitTransaction()
@@ -426,7 +432,7 @@ final class SimpleJpaHandler {
                 return returnFailed()
             case "createEntityManager":
                 delegate.metaClass.createEntityManager = createEntityManager
-                return createEntityManager()
+                return createEntityManager(*args)
             case "destroyEntityManager":
                 delegate.metaClass.destroyEntityManager = destroyEntityManager
                 return destroyEntityManager()
@@ -455,7 +461,7 @@ final class SimpleJpaHandler {
 
             case "beginTransaction":
                 delegate.metaClass."$name" = beginTransaction
-                return beginTransaction()
+                return beginTransaction(*args)
 
             case "commitTransaction":
                 delegate.metaClass."$name" = commitTransaction
