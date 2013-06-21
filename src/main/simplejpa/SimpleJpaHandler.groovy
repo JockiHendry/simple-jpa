@@ -49,7 +49,7 @@ final class SimpleJpaHandler {
         this.entityManagerLifespan = entityManagerLifespan
     }
 
-    private final ConcurrentReaderHashMap mapTransactionHolder = new ConcurrentReaderHashMap()
+    final ConcurrentReaderHashMap mapTransactionHolder = new ConcurrentReaderHashMap()
 
     private void debugEntityManager() {
         if (LOG.isInfoEnabled()) {
@@ -202,6 +202,7 @@ final class SimpleJpaHandler {
                 commitTransaction()
             }
         }
+        LOG.info "Transaction is done!"
         return result
     }
 
@@ -249,7 +250,7 @@ final class SimpleJpaHandler {
                 if (notSoftDeleted) {
                     if (object."deleted"=="Y") return null
                 }
-                return object
+                object
             }
         }
     }

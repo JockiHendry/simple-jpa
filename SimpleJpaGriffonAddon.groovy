@@ -16,6 +16,7 @@
 
 import groovy.swing.factory.BeanFactory
 import simplejpa.SimpleJpaHandler
+import simplejpa.SimpleJpaUtil
 import simplejpa.swing.MaskTextFieldFactory
 import simplejpa.swing.DateTimePicker
 import simplejpa.swing.EventTableModelFactory
@@ -66,6 +67,7 @@ class SimpleJpaGriffonAddon {
                     (app.config.griffon?.simplejpa?.finder?.alwaysExcludeSoftDeleted ?: false) as boolean,
                     entityManagerLifespan
                 )
+                SimpleJpaUtil.instance.registerHandler(simpleJpaHandler)
                 gc.metaClass.methodMissing =  simpleJpaHandler.methodMissingHandler
             }
         }
