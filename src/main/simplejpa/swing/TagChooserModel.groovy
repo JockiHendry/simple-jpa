@@ -32,11 +32,11 @@ class TagChooserModel {
 
     List values
     List selectedValues
-    String templateString
+    def templateString
     boolean allowMultiple
     DefaultComboBoxModel comboBoxModel
 
-    Template template
+    def template
     PropertyChangeSupport pcs = new PropertyChangeSupport(this)
 
     public TagChooserModel() {
@@ -106,10 +106,12 @@ class TagChooserModel {
         pcs.firePropertyChange("selectedValues", null, selectedValues)
     }
 
-    public void setTemplateString(String templateString) {
-        String oldTemplateString = this.templateString
+    public void setTemplateString(def templateString) {
+        def oldTemplateString = this.templateString
         this.templateString = templateString
-        template = new SimpleTemplateEngine().createTemplate(templateString)
+        if (templateString instanceof String) {
+            template = new SimpleTemplateEngine().createTemplate(templateString)
+        }
         refreshTemplateValues()
         pcs.firePropertyChange("templateString", oldTemplateString, templateString)
     }
@@ -120,10 +122,14 @@ class TagChooserModel {
 
     String render(def value) {
         if (value==null || value=="This is a prototype display") return ""
-        if (template) {
-            return TemplateRenderer?.make(template,value) ?: value?.toString()
+        if (templateString instanceof Closure) {
+            return templateString.call(value)
         } else {
-            return value?.toString() ?: ""
+            if (template) {
+                return TemplateRenderer?.make(template,value) ?: value?.toString()
+            } else {
+                return value?.toString() ?: ""
+            }
         }
     }
 

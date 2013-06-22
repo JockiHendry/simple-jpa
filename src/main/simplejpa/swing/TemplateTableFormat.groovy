@@ -32,7 +32,13 @@ class TemplateTableFormat implements AdvancedTableFormat {
         this.columnExpression = columnExpression
         this.columnClass = columnClass
         SimpleTemplateEngine templateEngine = new SimpleTemplateEngine()
-        columnExpression.each { template << templateEngine.createTemplate(it) }
+        columnExpression.each {
+            if (it instanceof String) {
+                template << templateEngine.createTemplate(it)
+            } else {
+                template << it
+            }
+        }
     }
 
     @Override

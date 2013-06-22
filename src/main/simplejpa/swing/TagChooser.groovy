@@ -17,7 +17,6 @@
 package simplejpa.swing
 
 import groovy.swing.SwingBuilder
-import org.jdesktop.swingx.JXCollapsiblePane
 import org.jdesktop.swingx.JXPanel
 import org.jdesktop.swingx.ScrollableSizeHint
 import org.jdesktop.swingx.autocomplete.AutoCompleteDecorator
@@ -52,7 +51,7 @@ class TagChooser extends JPanel {
     private static final Logger LOG = LoggerFactory.getLogger(TagChooser)
 
     TagChooserModel model
-    String templateString
+    def templateString
 
     Closure selectedValueChanged  // will be called when model.selectedValues changed
 
@@ -176,7 +175,7 @@ class TagChooser extends JPanel {
         this.model = model
     }
 
-    public void setTemplateString(String templateString) {
+    public void setTemplateString(def templateString) {
         model.setTemplateString(templateString)
     }
 
