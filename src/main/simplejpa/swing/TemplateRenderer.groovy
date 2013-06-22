@@ -8,17 +8,20 @@ import java.text.NumberFormat
 
 class TemplateRenderer extends SimpleTemplateEngine {
 
-    static Writable make(Template template, def value) {
+    static String make(Template template, def value) {
+        StringWriter result = new StringWriter()
         template.make([
             "value": value,
             "numberFormat": this.&numberFormat,
             "percentFormat": this.&percentFormat,
             "currencyFormat": this.&currencyFormat,
             "titleCase": this.&titleCase
-        ])
+        ]).writeTo(result)
+        result.flush()
+        result.toString()
     }
 
-    static Writable make(Closure closure, def value) {
+    static String make(Closure closure, def value) {
         closure.delegate = this
         closure.call(value)
     }
