@@ -53,7 +53,7 @@ class SimpleJpaGriffonPlugin {
     // accepts Markdown syntax. See http://daringfireball.net/projects/markdown/ for details
     String description = '''
 
-Visit http://jockihendry.github.io/simple-jpa/ for more information.
+Visit http://jockihendry.github.io/simple-jpa/ and http://thesolidsnake.wordpress.com/simple-jpa for more information.
 
 '''
 }
