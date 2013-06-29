@@ -20,8 +20,10 @@ class MVCPopupButtonFactory extends AbstractFactory {
         }
         def mvcGroup = attributes.remove('mvcGroup')
         def arguments = ['popup': true]
-        if (attributes['arguments']) {
+        if (attributes['arguments'] instanceof Map) {
             arguments.putAll(attributes.remove('arguments'))
+        } else if (attributes['arguments']) {
+            arguments = attributes.remove('arguments')
         }
         Closure onFinish = attributes.remove('onFinish')
         Closure onBeforeDisplay = attributes.remove('onBeforeDisplay')
@@ -36,7 +38,11 @@ class MVCPopupButtonFactory extends AbstractFactory {
 
 
         btnResult.actionPerformed = { ActionEvent actionEvent ->
-            builder.getVariable("app").withMVCGroup(mvcGroup, arguments) { m, v, c ->
+            def args = arguments
+            if (arguments instanceof Closure) {
+                args = arguments.call()
+            }
+            builder.getVariable("app").withMVCGroup(mvcGroup, args) { m, v, c ->
                 Window thisWindow = SwingUtilities.getWindowAncestor(builder.getVariable("mainPanel"))
                 new JDialog(thisWindow, dialogTitle, Dialog.ModalityType.APPLICATION_MODAL).with {
                     contentPane = v.mainPanel
