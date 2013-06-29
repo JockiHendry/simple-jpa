@@ -66,3 +66,6 @@ First release into griffon artifacts portal.
 1. Scaffolding feature will generate @Enumerated property as a JComboBox that uses SwingX's EnumComboBoxModel.
 1. Expose all EntityManager's methods as its name (ex: 'refresh(args)' will call 'refresh' method of current EntityManager).
 1. Template rendere now can use closure as its expression.
+
+### 0.4.2
+1. New mvcPopupButton() node for popup that will display view from another MVCGroup.

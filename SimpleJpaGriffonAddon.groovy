@@ -17,6 +17,7 @@
 import groovy.swing.factory.BeanFactory
 import simplejpa.SimpleJpaHandler
 import simplejpa.SimpleJpaUtil
+import simplejpa.swing.MVCPopupButtonFactory
 import simplejpa.swing.MaskTextFieldFactory
 import simplejpa.swing.DateTimePicker
 import simplejpa.swing.EventTableModelFactory
@@ -103,6 +104,7 @@ class SimpleJpaGriffonAddon {
         toReverseString: new ConverterFactory(ConverterFactory.TYPE.REVERSE_STRING),
         eventTableModel: new EventTableModelFactory(),
         tableColumnConfig: new TableColumnConfig(),
+        mvcPopupButton: new MVCPopupButtonFactory(),
 
         tagChooser: new BeanFactory(TagChooser, false),
         dateTimePicker: new BeanFactory(DateTimePicker, false),
