@@ -67,7 +67,7 @@ class TableColumnConfig extends AbstractFactory {
                     table.addMouseMotionListener(new MouseMotionAdapter() {
                         @Override
                         void mouseMoved(MouseEvent e) {
-                            if (table.columnAtPoint(e.point)==index) {
+                            if (table.columnAtPoint(e.point)==index && table.getValueAt(table.rowAtPoint(e.point), table.columnAtPoint(e.point)) != '') {
                                 table.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR))
                             } else {
                                 table.setCursor(Cursor.getDefaultCursor())
@@ -77,7 +77,7 @@ class TableColumnConfig extends AbstractFactory {
                     table.addMouseListener(new MouseAdapter() {
                         @Override
                         void mouseClicked(MouseEvent e) {
-                            if (table.columnAtPoint(e.point)==index) {
+                            if (table.columnAtPoint(e.point)==index && table.getValueAt(table.selectedRow, table.selectedColumn) != '') {
                                 def selectedValue
                                 if (table.selectionModel instanceof DefaultEventSelectionModel) {
                                     selectedValue = table.selectionModel.selected[0]
