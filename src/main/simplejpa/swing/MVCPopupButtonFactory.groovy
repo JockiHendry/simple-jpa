@@ -42,17 +42,9 @@ class MVCPopupButtonFactory extends AbstractFactory {
             if (arguments instanceof Closure) {
                 args = arguments.call()
             }
-            builder.getVariable("app").withMVCGroup(mvcGroup, args) { m, v, c ->
-                Window thisWindow = SwingUtilities.getWindowAncestor(builder.getVariable("mainPanel"))
-                new JDialog(thisWindow, dialogTitle, Dialog.ModalityType.APPLICATION_MODAL).with {
-                    contentPane = v.mainPanel
-                    pack()
-                    setLocationRelativeTo(thisWindow)
-                    onBeforeDisplay?.call(btnResult)
-                    setVisible(true)
-                }
-                onFinish?.call(m, v, c)
-            }
+            onBeforeDisplay?.call(btnResult)
+            DialogUtils.showMVCGroup(mvcGroup, args, dialogTitle, builder.getVariable("app"),
+                builder.getVariable("view"), onFinish)
         }
 
         btnResult

@@ -68,4 +68,6 @@ First release into griffon artifacts portal.
 1. Template rendere now can use closure as its expression.
 
 ### 0.4.2
+1. Fixes can't use custom renderer in tableColumnConfig().
 1. New mvcPopupButton() node for popup that will display view from another MVCGroup.
+1. New 'linkRenderer' for tableColumnConfig() node for creating a column in JTable that execute an action when clicked.

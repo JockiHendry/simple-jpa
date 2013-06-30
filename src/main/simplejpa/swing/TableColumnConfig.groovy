@@ -16,13 +16,19 @@
 
 package simplejpa.swing
 
+import ca.odell.glazedlists.swing.DefaultEventSelectionModel
 import javax.swing.JLabel
 import javax.swing.JTable
 import javax.swing.table.DefaultTableCellRenderer
 import javax.swing.table.TableCellRenderer
 import javax.swing.table.TableColumn
 import javax.swing.table.TableColumnModel
+import java.awt.Color
 import java.awt.Component
+import java.awt.Cursor
+import java.awt.event.MouseAdapter
+import java.awt.event.MouseEvent
+import java.awt.event.MouseMotionAdapter
 
 
 class TableColumnConfig extends AbstractFactory {
@@ -39,21 +45,54 @@ class TableColumnConfig extends AbstractFactory {
         attributes.each { index, configs ->
             TableColumn column = columnModel.getColumn(index)
             configs.each { String method, v ->
-                def m = method.tokenize('.')
-                if (m[0]=='cellRenderer') {
-                    if (!column.cellRenderer) {
-                        column.cellRenderer = new DefaultTableCellRenderer()
+                if (method.contains('.')) {
+                    def m = method.tokenize('.')
+                    if (m[0]=='cellRenderer') {
+                        if (!column.cellRenderer) {
+                            column.cellRenderer = new DefaultTableCellRenderer()
+                        }
+                        column.cellRenderer."${m[1]}" = v
+                    } else if(m[0]=='headerRenderer') {
+                        if (!column.headerRenderer) {
+                            column.headerRenderer = new HeaderRenderer(table)
+                        }
+                        if (column.headerRenderer instanceof HeaderRenderer) {
+                            column.headerRenderer.mapCustomize."${m[1]}" = v
+                        } else {
+                            column.headerRenderer."${m[1]}" = v
+                        }
                     }
-                    column.cellRenderer."${m[1]}" = v
-                } else if(m[0]=='headerRenderer') {
-                    if (!column.headerRenderer) {
-                        column.headerRenderer = new HeaderRenderer(table)
-                    }
-                    if (column.headerRenderer instanceof HeaderRenderer) {
-                        column.headerRenderer.mapCustomize."${m[1]}" = v
-                    } else {
-                        column.headerRenderer."${m[1]}" = v
-                    }
+                } else if (method=='linkRenderer') {
+                    column.cellRenderer = new LinkRenderer()
+                    table.addMouseMotionListener(new MouseMotionAdapter() {
+                        @Override
+                        void mouseMoved(MouseEvent e) {
+                            if (table.columnAtPoint(e.point)==index) {
+                                table.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR))
+                            } else {
+                                table.setCursor(Cursor.getDefaultCursor())
+                            }
+                        }
+                    })
+                    table.addMouseListener(new MouseAdapter() {
+                        @Override
+                        void mouseClicked(MouseEvent e) {
+                            if (table.columnAtPoint(e.point)==index) {
+                                def selectedValue
+                                if (table.selectionModel instanceof DefaultEventSelectionModel) {
+                                    selectedValue = table.selectionModel.selected[0]
+                                } else {
+                                    selectedValue = table.getValueAt(table.selectedRow, table.selectedColumn)
+                                }
+                                if (v instanceof String) {
+                                    DialogUtils.showMVCGroup(v, ['value': selectedValue], 'Popup', builder.getVariable('app'),
+                                        builder.getVariable('view'))
+                                } else if (v instanceof Closure) {
+                                    v.call(selectedValue)
+                                }
+                            }
+                        }
+                    })
                 } else {
                     column."$method" = v
                 }
@@ -81,6 +120,19 @@ class TableColumnConfig extends AbstractFactory {
             }
             label
         }
+    }
+
+    class LinkRenderer extends DefaultTableCellRenderer {
+
+        @Override
+        Component getTableCellRendererComponent(JTable table, Object value, boolean isSelected, boolean hasFocus, int row, int column) {
+            def original = super.getTableCellRendererComponent(table, value, isSelected, hasFocus, row, column)
+            if (!isSelected && original && (original instanceof JLabel)) {
+                original.setText("<html><a href>${original.getText()}</a></html>")
+            }
+            return original
+        }
+
     }
 
 
