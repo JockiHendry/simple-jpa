@@ -18,13 +18,22 @@ package simplejpa
 
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
+import simplejpa.transaction.TransactionHolder
 
 class SimpleJpaUtil {
 
     public static SimpleJpaUtil instance = new SimpleJpaUtil()
     private static final Logger LOG = LoggerFactory.getLogger(SimpleJpaUtil)
 
-    private List handlerLists = []
+    private List<SimpleJpaHandler> handlerLists = []
+    boolean isCheckThreadSafeLoading
+
+    private SimpleJpaUtil() {
+        isCheckThreadSafeLoading = true
+        if (griffon.util.ApplicationHolder.application.config.griffon.simplejpa.entityManager.containsKey('checkThreadSafeLoading')) {
+            isCheckThreadSafeLoading = griffon.util.ApplicationHolder.application.config.griffon.simplejpa.entityManager.checkThreadSafeLoading
+        }
+    }
 
     public void registerHandler(SimpleJpaHandler handler) {
         LOG.debug "Registering $handler"
@@ -33,6 +42,20 @@ class SimpleJpaUtil {
 
     public List getHandlers() {
         handlerLists.asImmutable()
+    }
+
+    public Thread getThreadForEntity(Object object) {
+        Thread result = null
+        handlerLists.find { SimpleJpaHandler handler ->
+            handler.mapTransactionHolder.any {  Thread thread, TransactionHolder th ->
+                if (th.em.contains(object)) {
+                    result = thread
+                    true
+                }
+                false
+            }
+        }
+        result
     }
 
     // Methods for globally manipulating handlers here!
