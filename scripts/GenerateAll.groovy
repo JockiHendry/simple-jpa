@@ -463,9 +463,9 @@ Domain class package location is retrieved from the value of griffon.simpleJpa.m
         processStartupGroup()
     }
 
-    String validationMessages = "${basedir}/griffon-app/i18n/messages.properties"
-    File file = new File(validationMessages)
+    println "Configuring additional files..."
 
+    File validationFile = new File("${basedir}/griffon-app/i18n/messages.properties")
     ["simplejpa.dialog.save.button": "Save",
      "simplejpa.dialog.cancel.button": "Cancel",
      "simplejpa.dialog.delete.button": "Delete",
@@ -480,11 +480,31 @@ Domain class package location is retrieved from the value of griffon.simpleJpa.m
      "simplejpa.dialog.update.title": "Update Confirmation",
      "simplejpa.search.label": "Search",
      "simplejpa.search.all.label": "Display All"].each { k, v ->
-        if (!file.text.contains(k)) {
+        if (!validationFile.text.contains(k)) {
             println "Adding $k to message.properties..."
-            file << "\n$k = $v"
+            validationFile << "\n$k = $v"
         }
     }
+
+    File eventsFile = new File("${basedir}/griffon-app/conf/Events.groovy")
+    if (eventsFile.exists() && !forceOverwrite) {
+        println "Didn't change $eventsFile."
+    } else {
+        if (!eventsFile.exists()) {
+            println "Creating file $eventsFile..."
+            eventsFile.createNewFile()
+        }
+        if (!eventsFile.text.contains("onUncaughtExceptionThrown")) {
+            eventsFile << """\n
+onUncaughtExceptionThrown = { Exception e ->
+    if (e instanceof org.codehaus.groovy.runtime.InvokerInvocationException) e = e.cause.cause
+    javax.swing.JOptionPane.showMessageDialog(null, e.message, "Error", javax.swing.JOptionPane.ERROR_MESSAGE)
+}
+"""
+            println "$eventsFile has been modified."
+        }
+    }
+
 }
 
 @ToString
