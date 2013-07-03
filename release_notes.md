@@ -71,3 +71,5 @@ First release into griffon artifacts portal.
 1. Fixes can't use custom renderer in tableColumnConfig().
 1. New mvcPopupButton() node for popup that will display view from another MVCGroup.
 1. New 'linkRenderer' for tableColumnConfig() node for creating a column in JTable that execute an action when clicked.
+1. New check for entities lazy loading from thread other than the one that associated with it.
+1. Minor scaffolding template modification to startup group's view.

@@ -22,9 +22,10 @@ application(title: 'Simple JPA Demo',
     borderLayout()
 
     toolBar(constraints: BorderLayout.PAGE_START, floatable: false) {
+        buttonGroup(id: 'buttons')
 <%
     domainClassLists.each { String name ->
-        out << "\t\tbutton(action: ${prop(name)}, verticalTextPosition: SwingConstants.BOTTOM, horizontalTextPosition: SwingConstants.CENTER)\n"
+        out << "\t\ttoggleButton(buttonGroup: buttons, action: ${prop(name)}, verticalTextPosition: SwingConstants.BOTTOM, horizontalTextPosition: SwingConstants.CENTER)\n"
     }
 %>
     }
