@@ -29,7 +29,7 @@ class SimpleJpaUtil {
     boolean isCheckThreadSafeLoading
 
     private SimpleJpaUtil() {
-        isCheckThreadSafeLoading = true
+        isCheckThreadSafeLoading = false
         if (griffon.util.ApplicationHolder.application.config.griffon.simplejpa.entityManager.containsKey('checkThreadSafeLoading')) {
             isCheckThreadSafeLoading = griffon.util.ApplicationHolder.application.config.griffon.simplejpa.entityManager.checkThreadSafeLoading
         }
