@@ -1,0 +1,115 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset='utf-8'>
+    <meta http-equiv="X-UA-Compatible" content="chrome=1">
+    <link href='https://fonts.googleapis.com/css?family=Chivo:900' rel='stylesheet' type='text/css'>
+    <link rel="stylesheet" type="text/css" href="stylesheets/stylesheet.css" media="screen" />
+    <link rel="stylesheet" type="text/css" href="stylesheets/pygment_trac.css" media="screen" />
+    <link rel="stylesheet" type="text/css" href="stylesheets/print.css" media="print" />
+    <!--[if lt IE 9]>
+    <script src="//html5shiv.googlecode.com/svn/trunk/html5.js"></script>
+    <![endif]-->
+    <title>simple-jpa by JockiHendry</title>
+  </head>
+
+  <body>
+    <div id="container">
+      <div class="inner">
+
+        <header>
+          <h1>simple-jpa</h1>
+          <h2>simple-jpa is a Griffon's plugin for developing JPA and Swing based desktop application.</h2>
+        </header>
+
+        <section id="downloads" class="clearfix">
+          <a href="https://github.com/JockiHendry/simple-jpa/zipball/master" id="download-zip" class="button"><span>Download .zip</span></a>
+          <a href="https://github.com/JockiHendry/simple-jpa/tarball/master" id="download-tar-gz" class="button"><span>Download .tar.gz</span></a>
+          <a href="https://github.com/JockiHendry/simple-jpa" id="view-on-github" class="button"><span>View on GitHub</span></a>
+        </section>
+
+        <hr>
+
+        <section id="main_content">
+          <h3>Dynamic finders</h3>
+          
+          <p>You can use dynamic finders to retrieve JPA entities.  By default, finder methods can be used inside Griffon's controller, but you can also configure simple-jpa to inject finders to Griffon's services.</p>
+          <p>The simplest form of simple-jpa's finders is <code>findAllxxx()</code> where <code>xxx</code> is JPA entity name to retrieve.  This method will always returns a <code>List</code> which contains all <code>xxx</code> from database.  If no records are found, this method will return an empty <code>List</code>.</p>          
+<pre><code>List result = findAllStudent()
+result.isEmpty() // return true if nothing found
+result.size()    // number of students found
+result[0].name   // name of the first student</code></pre></section>
+		  <p>If you want to retrieve an entity by its id, you can use <code>findxxxById()</code>.  This method will return an instance or <code>null</code> if the id is not found.</p>
+<pre><code>Student student = findStudentById(1)</code></pre>
+          <p>You can also find entities by their attribute by using <code>findxxxByxxx()</code>.  This method will return a <code>List</code> which contains all <code>xxx</code> instances that have the specified attribute's value.</p>
+<pre><code>List result = findStudentByRegistrationNumber('12345')
+</code></pre>          
+	      <p>The method above will find all students with registration number exactly equals to <code>'12345'</code>.  By default, the method will use <code>equals</code> operator for searching. Sometimes you will need another operator, for example, in querying student's name, it is useful to use <code>like</code> operator.  To specify which operator will be used, you need to pass an operator as <code>String</code> to the method.</p>
+<pre><code>List result1 = findStudentByName('like', '%jocki%')
+List result2 = findStudentByAge('gt', 18)
+</code></pre>          
+		  <p>The operator must be name of a method in <code>CriteriaBuilder</code>.  You can find more information about <code>CriteriaBuilder</code> methods in <a href='http://docs.oracle.com/javaee/6/api/javax/persistence/criteria/CriteriaBuilder.html'>CriteriaBuilder javadoc</a>.</p>
+          <p>If you want to select by more than one attribute, you can use <code>findXXXBy()</code>.  This method expect a <code>Map</code> whose keys are attributes and values are the expected values for each corresponding attributes.</p>
+<pre><code>List result1 = findStudentBy([age: 20, major: 'computer science'])
+// will return all students whose ages are 20 
+// and majors are 'computer science' 
+</code></pre>
+		  <p>For more complicated query, you can use simple-jpa query DSL.  Every condition in simple-jpa query DSL must be separated by a line as shown below:</p>
+<pre><code>List result = findStudentByDsl {
+    name like('%jocki%')
+    or()
+    name like('%hendry%')
+    and()
+    major eq('computer science')
+}
+</code></pre>
+		  <p>simple-jpa query DSL uses some of <code>CriteriaBuilder</code> methods as operator for its condition.  You can find more information about <code>CriteriaBuilder</code> methods in <a href='http://docs.oracle.com/javaee/6/api/javax/persistence/criteria/CriteriaBuilder.html'>CriteriaBuilder javadoc</a>.</p>
+          <p>You can also execute JP QL by calling <code>executeQuery()</code> method.  This method will return a <code>List</code> that contains query's result.</p>
+<pre><code>List result = executeQuery("FROM Student s " + 
+    "WHERE s.name LIKE '%jocki%'")
+</code></pre>
+		  <p>In some cases, you may want to directly issue SQL statement.  You can call <code>executeNativeQuery()</code> for this purpose.  This method will return a <code>List</code> that contains array of resulting fields.</p>
+<pre><code>List result = executeNativeQuery("SELECT s.name, s.age, s.major " +
+    "FROM Student s WHERE s.name LIKE '%jocki%'")
+    
+result[0][0]  // first field (name) of the first row
+result[0][1]  // second field (age) of the first row
+result[0][2]  // third field (major) of the first row
+
+result[1][0]  // first field (name) of the second row
+result[1][1]  // second field (age) of the second row
+result[1][2]  // third field (major) of the second row
+</code></pre>          
+		  <p>Most finders will accept a <code>Map</code> as second argument.  This <code>Map</code> can have the following keys:</p>
+<ul>
+<li><code>orderBy</code> - determine the ordering; expects an attribute name as value.</li>
+<li><code>orderDirection</code> - can be <code>'asc'</code> for ascending ordering or <code>'desc'</code> for descending ordering.</li>
+<li><code>page</code> - query will return only a portion of records (a page); expects an integer value which represent the page number (starts from 1).</li>
+<li><code>pageSize</code> - determine number of records per page; if not specified, number of records per page is 10.
+</ul>          
+        </section>
+<pre><code>findAllStudent([orderBy: 'name', orderDirection: 'desc'])
+findAllStudent([orderBy: 'name,faculty', orderDirection: 'desc,asc'])
+findStudentByFaculty('cs', [orderBy: 'name', page: 2, pageSize: 50])
+</code></pre>        
+
+        <footer>
+          simple-jpa is maintained by <a href="https://github.com/JockiHendry">JockiHendry</a><br>
+          This page was generated by <a href="http://pages.github.com">GitHub Pages</a>. Tactile theme by <a href="http://twitter.com/jasonlong">Jason Long</a>.
+        </footer>
+
+                  <script type="text/javascript">
+            var gaJsHost = (("https:" == document.location.protocol) ? "https://ssl." : "http://www.");
+            document.write(unescape("%3Cscript src='" + gaJsHost + "google-analytics.com/ga.js' type='text/javascript'%3E%3C/script%3E"));
+          </script>
+          <script type="text/javascript">
+            try {
+              var pageTracker = _gat._getTracker("UA-41202290-1");
+            pageTracker._trackPageview();
+            } catch(err) {}
+          </script>
+
+      </div>
+    </div>
+  </body>
+</html>
