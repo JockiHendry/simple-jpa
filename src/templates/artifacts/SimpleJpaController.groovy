@@ -43,6 +43,7 @@ class $className {
     }  %>
         execInsideUIAsync {
             model.${domainClassAsProp}List.addAll(${domainClassAsProp}Result)
+            model.${firstField}Search = null
             model.searchMessage = app.getMessage("simplejpa.search.all.message")
 <%
     fields.each { field ->
@@ -130,7 +131,10 @@ class $className {
                 return_failed()
             }
             ${domainClassAsProp} = merge(${domainClassAsProp})
-            execInsideUIAsync { model.${domainClassAsProp}List << ${domainClassAsProp} }
+            execInsideUIAsync {
+                model.${domainClassAsProp}List << ${domainClassAsProp}
+                view.table.changeSelection(model.${domainClassAsProp}List.size()-1, 0, false, false)
+            }
         } else {
             // Update operation
             ${domainClass} selected${domainClass} = model.${domainClassAsProp}Selection.selected[0]

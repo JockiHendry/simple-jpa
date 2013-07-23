@@ -67,7 +67,10 @@ class $className {
 
         if (model.${domainClassAsProp}Selection.selectionEmpty) {
             // Insert operation
-            execInsideUIAsync { model.${domainClassAsProp}List << ${domainClassAsProp} }
+            execInsideUIAsync {
+                model.${domainClassAsProp}List << ${domainClassAsProp}
+                view.table.changeSelection(model.${domainClassAsProp}List.size()-1, 0, false, false)
+            }
         } else {
             // Update operation
             ${domainClass} selected${domainClass} = model.${domainClassAsProp}Selection.selected[0]
