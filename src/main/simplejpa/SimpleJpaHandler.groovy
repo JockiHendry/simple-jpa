@@ -8,6 +8,7 @@ import simplejpa.transaction.TransactionHolder
 
 import javax.persistence.*
 import griffon.util.*
+import griffon.core.GriffonApplication
 
 import javax.persistence.criteria.CriteriaBuilder
 import javax.persistence.criteria.CriteriaQuery
@@ -39,6 +40,8 @@ final class SimpleJpaHandler {
     final boolean alwaysExcludeSoftDeleted
     final EntityManagerLifespan entityManagerLifespan
 
+    private boolean convertEmptyStringToNull
+
     public SimpleJpaHandler(EntityManagerFactory emf, Validator validator, String prefix, String domainModelPackage,
             boolean alwaysExcludeSoftDeleted, EntityManagerLifespan entityManagerLifespan) {
         this.emf = emf
@@ -47,6 +50,10 @@ final class SimpleJpaHandler {
         this.domainModelPackage = domainModelPackage
         this.alwaysExcludeSoftDeleted = alwaysExcludeSoftDeleted
         this.entityManagerLifespan = entityManagerLifespan
+
+        // Check configurations
+        GriffonApplication app = ApplicationHolder.application
+        convertEmptyStringToNull = app.config.griffon?.simplejpa?.validation.convertEmptyStringToNull ?: false
     }
 
     final ConcurrentReaderHashMap mapTransactionHolder = new ConcurrentReaderHashMap()
@@ -404,6 +411,15 @@ final class SimpleJpaHandler {
 
         // Make sure no existing errors before validating
         if (viewModel.hasError()) return false
+
+        // Convert empty string to null if required
+        if (convertEmptyStringToNull) {
+            model.properties.each { k, v ->
+                if (v instanceof String && v.isEmpty()) {
+                    model.putAt(k, null)
+                }
+            }
+        }
 
         validator.validate(model).each { ConstraintViolation cv ->
             LOG.info "Adding error path [${cv.propertyPath}] with message [${cv.message}]"
