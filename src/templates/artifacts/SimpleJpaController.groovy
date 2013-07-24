@@ -60,7 +60,7 @@ class $className {
     def search = {
         if (model.${firstField}Search?.length() > 0) {
             execInsideUIAsync { model.${domainClassAsProp}List.clear() }
-            List result = find${domainClass}By${cls(firstField)}(model.${firstField}Search)
+            List result = find${domainClass}By${cls(firstField)}('like', "%\${model.${firstField}Search}%")
             execInsideUIAsync {
                 model.${domainClassAsProp}List.addAll(result)
                 model.searchMessage = app.getMessage("simplejpa.search.result.message", ['${natural(firstField)}', model.${firstField}Search])
