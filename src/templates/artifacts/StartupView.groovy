@@ -14,7 +14,8 @@ actions {
 %>
 }
 
-application(title: 'Simple JPA Demo',
+application(id: 'mainFrame',
+  title: app.config.application.title,
   extendedState: JFrame.MAXIMIZED_BOTH,
   pack: true,
   locationByPlatform: true) {

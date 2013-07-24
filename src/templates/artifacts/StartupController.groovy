@@ -3,6 +3,7 @@ package $packageName
 import javax.swing.*
 import java.awt.*
 import java.awt.event.*
+import griffon.util.GriffonNameUtils
 
 class $className {
 
@@ -30,6 +31,7 @@ class $className {
         execInsideUIAsync {
             view.mainPanel.add(v.mainPanel, groupId)
             view.cardLayout.show(view.mainPanel, groupId)
+            view.mainFrame.title = "\${app.config.application.title}: \${GriffonNameUtils.getNaturalName(groupId)}"
             view.busyLabel.visible = false
         }
     }
