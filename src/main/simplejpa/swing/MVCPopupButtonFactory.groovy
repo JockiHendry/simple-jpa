@@ -20,10 +20,10 @@ class MVCPopupButtonFactory extends AbstractFactory {
         }
         def mvcGroup = attributes.remove('mvcGroup')
         def arguments = ['popup': true]
-        if (attributes['arguments'] instanceof Map) {
-            arguments.putAll(attributes.remove('arguments'))
-        } else if (attributes['arguments']) {
-            arguments = attributes.remove('arguments')
+        if (attributes['args'] instanceof Map) {
+            arguments.putAll(attributes.remove('args'))
+        } else if (attributes['args']) {
+            arguments = attributes.remove('args')
         }
         Closure onFinish = attributes.remove('onFinish')
         Closure onBeforeDisplay = attributes.remove('onBeforeDisplay')
