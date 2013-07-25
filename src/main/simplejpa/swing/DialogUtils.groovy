@@ -9,16 +9,19 @@ import griffon.core.GriffonApplication
 
 class DialogUtils {
 
-    static showMVCGroup(String mvcGroupName, Map args, String dialogTitle, GriffonApplication app, GriffonView view,
-            Closure onFinish = null) {
+    static showMVCGroup(String mvcGroupName, Map args, GriffonApplication app, GriffonView view,
+            Map dialogProperties = null, Closure onFinish = null) {
         app.withMVCGroup(mvcGroupName, args) { m, v, c ->
             Window thisWindow = SwingUtilities.getWindowAncestor(view.mainPanel)
-            new JDialog(thisWindow, dialogTitle, Dialog.ModalityType.APPLICATION_MODAL).with {
-                contentPane = v.mainPanel
-                pack()
-                setLocationRelativeTo(thisWindow)
-                setVisible(true)
+            JDialog dialog = new JDialog(thisWindow, Dialog.ModalityType.APPLICATION_MODAL)
+            dialog.contentPane = v.mainPanel
+            dialog.pack()
+            dialogProperties?.each { prop, value ->
+                dialog."$prop" = value
             }
+            dialog.setLocationRelativeTo(thisWindow)
+            dialog.setVisible(true)
+
             onFinish?.call(m, v, c)
         }
     }
