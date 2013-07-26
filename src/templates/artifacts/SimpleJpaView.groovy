@@ -19,7 +19,7 @@ application(title: '${natural(domainClass)}',
         panel(constraints: PAGE_START) {
             flowLayout(alignment: FlowLayout.LEADING)
             label("${natural(firstField)}")
-            textField(columns: 4, text: bind('${firstField}Search', target: model, mutual: true))
+            textField(columns: 4, text: bind('${firstField}Search', target: model, mutual: true), actionPerformed: controller.search)
             button(app.getMessage('simplejpa.search.label'), actionPerformed: controller.search)
             button(app.getMessage('simplejpa.search.all.label'), actionPerformed: controller.listAll)
         }
