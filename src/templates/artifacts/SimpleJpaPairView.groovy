@@ -40,36 +40,21 @@ application(title: '${natural(domainClass)}',
         } else if (isManyToOne(field)) {
             out << "\t\t\tcomboBox(id: '${field.name}', model: model.${field.name}, templateRenderer: '\${value}', errorPath: '${field.name}')\n"
         } else if (isOneToOne(field)) {
-            out << "\t\t\tbutton(id: '${field.name}', text: '${natural(field.name as String)}', errorPath: '${field.name}', actionPerformed: {\n"
             out << """\
-                app.withMVCGroup("${prop(field.type as String)}AsPair", [pair: model.${field.name}]) { m, v, c ->
-                    Window thisWindow = SwingUtilities.getWindowAncestor(mainPanel)
-                    new JDialog(thisWindow, "${natural(field.name as String)}", Dialog.ModalityType.DOCUMENT_MODAL).with {
-                        contentPane = v.mainPanel
-                        pack()
-                        setLocationRelativeTo(thisWindow)
-                        setVisible(true)
-                        model.${field.name} = m.${field.name}
-                    }
+            mvcPopupButton(id: '${field.name}', text: '${natural(field.name as String)}', errorPath: '${field.name}', mvcGroup: '${prop(field.type as String)}AsPair',
+                args: {[pair: model.${field.name}]}, dialogProperties: [title: '${natural(field.name as String)}'], onFinish: { m, v, c ->
+                    model.${field.name} = m.${field.name}
                 }
-            })
+            )
 """
         } else if (isOneToMany(field)) {
-            out << "\t\t\tbutton(id: '${field.name}', text: '${natural(field.name as String)}', errorPath: '${field.name}', actionPerformed: {\n"
             out << """\
-                app.withMVCGroup("${prop(field.info)}AsChild", [parentList: model.${field.name}]) { m, v, c ->
-                    Window thisWindow = SwingUtilities.getWindowAncestor(mainPanel)
-                    new JDialog(thisWindow, "${natural(field.name as String)}", Dialog.ModalityType.DOCUMENT_MODAL).with {
-                        contentPane = v.mainPanel
-                        pack()
-                        setLocationRelativeTo(thisWindow)
-                        setVisible(true)
-
-                        model.${field.name}.clear()
-                        model.${field.name}.addAll(m.${prop(field.info)}List)
-                    }
+            mvcPopupButton(id: '${field.name}', text: '${natural(field.name as String)}', errorPath: '${field.name}', mvcGroup: '${prop(field.info)}AsChild',
+                args: {[parentList: model.${field.name}]}, dialogProperties: [title: '${natural(field.name as String)}'], onFinish: { m, v, c ->
+                    model.${field.name}.clear()
+                    model.${field.name}.addAll(m.${prop(field.info)}List)
                 }
-            })
+            )
 """
         } else if (isManyToMany(field)) {
             out << "\t\t\ttagChooser(model: model.${field.name}, templateString: '\${value}', constraints: 'grow,push,span,wrap', errorPath: '${field.name}')\n"

@@ -41,7 +41,6 @@ class $className {
     }
 
     void mvcGroupDestroy() {
-        destroyEntityManager()
     }
 
     def listAll = {
