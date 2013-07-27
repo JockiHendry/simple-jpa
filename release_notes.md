@@ -74,3 +74,4 @@ First release into griffon artifacts portal.
 1. Add griffon.simplejpa.entityManager.checkThreadSafeLoading configuration key for checking entities lazy loading from thread other than the one that associated with it.
 1. Add griffon.simplejpa.validation.convertEmptyStringToNull configuration key for automatically converting an empty String into null value when performing validation for a JPA entity.
 1. Minor scaffolding template improvements.
+1. Support grouping in validation (pass grouping class as second argument).

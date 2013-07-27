@@ -16,6 +16,7 @@ import javax.persistence.criteria.Predicate
 import javax.persistence.criteria.Root
 import javax.validation.ConstraintViolation
 import javax.validation.Validator
+import javax.validation.groups.Default
 import java.lang.reflect.Method
 
 final class SimpleJpaHandler {
@@ -406,27 +407,34 @@ final class SimpleJpaHandler {
         }
     }
 
-    def validate = { model, viewModel ->
-        LOG.info "Validating model [$model]"
+    def validate = { viewModel ->
+        return { Object[] args ->
+            def model = args[0]
+            def group = Default
+            if (args.length > 1) {
+                group = args[1]
+            }
+            LOG.info "Validating model [$model] group [$group]"
 
-        // Make sure no existing errors before validating
-        if (viewModel.hasError()) return false
+            // Make sure no existing errors before validating
+            if (viewModel.hasError()) return false
 
-        // Convert empty string to null if required
-        if (convertEmptyStringToNull) {
-            model.properties.each { k, v ->
-                if (v instanceof String && v.isEmpty()) {
-                    model.putAt(k, null)
+            // Convert empty string to null if required
+            if (convertEmptyStringToNull) {
+                model.properties.each { k, v ->
+                    if (v instanceof String && v.isEmpty()) {
+                        model.putAt(k, null)
+                    }
                 }
             }
-        }
 
-        validator.validate(model).each { ConstraintViolation cv ->
-            LOG.info "Adding error path [${cv.propertyPath}] with message [${cv.message}]"
-            viewModel.errors[cv.propertyPath.toString()] = cv.message
-        }
+            validator.validate(model, group).each { ConstraintViolation cv ->
+                LOG.info "Adding error path [${cv.propertyPath}] with message [${cv.message}]"
+                viewModel.errors[cv.propertyPath.toString()] = cv.message
+            }
 
-        return !viewModel.hasError()
+            return !viewModel.hasError()
+        }
     }
 
     def methodMissingHandler = { String name, args ->
@@ -517,8 +525,9 @@ final class SimpleJpaHandler {
                 return executeNativeQuery(args[0])
 
             case "validate":
-                delegate.metaClass.validate = validate
-                return validate(args[0], delegate.model)
+                Closure validateClosure = validate(delegate.model)
+                delegate.metaClass.validate = validateClosure
+                return validateClosure.call(args)
 
             // findAllModel
             case ~PATTERN_FINDALLMODEL:
