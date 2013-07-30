@@ -69,9 +69,15 @@ First release into griffon artifacts portal.
 
 ### 0.4.2
 1. Fixes can't use custom renderer in tableColumnConfig().
+1. Fixes "can't commit on null object" exception.
 1. New mvcPopupButton() node for popup that will display view from another MVCGroup.
 1. New 'linkRenderer' for tableColumnConfig() node for creating a column in JTable that execute an action when clicked.
 1. Add griffon.simplejpa.entityManager.checkThreadSafeLoading configuration key for checking entities lazy loading from thread other than the one that associated with it.
 1. Add griffon.simplejpa.validation.convertEmptyStringToNull configuration key for automatically converting an empty String into null value when performing validation for a JPA entity.
 1. Minor scaffolding template improvements.
 1. Support grouping in validation (pass grouping class as second argument).
+
+### 0.5 (Pending!)
+1. findXXX() will return only a single entity or null if not found, while findAllXXX() will return a List that contains all resulting entities.
+1. Support finders such as findXXXByField1AndField2() or find XXXByField1OrField2AndField3().
+1. Default to EM per transaction (EM per MVCGroup can still be used).

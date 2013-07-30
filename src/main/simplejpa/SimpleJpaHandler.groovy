@@ -170,7 +170,7 @@ final class SimpleJpaHandler {
 
     def commitTransaction = {
         LOG.info "Commit transaction from thread ${Thread.currentThread()} (${Thread.currentThread().id})..."
-        mapTransactionHolder.get(Thread.currentThread()).commitTransaction()
+        mapTransactionHolder.get(Thread.currentThread())?.commitTransaction()
         if (entityManagerLifespan==EntityManagerLifespan.TRANSACTION) {
             closeAndRemoveCurrentEntityManager()
         }
