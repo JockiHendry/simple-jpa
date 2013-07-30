@@ -42,6 +42,7 @@ final class SimpleJpaHandler {
     final EntityManagerLifespan entityManagerLifespan
 
     private boolean convertEmptyStringToNull
+    private FlushModeType defaultFlushMode
 
     public SimpleJpaHandler(EntityManagerFactory emf, Validator validator, String prefix, String domainModelPackage,
             boolean alwaysExcludeSoftDeleted, EntityManagerLifespan entityManagerLifespan) {
@@ -55,6 +56,10 @@ final class SimpleJpaHandler {
         // Check configurations
         GriffonApplication app = ApplicationHolder.application
         convertEmptyStringToNull = app.config.griffon?.simplejpa?.validation.convertEmptyStringToNull ?: false
+        if (app.config.griffon?.simplejpa?.entityManager.defaultFlushMode) {
+            defaultFlushMode = FlushModeType.valueOf(app.config.griffon?.simplejpa?.entityManager.defaultFlushMode)
+        }
+
     }
 
     final ConcurrentReaderHashMap mapTransactionHolder = new ConcurrentReaderHashMap()
@@ -80,7 +85,11 @@ final class SimpleJpaHandler {
             th = new TransactionHolder(emf.createEntityManager(), copy)
         } else {
             LOG.info "Creating a new entity manager..."
-            th = new TransactionHolder(emf.createEntityManager())
+            EntityManager em = emf.createEntityManager()
+            if (defaultFlushMode) {
+                em.setFlushMode(defaultFlushMode)
+            }
+            th = new TransactionHolder(em)
         }
         mapTransactionHolder.put(Thread.currentThread(), th)
         debugEntityManager()
