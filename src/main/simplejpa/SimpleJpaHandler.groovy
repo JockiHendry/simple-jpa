@@ -275,7 +275,7 @@ final class SimpleJpaHandler {
     def findModelByDsl = { String model ->
         Class modelClass = Class.forName(domainModelPackage + "." + model)
 
-        return { Closure closure, Map config = [:] ->
+        return { Map config = [:], Closure closure ->
             LOG.info "Executing find${model}ByDsl with config [$config]"
             executeInsideTransaction {
                 CriteriaBuilder cb = getEntityManager().getCriteriaBuilder()

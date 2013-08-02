@@ -17,26 +17,31 @@ class QueryDsl {
     private String lastJoin
 
     def methodMissing(String methodName, args) {
-        if (methodName=="or" || methodName=="and") {
-            LOG.info "Conjuction or disjunction method found..."
-            lastJoin = methodName
+        def operation = args['operation'][0]
+        def arguments = args['args'][0]
+        LOG.info "Creating predicate method for attribute $methodName, operation $operation and arguments $arguments..."
+        Predicate predicate
+        if (arguments.class.isArray() || arguments instanceof List) {
+            predicate = cb."$operation"(rootModel.get(methodName), *arguments)
         } else {
-            def operation = args['operation'][0]
-            def arguments = args['args'][0]
-            LOG.info "Creating predicate method for attribute $methodName, operation $operation and arguments $arguments..."
-            Predicate predicate
-            if (arguments.class.isArray() || arguments instanceof List) {
-                predicate = cb."$operation"(rootModel.get(methodName), *arguments)
-            } else {
-                predicate = cb."$operation"(rootModel.get(methodName), arguments)
-            }
-            if (criteria==null) {
-                criteria = cb.conjunction()
-                criteria = cb.and(criteria, predicate)
-            } else {
-                criteria = cb."$lastJoin"(criteria, predicate)
-            }
+            predicate = cb."$operation"(rootModel.get(methodName), arguments)
         }
+        if (criteria==null) {
+            criteria = cb.conjunction()
+            criteria = cb.and(criteria, predicate)
+        } else {
+            criteria = cb."$lastJoin"(criteria, predicate)
+        }
+    }
+
+    def or() {
+        LOG.info "Conjuction method found..."
+        lastJoin = "or"
+    }
+
+    def and() {
+        LOG.info "Disjunction method found..."
+        lastJoin = "and"
     }
 
     def eq(arg) {
