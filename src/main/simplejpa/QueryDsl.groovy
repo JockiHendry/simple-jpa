@@ -21,7 +21,9 @@ class QueryDsl {
         def arguments = args['args'][0]
         LOG.info "Creating predicate method for attribute $methodName, operation $operation and arguments $arguments..."
         Predicate predicate
-        if (arguments.class.isArray() || arguments instanceof List) {
+        if (arguments==null) {
+            predicate = cb."$operation"(rootModel.get(methodName))
+        } else if (arguments.class.isArray() || arguments instanceof List) {
             predicate = cb."$operation"(rootModel.get(methodName), *arguments)
         } else {
             predicate = cb."$operation"(rootModel.get(methodName), arguments)
