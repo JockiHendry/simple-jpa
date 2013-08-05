@@ -243,7 +243,7 @@ final class SimpleJpaHandler {
 
     def findAllModel = { String model ->
         return { Map config = [:] ->
-            LOG.info "Executing findAll$model for $model"
+            LOG.info "Executing findAll$model"
             executeInsideTransaction {
                 CriteriaBuilder cb = getEntityManager().getCriteriaBuilder()
                 CriteriaQuery c = cb.createQuery()
@@ -258,11 +258,11 @@ final class SimpleJpaHandler {
 
     def findModelById = { String model, boolean notSoftDeleted ->
         def modelClass = Class.forName(domainModelPackage + "." + model)
-        def idClass = getEntityManager().metamodel.entity(modelClass).idType.javaType
 
         return { id ->
             LOG.info "Executing find$model for class $modelClass and id [$id]"
             executeInsideTransaction {
+                def idClass = getEntityManager().metamodel.entity(modelClass).idType.javaType
                 Object object = getEntityManager().find(modelClass, idClass.newInstance(id))
                 if (notSoftDeleted) {
                     if (object."deleted"=="Y") return null
