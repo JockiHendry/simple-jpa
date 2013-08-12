@@ -143,6 +143,9 @@ final class SimpleJpaHandler {
             query.setFirstResult(page*pageSize)
             query.setMaxResults(pageSize)
         }
+        if (config['flushMode']) {
+            query.setFlushMode(config['flushMode'])
+        }
         query
     }
 
