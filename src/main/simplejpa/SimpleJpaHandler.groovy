@@ -56,10 +56,6 @@ final class SimpleJpaHandler {
         // Check configurations
         GriffonApplication app = ApplicationHolder.application
         convertEmptyStringToNull = app.config.griffon?.simplejpa?.validation.convertEmptyStringToNull ?: false
-        if (app.config.griffon?.simplejpa?.entityManager.defaultFlushMode) {
-            defaultFlushMode = FlushModeType.valueOf(app.config.griffon?.simplejpa?.entityManager.defaultFlushMode)
-        }
-
     }
 
     final ConcurrentReaderHashMap mapTransactionHolder = new ConcurrentReaderHashMap()
@@ -86,8 +82,15 @@ final class SimpleJpaHandler {
         } else {
             LOG.info "Creating a new entity manager..."
             EntityManager em = emf.createEntityManager()
-            if (defaultFlushMode) {
+            def flushModeConfig = ApplicationHolder.application.config.griffon?.simplejpa?.entityManager.defaultFlushMode
+            if (flushModeConfig) {
+                if (flushModeConfig instanceof String) {
+                    defaultFlushMode = FlushModeType.valueOf(flushModeConfig)
+                } else {
+                    defaultFlushMode = flushModeConfig
+                }
                 em.setFlushMode(defaultFlushMode)
+                LOG.info "Set flushmode to $defaultFlushMode"
             }
             th = new TransactionHolder(em)
         }
