@@ -77,6 +77,7 @@ First release into griffon artifacts portal.
 1. Add griffon.simplejpa.entityManager.defaultFlushMode configuration key for changing EntityManager's flush mode globally.
 1. Add griffon.simplejpa.validation.convertEmptyStringToNull configuration key for automatically converting an empty String into null value when performing validation for a JPA entity.
 1. Add 'flushMode' config for executing individual query.
+1. Add 'excludeSubclass' config for excluding subclass instance from query result.
 1. Minor scaffolding template improvements.
 1. Support grouping in validation (pass grouping class as second argument).
 1. findModelByDsl's closure parameter has been moved to the end (as the last parameter).

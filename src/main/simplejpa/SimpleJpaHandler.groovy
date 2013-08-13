@@ -113,16 +113,29 @@ final class SimpleJpaHandler {
     private configureCriteria(CriteriaBuilder cb, CriteriaQuery c, Root model, Map config) {
         LOG.info "Processing configuration [$config]..."
 
+        Predicate p = c.getRestriction()?: cb.conjunction()
+
         if (alwaysExcludeSoftDeleted || config["notSoftDeleted"]==true) {
             LOG.info "Applying not soft deleted..."
-            Predicate p = c.getRestriction()
-            if (p==null) {
-                p = cb.equal(model.get("deleted"), "N")
-            } else {
-                p = cb.and(p, cb.equal(model.get("deleted"), "N"))
-            }
+            p = cb.and(p, cb.equal(model.get("deleted"), "N"))
             c.where(p)
         }
+        if (config['excludeSubclass']!=null) {
+            String excludeSubclass = config['excludeSubclass']
+            if (excludeSubclass=='*') {
+                LOG.info "Exclude all subclasses..."
+                p = cb.and(p, cb.equal(model.type(), cb.literal(model.model.javaType)))
+                c.where(p)
+            } else {
+                excludeSubclass.split(',').each {
+                    Class subclass = Class.forName("${domainModelPackage}.${it.trim()}")
+                    LOG.info "Exclude subclass: ${subclass}..."
+                    p = cb.and(p, cb.notEqual(model.type(), cb.literal(subclass)))
+                }
+                c.where(p)
+            }
+        }
+
         if (config["orderBy"]!=null) {
             List orders = []
             List orderBy = config["orderBy"].tokenize(',')
