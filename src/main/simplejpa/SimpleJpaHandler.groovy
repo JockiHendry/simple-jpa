@@ -369,11 +369,10 @@ final class SimpleJpaHandler {
     }
 
     def doNamedQuery = { String namedQuery, String model ->
-        Query query = getEntityManager().createNamedQuery("${model}.${namedQuery}")
-
         return { Map args, Map config = [:] ->
             LOG.info "Executing named query [${model}.${namedQuery}] with argument [$args]"
             executeInsideTransaction {
+                Query query = getEntityManager().createNamedQuery("${model}.${namedQuery}")
                 args.each { key, value ->
                     query.setParameter(key, value)
                 }

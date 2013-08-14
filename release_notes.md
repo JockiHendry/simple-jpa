@@ -71,6 +71,7 @@ First release into griffon artifacts portal.
 1. Fixes can't use custom renderer in tableColumnConfig().
 1. Fixes "can't commit on null object" exception.
 1. Fixes findModelById didn't work when outside transaction.
+1. Fixes "session is closed" when using named query.
 1. New mvcPopupButton() node for popup that will display view from another MVCGroup.
 1. New 'linkRenderer' for tableColumnConfig() node for creating a column in JTable that execute an action when clicked.
 1. Add griffon.simplejpa.entityManager.checkThreadSafeLoading configuration key for checking entities lazy loading from thread other than the one that associated with it.
