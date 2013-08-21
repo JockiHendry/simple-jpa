@@ -374,7 +374,9 @@ final class SimpleJpaHandler {
             executeInsideTransaction {
                 Query query = getEntityManager().createNamedQuery("${model}.${namedQuery}")
                 args.each { key, value ->
-                    query.setParameter(key, value)
+                    if (query.parameters.find { it.name == key }) {
+                        query.setParameter(key, value)
+                    }
                 }
 
                 configureQuery(query, config).getResultList()
