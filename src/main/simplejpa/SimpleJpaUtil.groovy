@@ -20,6 +20,8 @@ import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 import simplejpa.transaction.TransactionHolder
 
+import javax.persistence.EntityManagerFactory
+
 class SimpleJpaUtil {
 
     public static SimpleJpaUtil instance = new SimpleJpaUtil()
@@ -27,6 +29,7 @@ class SimpleJpaUtil {
 
     private List<SimpleJpaHandler> handlerLists = []
     boolean isCheckThreadSafeLoading
+    EntityManagerFactory entityManagerFactory
 
     private SimpleJpaUtil() {
         isCheckThreadSafeLoading = false
@@ -56,6 +59,27 @@ class SimpleJpaUtil {
             }
         }
         result
+    }
+
+    public Map getEMFProperties() {
+        entityManagerFactory.properties
+    }
+
+    public String getDbUsername() {
+        getEMFProperties()['javax.persistence.jdbc.user']
+    }
+
+    public String getDbPassword() {
+        getEMFProperties()['javax.persistence.jdbc.password']
+    }
+
+    public String getDbUrl() {
+        getEMFProperties()['javax.persistence.jdbc.url']
+    }
+
+    public String getDbName() {
+        def matcher = getDbUrl() =~ /jdbc:.+\/([^?]+).*/
+        matcher[0][1]
     }
 
     // Methods for globally manipulating handlers here!

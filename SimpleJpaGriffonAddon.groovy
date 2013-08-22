@@ -57,6 +57,8 @@ class SimpleJpaGriffonAddon {
         }
 
         final EntityManagerFactory emf = Persistence.createEntityManagerFactory("default")
+        SimpleJpaUtil.instance.entityManagerFactory = emf
+
         final Validator validator = Validation.buildDefaultValidatorFactory().getValidator()
 
         types.each {

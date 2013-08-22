@@ -83,6 +83,7 @@ First release into griffon artifacts portal.
 1. Support grouping in validation (pass grouping class as second argument).
 1. findModelByDsl's closure parameter has been moved to the end (as the last parameter).
 1. Discard parameters that are not specified in JP QL when executing named query.
+1. Add methods for getting EMF properties, database user, password, etc. to SimpleJpaUtil.
 
 ### 0.5 (Pending!)
 1. findXXX() will return only a single entity or null if not found, while findAllXXX() will return a List that contains all resulting entities.
