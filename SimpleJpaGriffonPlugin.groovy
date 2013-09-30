@@ -16,7 +16,7 @@
 
 class SimpleJpaGriffonPlugin {
     // the plugin version
-    String version = '0.4.2'
+    String version = '0.5'
     // the version or versions of Griffon the plugin is designed for
     String griffonVersion = '1.2.0 > *'
     // the other plugins this plugin depends on
@@ -28,7 +28,7 @@ class SimpleJpaGriffonPlugin {
     String license = 'Apache Software License 2.0'
     // Toolkit compatibility. No value means compatible with all
     // Valid values are: swing, javafx, swt, pivot, qt
-    List toolkits = []
+    List toolkits = ['swing']
     // Platform compatibility. No value means compatible with all
     // Valid values are:
     // linux, linux64, windows, windows64, macosx, macosx64, solaris
@@ -53,7 +53,12 @@ class SimpleJpaGriffonPlugin {
     // accepts Markdown syntax. See http://daringfireball.net/projects/markdown/ for details
     String description = '''
 
-Visit http://jockihendry.github.io/simple-jpa/ and http://thesolidsnake.wordpress.com/simple-jpa for more information.
+**Warning**: During developer preview stage, new release may include features or changes that are
+not compatible with previous releases.
+
+Documentation: http://jockihendry.github.io/simple-jpa
+
+News: http://thesolidsnake.wordpress.com/tag/simple-jpa
 
 '''
 }
