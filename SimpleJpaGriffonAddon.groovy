@@ -15,6 +15,8 @@
  */
 
 import groovy.swing.factory.BeanFactory
+import org.slf4j.Logger
+import org.slf4j.LoggerFactory
 import simplejpa.SimpleJpaHandler
 import simplejpa.SimpleJpaUtil
 import simplejpa.swing.MVCPopupButtonFactory
@@ -48,6 +50,8 @@ import java.util.concurrent.ConcurrentHashMap
 
 class SimpleJpaGriffonAddon {
 
+    private static Logger LOG = LoggerFactory.getLogger(SimpleJpaHandler)
+
     void addonPostInit(GriffonApplication app) {
         def types = app.config.griffon?.simplejpa?.injectInto ?: ['controller']
 
@@ -56,7 +60,23 @@ class SimpleJpaGriffonAddon {
             entityManagerLifespan = EntityManagerLifespan.valueOf(app.config.griffon.simplejpa.entityManager.lifespan.toUpperCase())
         }
 
-        final EntityManagerFactory emf = Persistence.createEntityManagerFactory("default")
+        // Read from properties file simplejpa.properties
+        Properties propsFromFile = new Properties()
+        File configFile = new File("simplejpa.properties")
+        if (configFile.exists()) {
+            LOG.debug "Reading properties from file ${configFile.absolutePath}"
+            propsFromFile.load(configFile.newInputStream())
+            LOG.debug "Properties overrides from file: $propsFromFile"
+        }
+
+        // Props in Config.groovy will overrides properties file
+        Map propsFromConfig = (Map) app.config.griffon.simplejpa.entityManager.properties.flatten()
+        if (!propsFromConfig?.isEmpty()) {
+            LOG.debug "Properties overrides from config: $propsFromConfig"
+            propsFromFile.putAll(propsFromConfig)
+        }
+
+        final EntityManagerFactory emf = Persistence.createEntityManagerFactory("default", propsFromFile)
         SimpleJpaUtil.instance.entityManagerFactory = emf
 
         final Validator validator = Validation.buildDefaultValidatorFactory().getValidator()
