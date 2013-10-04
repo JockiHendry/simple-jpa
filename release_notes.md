@@ -85,9 +85,10 @@ First release into griffon artifacts portal.
 1. Discard parameters that are not specified in JP QL when executing named query.
 1. Add methods for getting EMF properties, database user, password, etc. to SimpleJpaUtil.
 
-### 0.5 (Pending!)
+### 0.5
 1. Upgrade to Griffon 1.4
 1. Read EntityManagerFactory properties from simplejpa.properties or from Griffon's Config.groovy.
+1. Fixes mvcPopupButton() not working in Griffon 1.4.
 
 1. findXXX() will return only a single entity or null if not found, while findAllXXX() will return a List that contains all resulting entities.
 1. Support finders such as findXXXByField1AndField2() or find XXXByField1OrField2AndField3().

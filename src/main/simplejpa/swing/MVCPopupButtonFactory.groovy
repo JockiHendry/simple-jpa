@@ -29,7 +29,9 @@ class MVCPopupButtonFactory extends AbstractFactory {
         Closure onBeforeDisplay = attributes.remove('onBeforeDisplay')
         def dialogProperties = attributes.remove('dialogProperties')
         JButton btnResult
-        if (value instanceof JButton) {
+        if (!value) {
+            btnResult = new JButton()
+        } else if (value instanceof JButton) {
             btnResult = value
         } else {
             btnResult = new JButton(value)
