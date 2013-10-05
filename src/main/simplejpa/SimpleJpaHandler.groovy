@@ -8,7 +8,6 @@ import simplejpa.transaction.TransactionHolder
 
 import javax.persistence.*
 import griffon.util.*
-import griffon.core.GriffonApplication
 
 import javax.persistence.criteria.CriteriaBuilder
 import javax.persistence.criteria.CriteriaQuery
@@ -35,30 +34,51 @@ final class SimpleJpaHandler {
     private static final int DEFAULT_PAGE_SIZE = 10
 
     final String prefix
-    final String domainModelPackage
+    final String domainClassPackage
     final EntityManagerFactory emf
     final Validator validator
     final boolean alwaysExcludeSoftDeleted
     final EntityManagerLifespan entityManagerLifespan
+    final boolean isCheckThreadSafeLoading
+    final FlushModeType defaultFlushMode
 
     private boolean convertEmptyStringToNull
-    private FlushModeType defaultFlushMode
+    final ConcurrentReaderHashMap mapTransactionHolder = new ConcurrentReaderHashMap()
 
-    public SimpleJpaHandler(EntityManagerFactory emf, Validator validator, String prefix, String domainModelPackage,
-            boolean alwaysExcludeSoftDeleted, EntityManagerLifespan entityManagerLifespan) {
+    public SimpleJpaHandler(EntityManagerFactory emf, Validator validator) {
+
         this.emf = emf
         this.validator = validator
-        this.prefix = (prefix==null || prefix=="" || prefix=="[]") ? "" : prefix
-        this.domainModelPackage = domainModelPackage
-        this.alwaysExcludeSoftDeleted = alwaysExcludeSoftDeleted
-        this.entityManagerLifespan = entityManagerLifespan
 
-        // Check configurations
-        GriffonApplication app = ApplicationHolder.application
-        convertEmptyStringToNull = app.config.griffon?.simplejpa?.validation.convertEmptyStringToNull ?: false
+        //
+        // Initialize fields from related configurations
+        //
+        griffon.core.GriffonApplication app = griffon.util.ApplicationHolder.application
+        this.entityManagerLifespan = ConfigUtils.getConfigValue(app.config,
+            'griffon.simplejpa.entityManager.lifespan', 'MANUAL').toUpperCase()
+        this.defaultFlushMode = ConfigUtils.getConfigValue(app.config,
+            'griffon.simplejpa.entityManager.defaultFlushMode', 'AUTO').toUpperCase()
+        this.isCheckThreadSafeLoading = ConfigUtils.getConfigValueAsBoolean(app.config,
+            'config.griffon.simplejpa.entityManager.checkThreadSafeLoading', false)
+        this.prefix = ConfigUtils.getConfigValueAsString(app.config, 'griffon.simplejpa.method.prefix', '')
+        this.domainClassPackage = ConfigUtils.getConfigValueAsString(app.config, 'griffon.simplejpa.domain.package', 'domain')
+        this.alwaysExcludeSoftDeleted = ConfigUtils.getConfigValueAsBoolean(app.config,
+            'griffon.simplejpa.finder.alwaysExcludeSoftDeleted', false)
+        this.convertEmptyStringToNull = ConfigUtils.getConfigValueAsBoolean(app.config,
+            'griffon.simplejpa.validation.convertEmptyStringToNull', false)
+
+        if (LOG.isDebugEnabled()) {
+            LOG.debug "SimpleJpaHandler initializd with the following configuration: \n" +
+                "griffon.simplejpa.entityManager.lifespan = $entityManagerLifespan\n" +
+                "griffon.simplejpa.entityManager.defaultFlushMode = $defaultFlushMode\n" +
+                "griffon.simplejpa.entityManager.checkThreadSafeLoading = $isCheckThreadSafeLoading\n" +
+                "griffon.simplejpa.method.prefix = $prefix\n" +
+                "griffon.simplejpa.domain.package = $domainClassPackage\n" +
+                "griffon.simplejpa.finder.alwaysExcludeSoftDeleted = $alwaysExcludeSoftDeleted\n" +
+                "griffon.simplejpa.validation.convertEmptyStringToNull = $convertEmptyStringToNull\n"
+        }
+
     }
-
-    final ConcurrentReaderHashMap mapTransactionHolder = new ConcurrentReaderHashMap()
 
     private void debugEntityManager() {
         if (LOG.isInfoEnabled()) {
@@ -82,16 +102,7 @@ final class SimpleJpaHandler {
         } else {
             LOG.info "Creating a new entity manager..."
             EntityManager em = emf.createEntityManager()
-            def flushModeConfig = ApplicationHolder.application.config.griffon?.simplejpa?.entityManager.defaultFlushMode
-            if (flushModeConfig) {
-                if (flushModeConfig instanceof String) {
-                    defaultFlushMode = FlushModeType.valueOf(flushModeConfig)
-                } else {
-                    defaultFlushMode = flushModeConfig
-                }
-                em.setFlushMode(defaultFlushMode)
-                LOG.info "Set flushmode to $defaultFlushMode"
-            }
+            em.setFlushMode(defaultFlushMode)
             th = new TransactionHolder(em)
         }
         mapTransactionHolder.put(Thread.currentThread(), th)
@@ -128,7 +139,7 @@ final class SimpleJpaHandler {
                 c.where(p)
             } else {
                 excludeSubclass.split(',').each {
-                    Class subclass = Class.forName("${domainModelPackage}.${it.trim()}")
+                    Class subclass = Class.forName("${domainClassPackage}.${it.trim()}")
                     LOG.info "Exclude subclass: ${subclass}..."
                     p = cb.and(p, cb.notEqual(model.type(), cb.literal(subclass)))
                 }
@@ -266,7 +277,7 @@ final class SimpleJpaHandler {
             executeInsideTransaction {
                 CriteriaBuilder cb = getEntityManager().getCriteriaBuilder()
                 CriteriaQuery c = cb.createQuery()
-                Root rootModel = c.from(Class.forName(domainModelPackage + "." + model))
+                Root rootModel = c.from(Class.forName(domainClassPackage + "." + model))
                 c.select(rootModel)
 
                 configureCriteria(cb, c, rootModel, config)
@@ -276,7 +287,7 @@ final class SimpleJpaHandler {
     }
 
     def findModelById = { String model, boolean notSoftDeleted ->
-        def modelClass = Class.forName(domainModelPackage + "." + model)
+        def modelClass = Class.forName(domainClassPackage + "." + model)
 
         return { id ->
             LOG.info "Executing find$model for class $modelClass and id [$id]"
@@ -292,7 +303,7 @@ final class SimpleJpaHandler {
     }
 
     def findModelByDsl = { String model ->
-        Class modelClass = Class.forName(domainModelPackage + "." + model)
+        Class modelClass = Class.forName(domainClassPackage + "." + model)
 
         return { Map config = [:], Closure closure ->
             LOG.info "Executing find${model}ByDsl with config [$config]"
@@ -313,7 +324,7 @@ final class SimpleJpaHandler {
     }
 
     def findModelBy = { String model ->
-        Class modelClass = Class.forName(domainModelPackage + "." + model)
+        Class modelClass = Class.forName(domainClassPackage + "." + model)
 
         return { Map args, Map config = [:]  ->
             LOG.info "Executing find${model}By with argument [$args] and config [$config]"
@@ -338,7 +349,7 @@ final class SimpleJpaHandler {
     }
 
     def findModelByAttribute = { String model, String attribute ->
-        Class modelClass = Class.forName(domainModelPackage + "." + model)
+        Class modelClass = Class.forName(domainClassPackage + "." + model)
 
         return { Object[] args ->
             LOG.info "Executing find${model}By${attribute} with argument [$args]"

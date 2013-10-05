@@ -24,7 +24,7 @@ class AuditingEntityListener {
          * EM is not thread-safe so an entity shouldn't be used by
          * other threads beside the one that creates it.
          */
-        if (SimpleJpaUtil.instance.isCheckThreadSafeLoading) {
+        if (SimpleJpaUtil.instance.handlers[0].isCheckThreadSafeLoading) {
             Thread supposedThread = SimpleJpaUtil.instance.getThreadForEntity(target)
             if (Thread.currentThread() != supposedThread) {
                 throw new ConcurrentModificationException("${target.class} ${target.id} is loaded " +

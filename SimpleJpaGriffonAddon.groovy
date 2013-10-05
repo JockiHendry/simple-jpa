@@ -55,11 +55,6 @@ class SimpleJpaGriffonAddon {
     void addonPostInit(GriffonApplication app) {
         def types = app.config.griffon?.simplejpa?.injectInto ?: ['controller']
 
-        def entityManagerLifespan = EntityManagerLifespan.MANUAL
-        if (app.config.griffon.simplejpa.entityManager.containsKey('lifespan')) {
-            entityManagerLifespan = EntityManagerLifespan.valueOf(app.config.griffon.simplejpa.entityManager.lifespan.toUpperCase())
-        }
-
         // Read from properties file simplejpa.properties
         Properties propsFromFile = new Properties()
         File configFile = new File("simplejpa.properties")
@@ -77,20 +72,16 @@ class SimpleJpaGriffonAddon {
         }
 
         final EntityManagerFactory emf = Persistence.createEntityManagerFactory("default", propsFromFile)
-        SimpleJpaUtil.instance.entityManagerFactory = emf
-
         final Validator validator = Validation.buildDefaultValidatorFactory().getValidator()
+
+        SimpleJpaUtil util = SimpleJpaUtil.instance
+        util.entityManagerFactory = emf
 
         types.each {
             app.artifactManager.getClassesOfType(it).each { GriffonClass gc ->
-                // Creating new handler
-                SimpleJpaHandler simpleJpaHandler = new SimpleJpaHandler(emf, validator,
-                    app.config.griffon?.simplejpa?.method?.prefix ?: '',
-                    app.config.griffon?.simplejpa?.model?.package ?: 'domain',
-                    (app.config.griffon?.simplejpa?.finder?.alwaysExcludeSoftDeleted ?: false) as boolean,
-                    entityManagerLifespan
-                )
-                SimpleJpaUtil.instance.registerHandler(simpleJpaHandler)
+                LOG.debug "Creating new SimpleJpaHandler for ${gc.fullName}"
+                SimpleJpaHandler simpleJpaHandler = new SimpleJpaHandler(emf, validator)
+                util.registerHandler(simpleJpaHandler)
                 gc.metaClass.methodMissing =  simpleJpaHandler.methodMissingHandler
             }
         }

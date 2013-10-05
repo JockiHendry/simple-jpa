@@ -28,15 +28,9 @@ class SimpleJpaUtil {
     private static final Logger LOG = LoggerFactory.getLogger(SimpleJpaUtil)
 
     private List<SimpleJpaHandler> handlerLists = []
-    boolean isCheckThreadSafeLoading
     EntityManagerFactory entityManagerFactory
 
-    private SimpleJpaUtil() {
-        isCheckThreadSafeLoading = false
-        if (griffon.util.ApplicationHolder.application.config.griffon.simplejpa.entityManager.containsKey('checkThreadSafeLoading')) {
-            isCheckThreadSafeLoading = griffon.util.ApplicationHolder.application.config.griffon.simplejpa.entityManager.checkThreadSafeLoading
-        }
-    }
+    private SimpleJpaUtil() {}
 
     public void registerHandler(SimpleJpaHandler handler) {
         LOG.debug "Registering $handler"
