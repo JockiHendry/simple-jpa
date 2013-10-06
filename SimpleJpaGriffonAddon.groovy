@@ -55,23 +55,34 @@ class SimpleJpaGriffonAddon {
     void addonPostInit(GriffonApplication app) {
         def types = app.config.griffon?.simplejpa?.injectInto ?: ['controller']
 
-        // Read from properties file simplejpa.properties
-        Properties propsFromFile = new Properties()
-        File configFile = new File("simplejpa.properties")
+        // Read properties in Config.groovy
+        def config = app.config.griffon.simplejpa.entityManager.properties
+        LOG.debug "Properties overrides from Config.groovy: $config"
+
+        // Read from properties file (default to simplejpa.properties) using Groovy ConfigSlurper format
+        def configFileName = System.getProperty("griffon.simplejpa.entityManager.propertiesFile")?.trim()
+        if (!configFileName) {
+            configFileName = ConfigUtils.getConfigValueAsString(app.config, "griffon.simplejpa.entityManager.propertiesFile",
+                "simplejpa.properties")
+        }
+        File configFile = new File(configFileName)
         if (configFile.exists()) {
             LOG.debug "Reading properties from file ${configFile.absolutePath}"
-            propsFromFile.load(configFile.newInputStream())
-            LOG.debug "Properties overrides from file: $propsFromFile"
+            def configFromFile = new ConfigSlurper(Environment.current.name).parse(configFile.toURI().toURL())
+            LOG.debug "Properties overrides from file: $configFromFile"
+            config.merge(configFromFile)
         }
 
-        // Props in Config.groovy will overrides properties file
-        Map propsFromConfig = (Map) app.config.griffon.simplejpa.entityManager.properties.flatten()
-        if (!propsFromConfig?.isEmpty()) {
-            LOG.debug "Properties overrides from config: $propsFromConfig"
-            propsFromFile.putAll(propsFromConfig)
+        // Read from system properties
+        config = config.flatten()
+        System.properties.each { String k, v ->
+            if (k.startsWith('javax.persistence')) {
+                config[k] = v
+            }
         }
 
-        final EntityManagerFactory emf = Persistence.createEntityManagerFactory("default", propsFromFile)
+        LOG.debug "Properties overrides: $config"
+        final EntityManagerFactory emf = Persistence.createEntityManagerFactory("default", config)
         final Validator validator = Validation.buildDefaultValidatorFactory().getValidator()
 
         SimpleJpaUtil util = SimpleJpaUtil.instance
