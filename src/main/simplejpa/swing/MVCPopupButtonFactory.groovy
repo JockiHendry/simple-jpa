@@ -27,6 +27,7 @@ class MVCPopupButtonFactory extends AbstractFactory {
         }
         Closure onFinish = attributes.remove('onFinish')
         Closure onBeforeDisplay = attributes.remove('onBeforeDisplay')
+        Closure contentDecorator = attributes.remove('contentDecorator')
         def dialogProperties = attributes.remove('dialogProperties')
         JButton btnResult
         if (!value) {
@@ -45,7 +46,7 @@ class MVCPopupButtonFactory extends AbstractFactory {
             }
             onBeforeDisplay?.call(btnResult)
             DialogUtils.showMVCGroup(mvcGroup, args, builder.getVariable("app"),
-                builder.getVariable("view"), dialogProperties, onFinish)
+                builder.getVariable("view"), dialogProperties, onFinish, contentDecorator)
         }
 
         btnResult
