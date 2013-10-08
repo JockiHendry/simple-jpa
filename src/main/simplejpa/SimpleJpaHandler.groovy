@@ -107,6 +107,7 @@ final class SimpleJpaHandler {
         }
         mapTransactionHolder.put(Thread.currentThread(), th)
         debugEntityManager()
+        ApplicationHolder.application.event("simpleJpaCreateEntityManager", [th])
         th
     }
 
@@ -119,6 +120,7 @@ final class SimpleJpaHandler {
         }
         mapTransactionHolder.clear()
         debugEntityManager()
+        ApplicationHolder.application.event("simpleJpaDestroyEntityManagers")
     }
 
     private configureCriteria(CriteriaBuilder cb, CriteriaQuery c, Root model, Map config) {
@@ -194,12 +196,15 @@ final class SimpleJpaHandler {
                 th = createEntityManager()
             }
         }
-        th.beginTransaction(resume)
+        if (th.beginTransaction(resume)) {
+            ApplicationHolder.application.event("simpleJpaNewTransaction", [th])
+        }
     }
 
     def closeAndRemoveCurrentEntityManager = {
         TransactionHolder th = mapTransactionHolder.get(Thread.currentThread())
         if (th) {
+            ApplicationHolder.application.event("simpleJpaBeforeCloseEntityManager", [th])
             th.em.close()
             LOG.info "EntityManager for $th is closed!"
             mapTransactionHolder.remove(Thread.currentThread())
@@ -209,9 +214,12 @@ final class SimpleJpaHandler {
 
     def commitTransaction = {
         LOG.info "Commit transaction from thread ${Thread.currentThread()} (${Thread.currentThread().id})..."
-        mapTransactionHolder.get(Thread.currentThread())?.commitTransaction()
-        if (entityManagerLifespan==EntityManagerLifespan.TRANSACTION) {
-            closeAndRemoveCurrentEntityManager()
+        TransactionHolder th = mapTransactionHolder.get(Thread.currentThread())
+        if (th?.commitTransaction()) {
+            if (entityManagerLifespan==EntityManagerLifespan.TRANSACTION) {
+                closeAndRemoveCurrentEntityManager()
+            }
+            ApplicationHolder.application.event("simpleJpaCommitTransaction", [th])
         }
     }
 
@@ -219,10 +227,12 @@ final class SimpleJpaHandler {
         LOG.info "Rollback transaction from thread ${Thread.currentThread()} (${Thread.currentThread().id})..."
         TransactionHolder th = mapTransactionHolder.get(Thread.currentThread())
         th.em.clear()
-        th.rollbackTransaction()
-        closeAndRemoveCurrentEntityManager()
-        if (entityManagerLifespan==EntityManagerLifespan.MANUAL) {
-            createEntityManager(th)
+        if (th.rollbackTransaction()) {
+            closeAndRemoveCurrentEntityManager()
+            if (entityManagerLifespan==EntityManagerLifespan.MANUAL) {
+                createEntityManager(th)
+            }
+            ApplicationHolder.application.event("simpleJpaRollbackTransaction", [th])
         }
     }
 
@@ -232,6 +242,7 @@ final class SimpleJpaHandler {
         def result
         if (!getEntityManager()?.transaction?.isActive()) {
             insideTransaction = false
+            ApplicationHolder.application.event("simpleJpaBeforeAutoCreateTransaction")
             beginTransaction()
         }
         LOG.info "Not in a transaction? ${!insideTransaction}"
