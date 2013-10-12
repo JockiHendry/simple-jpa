@@ -29,6 +29,7 @@ import org.codehaus.groovy.antlr.treewalker.Visitor
 import org.codehaus.groovy.antlr.treewalker.VisitorAdapter
 import static org.codehaus.groovy.antlr.parser.GroovyTokenTypes.*
 import griffon.util.GriffonUtil
+import griffon.util.ConfigUtils
 
 /**
  * Gant script that creates a new MVC Group with view, controller and model that performs CRUD operation for
@@ -64,7 +65,8 @@ getFields =  { String name, boolean processChild = true ->
     File fullDomainClassFile = new File("${basedir}/src/main/${fullDomainClassName.replace('.', '/')}.groovy")
 
     if (!fullDomainClassFile.exists()) {
-        fail "Can't find domain class $fullDomainClassFile"
+        println "\nCan't find the following domain class: $fullDomainClassFile"
+        return null
     }
 
     SourceBuffer sourceBuffer = new SourceBuffer()
@@ -82,7 +84,7 @@ getFields =  { String name, boolean processChild = true ->
 
     if (!domainModelVisitor.isEntity()) {
         println "Can't process $fullDomainClassFile because this is not an JPA entity.  This class didn't have @Entity annotation."
-        return
+        return null
     }
 
     List fields = domainModelVisitor.fields;
@@ -303,7 +305,7 @@ def createIntegrationTest = {
 
     // Create XML file called "data.xml" in the same package
     if (skipExcel) {
-        println "Will not create XML file for integration testing data!"
+        println "Will not create Excel file for integration testing data!"
     } else {
         File xmlFile = new File("${basedir}/test/integration/${generatedPackage.replace('.', '/')}/data.xls")
         String sheetName = domainClassName.toLowerCase()
@@ -390,6 +392,7 @@ processDomainClass = { String name ->
 
     domainClassName = GriffonUtil.getClassNameRepresentation(name)
     fieldList = getFields(domainClassName)
+    if (!fieldList) return
 
     createMVC()
     createIntegrationTest()
@@ -421,23 +424,99 @@ processDomainClass = { String name ->
 
 target(name: 'generateAll', description: "Create CRUD scaffolding for specified domain class", prehook: null, posthook: null) {
 
-    if (argsMap?.params?.isEmpty() && argsMap['startup-group']==null) {
+    def config = new ConfigSlurper().parse(configFile.toURL())
+    domainPackageName = ConfigUtils.getConfigValueAsString(config, 'griffon.simplejpa.model.package', 'domain')
+    softDelete = ConfigUtils.getConfigValueAsBoolean(config, 'griffon.simplejpa.finder.alwaysExcludeSoftDeleted', false)
+
+    def helpDescription = """
+DESCRIPTION
+    generate-all
+
+    Generate an MVCGroup with scaffolding code.
+
+SYNTAX
+    griffon generate-all * [-generatedPackage] [-forceOverwrite] [-setStartup]
+        [-skipExcel] [-startupGroup=value]
+    griffon generate-all [domainClassName] [-generatedPackage]
+        [-forceOverwrite] [-setStartup] [-skipExcel] [-startupGroup=value]
+    griffon generate-all [domainClassName] [domainClassName] ...
+        [-generatedPackage] [-forceOverwrite] [-setStartup] [-skipExcel]
+        [-startupGroup=value]
+
+ARGUMENTS
+    *
+        This command will process all domain classes.
+
+    domainClassName
+        This is the name of domain class the scaffolding result will based on.
+
+    generatedPackage (optional)
+        By default, generate-all will place the generated files in package
+        'project'.  You can the generated package name by using this argument.
+
+    forceOverwrite (optional)
+        If this argument is present, generate-all will replace all existing
+        files without any notifications.
+
+    setStartup (optional)
+        Set the generated MVCGroup as startup group (the MVCGroup that will
+        be launched when program starts).  If this argument is present when
+        using generating more than one MVCGroup, then the last MVCGroup will
+        be set as startup group.
+
+    skipExcel (optional)
+        If this argument is present, generate-all will not create Microsoft
+        Excel file for integration testing (DbUnit).
+
+    startupGroup (optional)
+        Generate a distinct MVCGroup that serves as startup group.  This
+        MVCGroup will act as a container for the other domain classes' based
+        MVCGroups.
+        If this argument is present together with setStartup argument, then
+        the setStartup argument will have no effect.
+
+DETAILS
+    This command will generate scaffolding MVC based on a domain class. It
+    will also generate a startup MVCGroup that act as container for the
+    domain class based MVCGroup.
+
+    generate-all will find domain classes in the package specified by
+    griffon.simplejpa.model.package in Config.groovy.  The default value for
+    package is 'domain'.
+
+    The value of griffon.simplejpa.finder.alwaysExcludeSoftDeleted will have
+    impact to the generated controller classes.  If you change this
+    configuration value after generating domain classes, than you will need
+    to alter the generated controllers manually.
+
+    If you want to change the default template used by this command, you can
+    execute griffon install-templates command and alter the generated
+    template files.
+
+EXAMPLES
+    griffon generate-all *
+    griffon generate-all * -forceOverwrite -setStartup
+    griffon generate-all Student Teacher Classroom
+    griffon generate-all Student -startupGroup=MainGroup
+    griffon generate-all -startupGroup=MainGroup
+
+CONFIGURATIONS
+    griffon.simplejpa.model.package = $domainPackageName
+    griffon.simplejpa.finder.alwaysExcludeSoftDeleted = $softDelete
+"""
+    if (argsMap['info']) {
+        println helpDescription
+        return
+    }
+
+    if (argsMap?.params?.isEmpty() && (!argsMap['startup-group'] || !argsMap['startupGroup'])) {
         println '''
-Usage: griffon generate-all *
-       griffon generate-all * --force-overwrite --set-startup
-       griffon generate-all [domainClass]
-       griffon generate-all --startup-group=[startupGroupName]
-       griffon generate-all [domainClass] --startup-group=[startupGroupName]
 
-Parameter: --force-overwrite : will overwrite existing file without any warning!
-           --skip-xml : will not generate XML for DbUnit data (integration testing).
+You didn't specify all required arguments.  Please see the following
+description for more information.
 
-Example: griffon generate-all Student
-
-Domain class package location is retrieved from the value of griffon.simpleJpa.model.package in Config.groovy
-(default is 'domain').
 '''
-        println "Can't execute generate-all"
+        println helpDescription
         return
     }
 
@@ -447,11 +526,18 @@ Domain class package location is retrieved from the value of griffon.simpleJpa.m
     skipExcel = argsMap.containsKey('skip-excel') || argsMap.containsKey('skipExcel')
     setStartup = argsMap['set-startup'] || argsMap['setStartup']
 
-    def config = new ConfigSlurper().parse(configFile.toURL())
-    domainPackageName = config.griffon?.simplejpa?.model?.package ?: 'domain'
-    softDelete = config.griffon?.simplejpa?.finder?.alwaysExcludeSoftDeleted ?: false
-
     if (argsMap.params[0]=="*") {
+        def domainClasses = findDomainClasses()
+        if (domainClasses.isEmpty()) {
+            println """
+
+No domain clasess found!  Please see the following description for
+more information.
+
+"""
+            println helpDescription
+            return
+        }
         findDomainClasses().each { String name -> processDomainClass(name)}
     } else {
         argsMap.params.each {
@@ -463,7 +549,7 @@ Domain class package location is retrieved from the value of griffon.simpleJpa.m
         processStartupGroup()
     }
 
-    println "Configuring additional files..."
+    println "\nConfiguring additional files...\n"
 
     File validationFile = new File("${basedir}/griffon-app/i18n/messages.properties")
     ["simplejpa.dialog.save.button": "Save",
@@ -505,6 +591,7 @@ onUncaughtExceptionThrown = { Exception e ->
         }
     }
 
+    println ""
 }
 
 @ToString

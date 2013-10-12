@@ -26,22 +26,88 @@ import java.sql.Statement
 
 target(name: 'createSimpleJpa', description: "Creates persistence.xml, orm.xml and validation messages if not present", prehook: null, posthook: null) {
 
+    def helpDescription = """
+DESCRIPTION
+    create-simple-jpa
+
+    Prepare this project to use Java Persistence API (JPA).
+
+SYNTAX
+    create-simple-jpa -user=[databaseUser] -password=[databasePassword]
+        -database=[databaseName] -rootPassword=[databaseRootPassword]
+    create-simple-jpa -user=[databaseUser] -password=[databasePassword]
+        -database=[databaseName] -skipDatabase
+
+ARGUMENTS
+    user
+        This is the name of database user.  This project will establish a
+        connection to database by using the specified user name.
+        MySQL Only:
+            If user name doesn't exists, it will be created automatically.
+
+    password
+        This is the password used when establishing connection to the
+        database.
+        MySQL Only:
+            User with this password will be create if it doesn't exists.
+
+    database
+        This is the database name or schema name.
+        MySQL Only:
+            If this database doesn't exists, it will be created automatically.
+            Specified user will also be granted privilleges to use
+            this database.
+
+    rootPassword
+        MySQL Only:
+            To create user & database and grants privilleges, this command
+            will require password for MySQL root user.  While user name and
+            password is saved in persistence.xml for establishing connection,
+            root password will never be stored in project files.
+
+    skipDatabase
+        Don't create user and database automatically.  This command will
+        only write to persistence.xml and assume required database objects
+        for establishing database connection are available.
+
+DETAILS
+    This command is usually the first command that you will need to invoke
+    before working with Java Persistence API (JPA) in your project.
+    It will create persistence.xml and orm.xml in current project.  It will
+    also create some resource files that are commonly required when working
+    with JPA.
+
+    This command assume you're using MySQL Server database.  If you're using
+    another database, you should always add -skipDatabase argument when
+    invoking this command.  You will need to modify persistence.xml manually.
+    You will also need to add required JDBC driver for your database.
+
+    *NOTE*:  In the future, this command will allow user to select database
+    type, JPA version and JPA implementation!
+
+EXAMPLES
+    griffon create-simple-jpa -user=steven -password=12345 -database=sample
+        -rootPassword=secret
+
+    griffon create-simple-jpa -user=scott -password=tiger -database=ha
+        -skip-database
+"""
+
+    if (argsMap['info']) {
+        println helpDescription
+        return
+    }
+
     if ((argsMap['user']==null || argsMap['password']==null || argsMap['database']==null) ||
         ((argsMap['root-password']==null && argsMap['rootPassword']==null) &&
          (argsMap['skip-database']==null && argsMap['skipDatabase']==null))) {
         println '''
-Usage: griffon create-simple-jpa --user=databaseUser --password=databaseUserPassword --database=databaseName --root-password=rootUserPassowrd
-       griffon create-simple-jpa --user=databaseUser --password=databaseUserPasword  --database=databaseName --skip-database
 
-Parameter: --user: database user name (will be created if not exists).
-           --password: password for database user (if user doesn't exists, it will be created with this password).
-           --database: database name (will be created if not exists).
-           --root-password: root user password, will not be used by application but required to create user & database.
-           --skip-database: will not create anything on database when executing this script.
+You didn't specify all required arguments.  Please see the following
+description for more information.
 
-Example: griffon create-simple-jpa --user=steven --password=12345 --database=exercises --root-password=password
 '''
-        println "Can't execute create-simple-jpa"
+        println helpDescription
         return
     }
 

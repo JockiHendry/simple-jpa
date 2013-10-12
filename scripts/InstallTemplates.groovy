@@ -32,6 +32,32 @@ includeTargets << griffonScript("_GriffonCreateArtifacts")
 target(name: 'installTemplates', description: "Install templates into user projects", prehook: null, posthook: null) {
 
     String artifactInstallPath = "${basedir}/src/templates/artifacts"
+
+    def helpDescription = """
+DESCRIPTION
+    install-templates
+
+    Add scaffolding templates to the current project.  You will need to use
+    this command if you want to change templates used by simple-jpa scaffolding.
+
+SYNTAX
+    install-templates
+
+ARGUMENTS
+
+DETAILS
+    This command will install templates to the following directory:
+    $artifactInstallPath
+
+    You will need to change those templates before executing griffon
+    generate-all command.
+"""
+
+    if (argsMap['info']) {
+        println helpDescription
+        return
+    }
+
     ant.mkdir(dir: artifactInstallPath)
 
     resolveResources("file:${artifactSettings.artifactBase(Plugin.TYPE)}/*/src/templates/artifacts/SimpleJpa*").each { resource ->

@@ -15,8 +15,8 @@
  */
 
 import groovy.text.GStringTemplateEngine
-import groovy.xml.StreamingMarkupBuilder
 import groovy.xml.XmlUtil
+import griffon.util.ConfigUtils
 
 /**
  * Gant script that creates an empty domain class and register it in persistence.xml.
@@ -28,19 +28,65 @@ includeTargets << griffonScript("_GriffonCreateArtifacts")
 
 target(name: 'createDomainClass', description: "Create an empty domain class and register it in persistence file", prehook: null, posthook: null) {
 
-    if (argsMap?.params?.isEmpty()) {
-        println '''
-Usage: griffon create-domain-class domainClassName
-       griffon create-domain-class domainClassName1 domainClassName2 domainClassName3 ...
-       griffon create-domain-class domainClassName1,domainClassName2,domainClassName3,...
+    def config = new ConfigSlurper().parse(configFile.toURL())
+    String packageName = ConfigUtils.getConfigValueAsString(config, 'griffon.simplejpa.model.package', 'domain')
 
-Parameter: domainClassName is domain class name to be generated.
+    def helpDescription = """
+DESCRIPTION
+    create-domain-class
 
-Example: griffon create-domain-class Student
-         griffon create-domain-class Teacher Student
-         griffon create-domain-class Teacher,Student
-'''
-        println "Can't execute create-domain-class"
+    Create a new domain class and register it in persistence file.
+
+SYNTAX
+    create-domain-class [domainClassName]
+    create-domain-class [domainClassName] [domainClassName] ...
+    create-domain-class [domainClassName],[domainClassName], ...
+
+ARGUMENTS
+    domainClassName
+        This is the name of domain class.
+
+DETAILS
+    Before you can create a domain class, please make sure you have setup your
+    project for using JPA.  This command requires the existence of
+    persistence.xml in your project.You can setup your project to use JPA by
+    invoking griffon create-simple-jpa command.
+
+    Domain class will be generated in the package specified by
+    griffon.simplejpa.model.package value in Config.groovy.  The default value
+    for package is 'domain'.
+
+    If you want to change the default template used by this command, you can
+    execute griffon install-templates command and alter
+    SimplaJpaDomainClass.groovy manually.
+
+EXAMPLES
+    griffon create-domain-class Student
+    griffon create-domain-class Teacher Student
+    griffon create-domain-class Teacher,Student
+
+CONFIGURATIONS
+    griffon.simplejpa.model.package.value = $packageName
+"""
+
+    if (argsMap?.params?.isEmpty() || argsMap['info']) {
+        println helpDescription
+        return
+    }
+
+    String persistenceXml = "${basedir}/griffon-app/conf/metainf/persistence.xml"
+    File persistenceFile = new File(persistenceXml)
+    if (!persistenceFile.exists()) {
+        println """
+
+Before you can create domain classes, you must prepare your project to use JPA.
+The following file is required by JPA project, but we can't find it:
+$persistenceXml.
+You can setup your project to use JPA by executing this command:
+griffon create-simple-jpa
+
+$helpDescription
+"""
         return
     }
 
@@ -57,15 +103,9 @@ Example: griffon create-domain-class Student
         }
     }
 
-    String persistenceXml = "${basedir}/griffon-app/conf/metainf/persistence.xml"
-    File persistenceFile = new File(persistenceXml)
-    if (!persistenceFile.exists()) {
-        fail "$persistenceXml doesn't exists! You can generate it by executing create-simple-jpa command."
-    }
     def persistenceRoot = new XmlSlurper(false, false).parse(persistenceFile)
 
-    def config = new ConfigSlurper().parse(configFile.toURL())
-    String packageName = config.griffon?.simplejpa?.model?.package ?: 'domain'
+
 
     def templateFile = resolveTemplate("SimpleJpaDomainClass", ".groovy")
     if (!templateFile?.exists()) {
@@ -76,7 +116,7 @@ Example: griffon create-domain-class Student
     domainModelName.each { param ->
         String domainClassFileName = "${basedir}/src/main/${packageName?.replace('.','/')}/${param}.groovy"
         File domainClassFile = new File(domainClassFileName)
-        if (domainClassFile .exists()) {
+        if (domainClassFile.exists()) {
             fail("File $domainClassFileName already exists")
         }
         print "Creating file $domainClassFileName... "

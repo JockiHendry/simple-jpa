@@ -89,6 +89,7 @@ First release into griffon artifacts portal.
 1. Upgrade to Griffon 1.4
 1. Read EntityManagerFactory properties from simplejpa.properties or from Griffon's Config.groovy.
 1. Fixes mvcPopupButton() not working in Griffon 1.4.
+1. Add descriptive information about plugin scripts.  Use `-info` argument such as `griffon generate-all -info` to display help information for a plugin script.
 
 1. findXXX() will return only a single entity or null if not found, while findAllXXX() will return a List that contains all resulting entities.
 1. Support finders such as findXXXByField1AndField2() or find XXXByField1OrField2AndField3().
