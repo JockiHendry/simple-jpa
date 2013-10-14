@@ -19,6 +19,11 @@ import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 import simplejpa.SimpleJpaHandler
 import simplejpa.SimpleJpaUtil
+import simplejpa.swing.glazed.ast.Condition
+import simplejpa.swing.glazed.factory.CustomConditionalRenderer
+import simplejpa.swing.glazed.factory.DefaultHeaderRendererFactory
+import simplejpa.swing.glazed.factory.GlazedColumnFactory
+import simplejpa.swing.glazed.factory.GlazedTableFactory
 import simplejpa.swing.MVCPopupButtonFactory
 import simplejpa.swing.MaskTextFieldFactory
 import simplejpa.swing.DateTimePicker
@@ -27,7 +32,7 @@ import simplejpa.swing.NumberTextFieldFactory
 import simplejpa.swing.TableColumnConfig
 import simplejpa.swing.TagChooser
 import simplejpa.swing.TemplateListCellRenderer
-import simplejpa.transaction.EntityManagerLifespan
+import simplejpa.swing.glazed.factory.TemplateRendererFactory
 import simplejpa.validation.BasicHighlightErrorNotification
 import simplejpa.validation.ConverterFactory
 import simplejpa.validation.DateTimePickerErrorCleaner
@@ -129,6 +134,13 @@ class SimpleJpaGriffonAddon {
         eventTableModel: new EventTableModelFactory(),
         tableColumnConfig: new TableColumnConfig(),
         mvcPopupButton: new MVCPopupButtonFactory(),
+
+        glazedTable: new GlazedTableFactory(),
+        glazedColumn: new GlazedColumnFactory(),
+        templateRenderer: new TemplateRendererFactory(),
+        defaultHeaderRenderer: new DefaultHeaderRendererFactory(),
+        customConditionalRenderer: new CustomConditionalRenderer(),
+        condition: new BeanFactory(Condition, true),
 
         tagChooser: new BeanFactory(TagChooser, false),
         dateTimePicker: new BeanFactory(DateTimePicker, false),

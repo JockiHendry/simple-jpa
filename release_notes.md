@@ -90,7 +90,12 @@ First release into griffon artifacts portal.
 1. Read EntityManagerFactory properties from simplejpa.properties or from Griffon's Config.groovy.
 1. Fixes mvcPopupButton() not working in Griffon 1.4.
 1. Add descriptive information about plugin scripts.  Use `-info` argument such as `griffon generate-all -info` to display help information for a plugin script.
+1. simple-jpa will trigger Griffon's events such as 'simpleJpaNewTransaction', 'simpleJpaCommitTransaction', etc.
+1. simple-jpa will always precompile all classes in packages which name is 'ast'. This behaviour can be disabled by adding '-Dsimplejpa.precompileAST=false' when building application.
+1. Add 'contentDecorator' attribute which takes a closure to MVCPopupButton node.
+1. Add Swing builder 'glazedXXX()' node for generating JTable with GlazedLists.
 
+TODO:
 1. findXXX() will return only a single entity or null if not found, while findAllXXX() will return a List that contains all resulting entities.
 1. Support finders such as findXXXByField1AndField2() or find XXXByField1OrField2AndField3().
 1. Default to EM per transaction (EM per MVCGroup can still be used).

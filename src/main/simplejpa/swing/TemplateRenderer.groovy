@@ -11,8 +11,10 @@ class TemplateRenderer extends SimpleTemplateEngine {
     static String make(Template template, def value) {
         StringWriter result = new StringWriter()
         template.make([
+            "it": value,
             "value": value,
             "numberFormat": this.&numberFormat,
+            "floatFormat": this.&floatFormat,
             "percentFormat": this.&percentFormat,
             "currencyFormat": this.&currencyFormat,
             "titleCase": this.&titleCase
@@ -24,6 +26,13 @@ class TemplateRenderer extends SimpleTemplateEngine {
     static String make(Closure closure, def value) {
         closure.delegate = this
         closure.call(value)
+    }
+
+    static String floatFormat(def v, int fracDigits) {
+        NumberFormat nf = NumberFormat.getNumberInstance()
+        nf.maximumFractionDigits = fracDigits
+        nf.minimumFractionDigits = fracDigits
+        nf.format(v)
     }
 
     static String numberFormat(def v) {
