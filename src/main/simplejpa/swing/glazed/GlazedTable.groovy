@@ -22,6 +22,7 @@ import ca.odell.glazedlists.impl.gui.SortingStrategy
 import ca.odell.glazedlists.swing.AdvancedTableModel
 import ca.odell.glazedlists.swing.GlazedListsSwing
 import ca.odell.glazedlists.swing.TableComparatorChooser
+import groovy.beans.Bindable
 import simplejpa.swing.glazed.renderer.DefaultTableHeaderRenderer
 import javax.swing.*
 import javax.swing.table.JTableHeader
@@ -35,6 +36,7 @@ class GlazedTable extends JTable {
     SortingStrategy sortingStrategy
     TableComparatorChooser tableComparatorChooser
     Closure onValueChanged
+    @Bindable Boolean isRowSelected
 
     public GlazedTable() {
         this(null)
@@ -96,9 +98,13 @@ class GlazedTable extends JTable {
         // Event selection
         selectionModel = GlazedListsSwing.eventSelectionModelWithThreadProxyList(eventList)
         if (onValueChanged) {
-            onValueChanged.resolveStrategy = Closure.DELEGATE_FIRST
             onValueChanged.delegate = this
             selectionModel.valueChanged = onValueChanged
+            selectionModel.valueChanged = {
+                isRowSelected = !selectionModel.isSelectionEmpty()
+                firePropertyChange("isRowSelected", !isRowSelected, isRowSelected)
+            }
+            isRowSelected = false
         }
 
         // Refresh
