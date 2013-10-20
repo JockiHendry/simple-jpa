@@ -28,6 +28,7 @@ import javax.swing.table.DefaultTableCellRenderer
 class TemplateTableCellRenderer extends DefaultTableCellRenderer {
 
     Template template
+    Closure expression
 
     public TemplateTableCellRenderer() {
         super()
@@ -38,8 +39,16 @@ class TemplateTableCellRenderer extends DefaultTableCellRenderer {
         template = templateEngine.createTemplate(templateString)
     }
 
+    public TemplateTableCellRenderer(Closure templateExpression) {
+        this.expression = templateExpression
+    }
+
     @Override
     protected void setValue(Object value) {
-        super.setValue(TemplateRenderer.make(template, value))
+        if (template) {
+            super.setValue(TemplateRenderer.make(template, value))
+        } else if (expression) {
+            super.setValue(TemplateRenderer.make(expression, value))
+        }
     }
 }

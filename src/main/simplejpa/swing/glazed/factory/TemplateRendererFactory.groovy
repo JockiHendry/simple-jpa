@@ -23,16 +23,27 @@ class TemplateRendererFactory extends ConditionRendererFactory {
     @Override
     Object newInstance(FactoryBuilderSupport builder, Object name, Object value, Map attributes) throws InstantiationException, IllegalAccessException {
         def result
-        if (FactoryBuilderSupport.checkValueIsTypeNotString(value, name, TemplateTableCellRenderer)) {
-            result = value
-        } else {
-            if (!attributes.containsKey('templateString')) {
-                throw new IllegalArgumentException("In $name you must define a value for templateString of type String.  List of attributes: $attributes")
-            }
-            String templateString = attributes.remove('templateString')
-            result = new TemplateTableCellRenderer(templateString)
+        def template
+
+        if (FactoryBuilderSupport.checkValueIsType(value, name, String)) {
+            template = value
+        } else if (FactoryBuilderSupport.checkValueIsType(value, name, Closure)) {
+            template = value
+        } else if (FactoryBuilderSupport.checkValueIsType(value, name, TemplateTableCellRenderer)) {
+            return value
         }
-        result
+
+        if (attributes.containsKey('templateString')) {
+            template = attributes.remove('templateString')
+        }
+        if (attributes.containsKey('templateExpression')) {
+            template = attributes.remove('templateExpression')
+        }
+        if (!template) {
+            throw new IllegalArgumentException("In $name you must define a value for templateString or templateExpression.  List of attributes: $attributes")
+        }
+
+        new TemplateTableCellRenderer(template)
     }
 
 }
