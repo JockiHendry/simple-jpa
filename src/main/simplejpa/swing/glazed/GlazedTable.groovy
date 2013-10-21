@@ -97,14 +97,14 @@ class GlazedTable extends JTable {
 
         // Event selection
         selectionModel = GlazedListsSwing.eventSelectionModelWithThreadProxyList(eventList)
+        isRowSelected = false
+        selectionModel.valueChanged = {
+            isRowSelected = !selectionModel.isSelectionEmpty()
+            firePropertyChange("isRowSelected", !isRowSelected, isRowSelected)
+        }
         if (onValueChanged) {
             onValueChanged.delegate = this
             selectionModel.valueChanged = onValueChanged
-            selectionModel.valueChanged = {
-                isRowSelected = !selectionModel.isSelectionEmpty()
-                firePropertyChange("isRowSelected", !isRowSelected, isRowSelected)
-            }
-            isRowSelected = false
         }
 
         // Refresh
