@@ -1,5 +1,7 @@
 package $packageName
 
+import static ca.odell.glazedlists.gui.AbstractTableComparatorChooser.*
+import static javax.swing.SwingConstants.*
 import net.miginfocom.swing.MigLayout
 import org.joda.time.*
 import java.awt.*
@@ -30,19 +32,12 @@ application(title: '${natural(domainClass)}',
                 label(text: bind('searchMessage', source: model))
             }
             scrollPane(constraints: CENTER) {
-                table(rowSelectionAllowed: true, id: 'table') {
-                    eventTableModel(list: model.${domainClassAsProp}List,
-                        columnNames: [<%
-    out << fields.collect { field ->
-        "'${natural(field.name as String)}'"
-    }.join(", ")
-%>],
-                        columnValues: [<%
-    out << fields.collect { field ->
-        "'\${value.${field.name}}'"
-    }.join(", ")%>])
-                    table.selectionModel = model.${domainClassAsProp}Selection
-                }
+                glazedTable(id: 'table', list: model.${domainClassAsProp}List, sortingStrategy: SINGLE_COLUMN, onValueChanged: controller.tableSelectionChanged) {
+<%
+    fields.each { field ->
+        out << "\t\t\t\t\tglazedColumn(name: '${natural(field.name as String)}', property: '${field.name}')\n"
+    }
+%>                }
             }
         }
 
@@ -114,14 +109,12 @@ application(title: '${natural(domainClass)}',
                     controller.save()
                     form.getFocusTraversalPolicy().getFirstComponent(form).requestFocusInWindow()
                 })
-                button(app.getMessage("simplejpa.dialog.cancel.button"), visible: bind (source: model.${domainClassAsProp}Selection,
-                    sourceEvent: 'valueChanged', sourceValue: {!model.${domainClassAsProp}Selection.selectionEmpty}),actionPerformed: model.clear)
-                button(app.getMessage("simplejpa.dialog.delete.button"), visible: bind (source: model.${domainClassAsProp}Selection,
-                    sourceEvent: 'valueChanged', sourceValue: {!model.${domainClassAsProp}Selection.selectionEmpty}), actionPerformed: {
-                        if (JOptionPane.showConfirmDialog(mainPanel, app.getMessage("simplejpa.dialog.delete.message"),
-                            app.getMessage("simplejpa.dialog.delete.title"), JOptionPane.YES_NO_OPTION, JOptionPane.WARNING_MESSAGE) == JOptionPane.YES_OPTION) {
-                                controller.delete()
-                        }
+                button(app.getMessage("simplejpa.dialog.cancel.button"), visible: bind{table.isRowSelected}, actionPerformed: controller.clear)
+                button(app.getMessage("simplejpa.dialog.delete.button"), visible: bind{table.isRowSelected}, actionPerformed: {
+                    if (JOptionPane.showConfirmDialog(mainPanel, app.getMessage("simplejpa.dialog.delete.message"),
+                        app.getMessage("simplejpa.dialog.delete.title"), JOptionPane.YES_NO_OPTION, JOptionPane.WARNING_MESSAGE) == JOptionPane.YES_OPTION) {
+                            controller.delete()
+                    }
                 })
             }
         }

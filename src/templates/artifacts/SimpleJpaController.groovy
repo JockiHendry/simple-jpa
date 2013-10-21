@@ -3,6 +3,7 @@ package $packageName
 import ${domainPackage}.*
 import simplejpa.transaction.SimpleJpaTransaction
 import javax.swing.*
+import javax.swing.event.ListSelectionEvent
 
 @SimpleJpaTransaction
 class $className {
@@ -20,7 +21,7 @@ class $className {
 
     @SimpleJpaTransaction(newSession = true)
     def listAll = {
-        execInsideUIAsync {
+        execInsideUISync {
             model.${domainClassAsProp}List.clear()
 <%
     fields.each { field ->
@@ -41,7 +42,7 @@ class $className {
             out << "\t\t// ${field.name} isn't supported! It must be coded manually!\n"
         }
     }  %>
-        execInsideUIAsync {
+        execInsideUISync {
             model.${domainClassAsProp}List.addAll(${domainClassAsProp}Result)
             model.${firstField}Search = null
             model.searchMessage = app.getMessage("simplejpa.search.all.message")
@@ -59,9 +60,9 @@ class $className {
     @SimpleJpaTransaction(newSession = true)
     def search = {
         if (model.${firstField}Search?.length() > 0) {
-            execInsideUIAsync { model.${domainClassAsProp}List.clear() }
+            execInsideUISync { model.${domainClassAsProp}List.clear() }
             List result = find${domainClass}By${cls(firstField)}('like', "%\${model.${firstField}Search}%")
-            execInsideUIAsync {
+            execInsideUISync {
                 model.${domainClassAsProp}List.addAll(result)
                 model.searchMessage = app.getMessage("simplejpa.search.result.message", ['${natural(firstField)}', model.${firstField}Search])
             }
@@ -131,13 +132,13 @@ class $className {
                 return_failed()
             }
             ${domainClassAsProp} = merge(${domainClassAsProp})
-            execInsideUIAsync {
+            execInsideUISync {
                 model.${domainClassAsProp}List << ${domainClassAsProp}
                 view.table.changeSelection(model.${domainClassAsProp}List.size()-1, 0, false, false)
             }
         } else {
             // Update operation
-            ${domainClass} selected${domainClass} = model.${domainClassAsProp}Selection.selected[0]
+            ${domainClass} selected${domainClass} = view.table.selectionModel.selected[0]
 <%
     fields.each { field ->
         if (isManyToOne(field) || isEnumerated(field)) {
@@ -166,18 +167,84 @@ class $className {
     }
 %>
             selected${domainClass} = merge(selected${domainClass})
-            execInsideUIAsync { model.${domainClassAsProp}Selection.selected[0] = selected${domainClass} }
+            execInsideUISync { view.table.selectionModel.selected[0] = selected${domainClass} }
         }
-        execInsideUIAsync { model.clear() }
+        execInsideUISync { clear() }
     }
 
     def delete = {
-        ${domainClass} ${domainClassAsProp} = model.${domainClassAsProp}Selection.selected[0]
+        ${domainClass} ${domainClassAsProp} = view.table.selectionModel.selected[0]
 <% if (softDelete) {
         out << "\t\tsoftDelete${domainClass}(${domainClassAsProp}.id)\n"
    } else {
         out << "\t\tremove(${domainClassAsProp})"  } %>
-        execInsideUIAsync { model.${domainClassAsProp}List.remove(${domainClassAsProp}) }
+        execInsideUISync {
+            model.${domainClassAsProp}List.remove(${domainClassAsProp})
+            clear()
+        }
+    }
+
+    @SimpleJpaTransaction(SimpleJpaTransaction.Policy.SKIP)
+    def clear = {
+        execInsideUISync {
+            model.id = null
+<% fields.collect { field ->
+        if (isOneToOne(field) && isMappedBy(field)) return
+
+        if (["BASIC_TYPE", "DATE"].contains(field.info) ||
+            (field.info=="DOMAIN_CLASS" && field.annotations?.containsAnnotation('OneToOne'))) {
+                if (["Boolean", "boolean"].contains(field.type as String)) {
+                    out << "\t\t\tmodel.${field.name} = false\n"
+                } else {
+                    out << "\t\t\tmodel.${field.name} = null\n"
+                }
+        } else if (isOneToOne(field) || isManyToOne(field) || isEnumerated(field)) {
+            out << "\t\t\tmodel.${field.name}.selectedItem = null\n"
+        } else if (isOneToMany(field)) {
+            out << "\t\t\tmodel.${field.name}.clear()\n"
+        } else if (isManyToMany(field)) {
+            out << "\t\t\tmodel.${field.name}.clearSelectedValues()\n"
+        } else if (field.info=="UNKNOWN") {
+            out << "\t\t\t// ${field.name} is not supported by generator.  You will need to code it manually.\n"
+            out << "\t\t\tmodel.${field.name} = null\n"
+        }
+   }
+%>
+            model.errors.clear()
+            view.table.selectionModel.clearSelection()
+        }
+    }
+
+    @SimpleJpaTransaction(SimpleJpaTransaction.Policy.SKIP)
+    def tableSelectionChanged = { ListSelectionEvent event ->
+        execInsideUISync {
+            if (view.table.selectionModel.isSelectionEmpty()) {
+                clear()
+            } else {
+                ${domainClass} selected = view.table.selectionModel.selected[0]
+                model.errors.clear()
+                model.id = selected.id
+<%
+    fields.each { field ->
+        if (isOneToOne(field) && isMappedBy(field)) return
+
+        if (["BASIC_TYPE", "DATE"].contains(field.info) ||
+            (field.info=="DOMAIN_CLASS" && field.annotations?.containsAnnotation('OneToOne'))) {
+            out << "\t\t\t\tmodel.${field.name} = selected.${field.name}\n"
+        } else if (isOneToOne(field) || isManyToOne(field) || isEnumerated(field)) {
+            out << "\t\t\t\tmodel.${field.name}.selectedItem = selected.${field.name}\n"
+        } else if (isOneToMany(field)) {
+            out << "\t\t\t\tmodel.${field.name}.clear()\n"
+            out << "\t\t\t\tmodel.${field.name}.addAll(selected.${field.name})\n"
+        } else if (isManyToMany(field)) {
+            out << "\t\t\t\tmodel.${field.name}.replaceSelectedValues(selected.${field.name})\n"
+        } else if (field.info=="UNKNOWN") {
+            out << "\t\t\t\t// ${field.name} is not supported by generator.  You will need to code it manually.\n"
+            out << "\t\t\t\tmodel.${field.name} = selected.${field.name}\n"
+        }
+    }
+%>            }
+        }
     }
 
 }

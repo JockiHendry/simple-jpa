@@ -47,7 +47,7 @@ class $className {
 <%
     fields.each { field ->
         if ((isManyToOne(field))) {
-            out << "\t\t\texecInsideUIAsync {model.${field.name}List.clear() }\n"
+            out << "\t\t\texecInsideUISync {model.${field.name}List.clear() }\n"
         }
     }
 
@@ -63,15 +63,15 @@ class $className {
 
     fields.each { field ->
         if (isManyToOne(field)) {
-            out << "\t\t\texecInsideUIAsync{ model.${field.name}List.addAll(${field.name}Result) }\n"
+            out << "\t\t\texecInsideUISync{ model.${field.name}List.addAll(${field.name}Result) }\n"
         } else if (isManyToMany(field)) {
-            out << "\t\t\texecInsideUIAsync{ model.${field.name}.replaceValues(${field.name}Result) }\n"
+            out << "\t\t\texecInsideUISync{ model.${field.name}.replaceValues(${field.name}Result) }\n"
         }
     }
 %>    }
 
     def close = {
-        execInsideUIAsync { SwingUtilities.getWindowAncestor(view.mainPanel)?.dispose() }
+        execInsideUISync { SwingUtilities.getWindowAncestor(view.mainPanel)?.dispose() }
     }
 
     def save = {

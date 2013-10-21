@@ -3,6 +3,7 @@ package $packageName
 import ${domainPackage}.*
 import simplejpa.transaction.SimpleJpaTransaction
 import javax.swing.*
+import javax.swing.event.ListSelectionEvent
 
 @SimpleJpaTransaction
 class $className {
@@ -23,7 +24,7 @@ class $className {
 <%
     fields.each { field ->
         if (isManyToOne(field) && !field.type.toString().equals(parentDomainClass)) {
-            out << "\t\t\texecInsideUIAsync {model.${field.name}List.clear() }\n"
+            out << "\t\t\texecInsideUISync {model.${field.name}List.clear() }\n"
         }
     }
 
@@ -39,9 +40,9 @@ class $className {
 
     fields.each { field ->
         if (isManyToOne(field) && !field.type.toString().equals(parentDomainClass)) {
-            out << "\t\t\texecInsideUIAsync{ model.${field.name}List.addAll(${field.name}Result) }\n"
+            out << "\t\t\texecInsideUISync{ model.${field.name}List.addAll(${field.name}Result) }\n"
         } else if (isManyToMany(field)) {
-            out << "\t\t\texecInsideUIAsync{ model.${field.name}.replaceValues(${field.name}Result) }\n"
+            out << "\t\t\texecInsideUISync{ model.${field.name}.replaceValues(${field.name}Result) }\n"
         }
     }
 %>    }
@@ -65,15 +66,15 @@ class $className {
 %>)
         if (!validate(${domainClassAsProp})) return_failed()
 
-        if (model.${domainClassAsProp}Selection.selectionEmpty) {
+        if (view.table.selectionModel.selectionEmpty) {
             // Insert operation
-            execInsideUIAsync {
+            execInsideUISync {
                 model.${domainClassAsProp}List << ${domainClassAsProp}
                 view.table.changeSelection(model.${domainClassAsProp}List.size()-1, 0, false, false)
             }
         } else {
             // Update operation
-            ${domainClass} selected${domainClass} = model.${domainClassAsProp}Selection.selected[0]
+            ${domainClass} selected${domainClass} = view.table.selectionModel.selected[0]
 <%
     fields.each { field ->
         if (isManyToOne(field) && field.type.toString().equals(parentDomainClass)) return
@@ -94,12 +95,82 @@ class $className {
     }
 %>
         }
-        execInsideUIAsync { model.clear() }
+        execInsideUISync { clear() }
     }
 
     def delete = {
-        ${domainClass} ${domainClassAsProp} = model.${domainClassAsProp}Selection.selected[0]
-        execInsideUIAsync { model.${domainClassAsProp}List.remove(${domainClassAsProp}) }
+        ${domainClass} ${domainClassAsProp} = view.table.selectionModel.selected[0]
+        execInsideUISync {
+            model.${domainClassAsProp}List.remove(${domainClassAsProp})
+             clear()
+        }
+    }
+
+    @SimpleJpaTransaction(SimpleJpaTransaction.Policy.SKIP)
+    def clear = {
+        execInsideUISync {
+            model.id = null
+<% fields.each { field ->
+        if (isOneToOne(field) && isMappedBy(field)) return
+        if (isManyToOne(field) && field.type.toString().equals(parentDomainClass)) return
+
+        if (["BASIC_TYPE", "DATE"].contains(field.info)) {
+            if (["Boolean", "boolean"].contains(field.type as String)) {
+                out << "\t\t\tmodel.${field.name} = false\n"
+            } else {
+                out << "\t\t\tmodel.${field.name} = null\n"
+            }
+        } else if (isOneToOne(field)) {
+            out << "\t\t\tmodel.${field.name} = null\n"
+        } else if (isOneToMany(field)) {
+            out << "\t\t\tmodel.${field.name}.clear()\n"
+        } else if (isManyToMany(field)) {
+            out << "\t\t\tmodel.${field.name}.clearSelectedValues()\n"
+        } else if (isManyToOne(field) || isEnumerated(field)) {
+            out << "\t\t\tmodel.${field.name}.selectedItem = null\n"
+        } else if (field.info=="UNKNOWN") {
+            out << "\t\t\t// ${field.name} is not supported by generator.  You will need to code it manually.\n"
+            out << "\t\t\tmodel.${field.name} = null\n"
+        }
+   }
+%>
+            model.errors.clear()
+            view.table.selectionModel.clearSelection()
+        }
+    }
+
+    @SimpleJpaTransaction(SimpleJpaTransaction.Policy.SKIP)
+    def tableSelectionChanged = { ListSelectionEvent event ->
+        execInsideUISync {
+            if (view.table.selectionModel.isSelectionEmpty()) {
+                clear()
+            } else {
+                ${domainClass} selected = view.table.selectionModel.selected[0]
+                model.errors.clear()
+                model.id = selected.id
+<%
+    fields.each { field ->
+        if (isOneToOne(field) && isMappedBy(field)) return
+        if (isManyToOne(field) && field.type.toString().equals(parentDomainClass)) return
+
+        if (["BASIC_TYPE", "DATE"].contains(field.info)) {
+            out << "\t\t\t\tmodel.${field.name} = selected.${field.name}\n"
+        } else if (isOneToOne(field)) {
+            out << "\t\t\t\tmodel.${field.name} = selected.${field.name}\n"
+        } else if (isOneToMany(field)) {
+            out << "\t\t\t\tmodel.${field.name}.clear()\n"
+            out << "\t\t\t\tmodel.${field.name}.addAll(selected.${field.name})\n"
+        } else if (isManyToMany(field)) {
+            out << "\t\t\t\tmodel.${field.name}.replaceSelectedValues(selected.${field.name})\n"
+        } else if (isManyToOne(field) || isEnumerated(field)) {
+            out << "\t\t\t\tmodel.${field.name}.selectedItem = selected.${field.name}\n"
+        } else if (field.info=="UNKNOWN") {
+            out << "\t\t\t\t// ${field.name} is not supported by generator.  You will need to code it manually.\n"
+            out << "\t\t\t\tmodel.${field.name} = selected.${field.name}\n"
+        }
+    }
+%>            }
+        }
     }
 
 }
