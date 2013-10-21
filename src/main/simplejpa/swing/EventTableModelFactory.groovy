@@ -19,6 +19,7 @@ package simplejpa.swing
 import ca.odell.glazedlists.swing.GlazedListsSwing
 import javax.swing.table.TableModel
 
+@Deprecated
 class EventTableModelFactory extends AbstractFactory {
 
     @Override

@@ -30,7 +30,7 @@ import java.awt.event.MouseAdapter
 import java.awt.event.MouseEvent
 import java.awt.event.MouseMotionAdapter
 
-
+@Deprecated
 class TableColumnConfig extends AbstractFactory {
 
     @Override

@@ -23,6 +23,7 @@ import javax.swing.*
 import javax.swing.plaf.basic.BasicComboBoxRenderer
 import java.awt.*
 
+@Deprecated
 public class TemplateListCellRenderer extends JLabel implements ListCellRenderer {
 
     private Template template

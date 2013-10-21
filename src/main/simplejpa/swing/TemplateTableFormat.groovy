@@ -20,6 +20,7 @@ import ca.odell.glazedlists.gui.AdvancedTableFormat
 import ca.odell.glazedlists.impl.sort.TableColumnComparator
 import groovy.text.SimpleTemplateEngine
 
+@Deprecated
 class TemplateTableFormat implements AdvancedTableFormat {
 
     List columnName
