@@ -72,6 +72,25 @@ class SimpleJpaGriffonAddon {
                 SimpleJpaHandler simpleJpaHandler = new SimpleJpaHandler(emf, validator)
                 util.registerHandler(simpleJpaHandler)
                 gc.metaClass.methodMissing =  simpleJpaHandler.methodMissingHandler
+
+                // Add these methods dynamically
+                gc.metaClass.beginTransaction = simpleJpaHandler.beginTransaction
+                gc.metaClass.commitTransaction = simpleJpaHandler.commitTransaction
+                gc.metaClass.rollbackTransaction = simpleJpaHandler.rollbackTransaction
+                gc.metaClass.return_failed = simpleJpaHandler.returnFailed
+                gc.metaClass.createEntityManager = simpleJpaHandler.createEntityManager
+                gc.metaClass.destroyEntityManager = simpleJpaHandler.destroyEntityManager
+                gc.metaClass.getEntityManager = simpleJpaHandler.getEntityManager
+
+                String pre = simpleJpaHandler.prefix
+                gc.metaClass."${pre}persist" = simpleJpaHandler.persist
+                gc.metaClass."${pre}validate" = simpleJpaHandler.validate
+                gc.metaClass."${pre}merge" = simpleJpaHandler.merge
+                gc.metaClass."${pre}remove" = simpleJpaHandler.remove
+                gc.metaClass."${pre}softDelete" = simpleJpaHandler.softDelete
+                gc.metaClass."${pre}executeQuery" = simpleJpaHandler.executeQuery
+                gc.metaClass."${pre}executeNativeQuery" = simpleJpaHandler.executeNativeQuery
+
             }
         }
 

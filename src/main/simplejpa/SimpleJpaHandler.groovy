@@ -458,64 +458,33 @@ final class SimpleJpaHandler {
         }
     }
 
-    def validate = { viewModel ->
-        return { Object[] args ->
-            def model = args[0]
-            def group = Default
-            if (args.length > 1) {
-                group = args[1]
-            }
-            LOG.info "Validating model [$model] group [$group]"
+    def validate = { model, group = Default ->
+        LOG.info "Validating model [$model] group [$group]"
 
-            // Make sure no existing errors before validating
-            if (viewModel.hasError()) return false
+        // Make sure no existing errors before validating
+        def viewModel = delegate.model
+        if (viewModel.hasError()) return false
 
-            // Convert empty string to null if required
-            if (convertEmptyStringToNull) {
-                model.properties.each { k, v ->
-                    if (v instanceof String && v.isEmpty()) {
-                        model.putAt(k, null)
-                    }
+        // Convert empty string to null if required
+        if (convertEmptyStringToNull) {
+            model.properties.each { k, v ->
+                if (v instanceof String && v.isEmpty()) {
+                    model.putAt(k, null)
                 }
             }
-
-            validator.validate(model, group).each { ConstraintViolation cv ->
-                LOG.info "Adding error path [${cv.propertyPath}] with message [${cv.message}]"
-                viewModel.errors[cv.propertyPath.toString()] = cv.message
-            }
-
-            return !viewModel.hasError()
         }
+
+        validator.validate(model, group).each { ConstraintViolation cv ->
+            LOG.info "Adding error path [${cv.propertyPath}] with message [${cv.message}]"
+            viewModel.errors[cv.propertyPath.toString()] = cv.message
+        }
+
+        !viewModel.hasError()
     }
 
     def methodMissingHandler = { String name, args ->
 
         LOG.info "Searching for method [$name] and args [$args]"
-
-        // Transaction method's name without prefix should always available
-        switch (name) {
-            case "beginTransaction":
-                delegate.metaClass.beginTransaction = beginTransaction
-                return beginTransaction(*args)
-            case "commitTransaction":
-                delegate.metaClass.commitTransaction = commitTransaction
-                return commitTransaction()
-            case "rollbackTransaction":
-                delegate.metaClass.rollbackTransaction = rollbackTransaction
-                return rollbackTransaction()
-            case "return_failed":
-                delegate.metaClass.return_failed = returnFailed
-                return returnFailed()
-            case "createEntityManager":
-                delegate.metaClass.createEntityManager = createEntityManager
-                return createEntityManager(*args)
-            case "destroyEntityManager":
-                delegate.metaClass.destroyEntityManager = destroyEntityManager
-                return destroyEntityManager()
-            case "getEntityManager":
-                delegate.metaClass.getEntityManager = getEntityManager
-                return getEntityManager()
-        }
 
         // Check for prefix
         if (prefix=="") {
@@ -534,51 +503,6 @@ final class SimpleJpaHandler {
 
         // Checking for injected methods
         switch(nameWithoutPrefix) {
-
-            case "beginTransaction":
-                delegate.metaClass."$name" = beginTransaction
-                return beginTransaction(*args)
-
-            case "commitTransaction":
-                delegate.metaClass."$name" = commitTransaction
-                return commitTransaction()
-
-            case "rollbackTransaction":
-                delegate.metaClass."$name" = rollbackTransaction
-                return rollbackTransaction()
-
-            case "persist":
-                delegate.metaClass.persist = persist
-                return persist(args[0])
-
-            case "merge":
-                delegate.metaClass.merge = merge
-                return merge(args[0])
-
-            case "remove":
-                delegate.metaClass.remove = remove
-                return remove(args[0])
-
-            case "softDelete":
-                delegate.metaClass.softDelete = softDelete
-                return softDelete(args[0])
-
-            case "getEntityManager":
-                delegate.metaClass.getEntityManager = getEntityManager
-                return getEntityManager()
-
-            case "executeQuery":
-                delegate.metaClass.executeQuery = executeQuery
-                return executeQuery(args[0])
-
-            case "executeNativeQuery":
-                delegate.metaClass.executeNativeQuery = executeNativeQuery
-                return executeNativeQuery(args[0])
-
-            case "validate":
-                Closure validateClosure = validate(delegate.model)
-                delegate.metaClass.validate = validateClosure
-                return validateClosure.call(args)
 
             // findAllModel
             case ~PATTERN_FINDALLMODEL:
