@@ -60,34 +60,7 @@ class SimpleJpaGriffonAddon {
     void addonPostInit(GriffonApplication app) {
         def types = app.config.griffon?.simplejpa?.injectInto ?: ['controller']
 
-        // Read properties in Config.groovy
-        def config = app.config.griffon.simplejpa.entityManager.properties
-        LOG.debug "Properties overrides from Config.groovy: $config"
-
-        // Read from properties file (default to simplejpa.properties) using Groovy ConfigSlurper format
-        def configFileName = System.getProperty("griffon.simplejpa.entityManager.propertiesFile")?.trim()
-        if (!configFileName) {
-            configFileName = ConfigUtils.getConfigValueAsString(app.config, "griffon.simplejpa.entityManager.propertiesFile",
-                "simplejpa.properties")
-        }
-        File configFile = new File(configFileName)
-        if (configFile.exists()) {
-            LOG.debug "Reading properties from file ${configFile.absolutePath}"
-            def configFromFile = new ConfigSlurper(Environment.current.name).parse(configFile.toURI().toURL())
-            LOG.debug "Properties overrides from file: $configFromFile"
-            config.merge(configFromFile)
-        }
-
-        // Read from system properties
-        config = config.flatten()
-        System.properties.each { String k, v ->
-            if (k.startsWith('javax.persistence')) {
-                config[k] = v
-            }
-        }
-
-        LOG.debug "Properties overrides: $config"
-        final EntityManagerFactory emf = Persistence.createEntityManagerFactory("default", config)
+        final EntityManagerFactory emf = Persistence.createEntityManagerFactory("default", SimpleJpaUtil.instance.getJpaConfig())
         final Validator validator = Validation.buildDefaultValidatorFactory().getValidator()
 
         SimpleJpaUtil util = SimpleJpaUtil.instance

@@ -16,6 +16,7 @@
 
 package simplejpa
 
+import griffon.util.*
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 import simplejpa.transaction.TransactionHolder
@@ -74,6 +75,38 @@ class SimpleJpaUtil {
     public String getDbName() {
         def matcher = getDbUrl() =~ /jdbc:.+\/([^?]+).*/
         matcher[0][1]
+    }
+
+    public Map getJpaConfig() {
+        // Read properties in Config.groovy
+        def app = ApplicationHolder.application
+        def config = app.config.griffon.simplejpa.entityManager.properties
+        LOG.debug "Properties overrides from Config.groovy: $config"
+
+        // Read from properties file (default to simplejpa.properties) using Groovy ConfigSlurper format
+        def configFileName = System.getProperty("griffon.simplejpa.entityManager.propertiesFile")?.trim()
+        if (!configFileName) {
+            configFileName = ConfigUtils.getConfigValueAsString(app.config, "griffon.simplejpa.entityManager.propertiesFile",
+                    "simplejpa.properties")
+        }
+        File configFile = new File(configFileName)
+        if (configFile.exists()) {
+            LOG.debug "Reading properties from file ${configFile.absolutePath}"
+            def configFromFile = new ConfigSlurper(Environment.current.name).parse(configFile.toURI().toURL())
+            LOG.debug "Properties overrides from file: $configFromFile"
+            config.merge(configFromFile)
+        }
+
+        // Read from system properties
+        config = config.flatten()
+        System.properties.each { String k, v ->
+            if (k.startsWith('javax.persistence')) {
+                config[k] = v
+            }
+        }
+
+        LOG.debug "Properties overrides: $config"
+        config
     }
 
     // Methods for globally manipulating handlers here!
