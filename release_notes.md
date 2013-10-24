@@ -94,8 +94,9 @@ First release into griffon artifacts portal.
 1. simple-jpa will always precompile all classes in packages which name is 'ast'. This behaviour can be disabled by adding '-Dsimplejpa.precompileAST=false' when building application.
 1. Add 'contentDecorator' attribute which takes a closure to MVCPopupButton node.
 1. Add Swing builder 'glazedXXX()' node for generating JTable with GlazedLists.
+1. Add 'simple-jpa-console' script command for executing simple-jpa methods interactively.
+1. findModelByDsl() will return an entity or null while findAllModelByDsl() will return list entities.
 
 TODO:
-1. findXXX() will return only a single entity or null if not found, while findAllXXX() will return a List that contains all resulting entities.
 1. Support finders such as findXXXByField1AndField2() or find XXXByField1OrField2AndField3().
 1. Default to EM per transaction (EM per MVCGroup can still be used).

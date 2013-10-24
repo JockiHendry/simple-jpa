@@ -25,7 +25,7 @@ final class SimpleJpaHandler {
     private static final PATTERN_FINDALLMODEL = /findAll([A-Z]\w*)/
     private static final PATTERN_FINDMODELBYID_NOTSOFTDELETED = /find([A-Z]\w*)ByIdNotSoftDeleted/
     private static final PATTERN_FINDMODELBYID = /find([A-Z]\w*)ById/
-    private static final PATTERN_FINDMODELBYDSL = /find([A-Z]\w*)ByDsl/
+    private static final PATTERN_FINDMODELBYDSL = /find(All)?([A-Z]\w*)ByDsl/
     private static final PATTERN_FINDMODELBYATTRIBUTE = /find([A-Z]\w*)By([A-Z]\w*)/
     private static final PATTERN_FINDMODELBY = /find([A-Z]\w*)By/
     private static final PATTERN_DONAMEDQUERY = /do([A-Z]\w*)On([A-Z]\w*)/
@@ -178,6 +178,14 @@ final class SimpleJpaHandler {
         query
     }
 
+    private def filterResult(List results, boolean returnAll) {
+        if (!returnAll) {
+            if (results.isEmpty()) return null
+            return results[0]
+        }
+        results
+    }
+
     def beginTransaction = { boolean resume = true, boolean newSession = false ->
         LOG.info "Begin transaction from thread ${Thread.currentThread().id} (resume=$resume) (newSession=$newSession)..."
         if (newSession) {
@@ -313,24 +321,21 @@ final class SimpleJpaHandler {
         }
     }
 
-    def findModelByDsl = { String model ->
-        Class modelClass = Class.forName(domainClassPackage + "." + model)
+    def findModelByDsl = { Class modelClass, boolean returnAll, Map config = [:], Closure closure ->
+        LOG.info "Find entities by Dsl: model=$modelClass, returnAll=$returnAll, config=$config"
+        executeInsideTransaction {
+            CriteriaBuilder cb = getEntityManager().getCriteriaBuilder()
+            CriteriaQuery c = cb.createQuery()
+            Root rootModel = c.from(modelClass)
+            c.select(rootModel)
 
-        return { Map config = [:], Closure closure ->
-            LOG.info "Executing find${model}ByDsl with config [$config]"
-            executeInsideTransaction {
-                CriteriaBuilder cb = getEntityManager().getCriteriaBuilder()
-                CriteriaQuery c = cb.createQuery()
-                Root rootModel = c.from(modelClass)
-                c.select(rootModel)
+            closure.setResolveStrategy(Closure.DELEGATE_FIRST)
+            closure.delegate = new QueryDsl(cb: cb, rootModel: rootModel)
+            closure.call()
+            c.where(closure.delegate.criteria)
 
-                closure.delegate = new QueryDsl(cb: cb, rootModel: rootModel)
-                closure.call()
-                c.where(closure.delegate.criteria)
-
-                configureCriteria(cb, c, rootModel, config)
-                configureQuery(getEntityManager().createQuery(c), config).getResultList()
-            }
+            configureCriteria(cb, c, rootModel, config)
+            filterResult(configureQuery(getEntityManager().createQuery(c), config).resultList, returnAll)
         }
     }
 
@@ -504,16 +509,6 @@ final class SimpleJpaHandler {
         // Checking for injected methods
         switch(nameWithoutPrefix) {
 
-            // findAllModel
-            case ~PATTERN_FINDALLMODEL:
-                def match = nameWithoutPrefix =~ PATTERN_FINDALLMODEL
-                def modelName = match[0][1]
-                LOG.info "First match for model [$modelName]"
-
-                Closure findAllModelClosure = findAllModel(modelName)
-                delegate.metaClass."$name" = findAllModelClosure
-                return findAllModelClosure.call(args)
-
             // findModelByIdNotSoftDeleted
             case ~PATTERN_FINDMODELBYID_NOTSOFTDELETED:
                 def match = nameWithoutPrefix =~ PATTERN_FINDMODELBYID_NOTSOFTDELETED
@@ -536,9 +531,12 @@ final class SimpleJpaHandler {
 
             // findModelByDsl
             case ~PATTERN_FINDMODELBYDSL:
-                def modelName = (nameWithoutPrefix =~ PATTERN_FINDMODELBYDSL)[0][1]
+                def match = (nameWithoutPrefix =~ PATTERN_FINDMODELBYDSL)
+                def isReturnAll = match[0][1]!=null? true: false
+                def modelName = match[0][2]
                 LOG.info "First match for model [$modelName]"
-                Closure findModelByDslClosure = findModelByDsl(modelName)
+                Class modelClass = Class.forName(domainClassPackage + "." + modelName)
+                Closure findModelByDslClosure = findModelByDsl.curry(modelClass, isReturnAll)
                 delegate.metaClass."$name" = findModelByDslClosure
                 return findModelByDslClosure.call(args)
 
@@ -578,6 +576,17 @@ final class SimpleJpaHandler {
                 Closure softDeleteClosure = softDeleteModel(modelName)
                 delegate.metaClass."$name" = softDeleteClosure
                 return softDeleteClosure.call(args)
+
+            // findAllModel
+            case ~PATTERN_FINDALLMODEL:
+                def match = nameWithoutPrefix =~ PATTERN_FINDALLMODEL
+                def modelName = match[0][1]
+                LOG.info "First match for model [$modelName]"
+
+                Closure findAllModelClosure = findAllModel(modelName)
+                delegate.metaClass."$name" = findAllModelClosure
+                return findAllModelClosure.call(args)
+
 
             // Nothing found
             default:
