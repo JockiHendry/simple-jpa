@@ -321,6 +321,14 @@ final class SimpleJpaHandler {
         }
     }
 
+    def findByDsl = { Class modelClass, Map config = [:], Closure closure ->
+        findModelByDsl(modelClass, false, config, closure)
+    }
+
+    def findAllByDsl = { Class modelClass, Map config = [:], Closure closure ->
+        findModelByDsl(modelClass, true, config, closure)
+    }
+
     def findModelByDsl = { Class modelClass, boolean returnAll, Map config = [:], Closure closure ->
         LOG.info "Find entities by Dsl: model=$modelClass, returnAll=$returnAll, config=$config"
         executeInsideTransaction {
@@ -536,9 +544,8 @@ final class SimpleJpaHandler {
                 def modelName = match[0][2]
                 LOG.info "First match for model [$modelName]"
                 Class modelClass = Class.forName(domainClassPackage + "." + modelName)
-                Closure findModelByDslClosure = findModelByDsl.curry(modelClass, isReturnAll)
-                delegate.metaClass."$name" = findModelByDslClosure
-                return findModelByDslClosure.call(args)
+                delegate.metaClass."$name" = { Object[] p -> findModelByDsl(modelClass, isReturnAll, *p) }
+                return findModelByDsl(modelClass, isReturnAll, *args)
 
             // findModelBy
             case ~PATTERN_FINDMODELBY:

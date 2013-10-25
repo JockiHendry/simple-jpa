@@ -91,6 +91,10 @@ class SimpleJpaGriffonAddon {
                 gc.metaClass."${pre}executeQuery" = simpleJpaHandler.executeQuery
                 gc.metaClass."${pre}executeNativeQuery" = simpleJpaHandler.executeNativeQuery
 
+                // meta-methods for finders
+                gc.metaClass."${pre}findByDsl" = simpleJpaHandler.findByDsl
+                gc.metaClass."${pre}findAllByDsl" = simpleJpaHandler.findAllByDsl
+
             }
         }
 
