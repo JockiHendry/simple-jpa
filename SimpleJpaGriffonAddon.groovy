@@ -94,6 +94,10 @@ class SimpleJpaGriffonAddon {
                 // meta-methods for finders
                 gc.metaClass."${pre}findByDsl" = simpleJpaHandler.findByDsl
                 gc.metaClass."${pre}findAllByDsl" = simpleJpaHandler.findAllByDsl
+                gc.metaClass."${pre}findByAnd" = simpleJpaHandler.findByAnd
+                gc.metaClass."${pre}findAllByAnd" = simpleJpaHandler.findAllByAnd
+                gc.metaClass."${pre}findByOr" = simpleJpaHandler.findByOr
+                gc.metaClass."${pre}findAllByOr" = simpleJpaHandler.findAllByOr
 
             }
         }

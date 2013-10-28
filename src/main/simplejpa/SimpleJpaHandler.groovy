@@ -11,6 +11,7 @@ import griffon.util.*
 
 import javax.persistence.criteria.CriteriaBuilder
 import javax.persistence.criteria.CriteriaQuery
+import javax.persistence.criteria.ParameterExpression
 import javax.persistence.criteria.Predicate
 import javax.persistence.criteria.Root
 import javax.validation.ConstraintViolation
@@ -27,7 +28,7 @@ final class SimpleJpaHandler {
     private static final PATTERN_FINDMODELBYID = /find([A-Z]\w*)ById/
     private static final PATTERN_FINDMODELBYDSL = /find(All)?([A-Z]\w*)ByDsl/
     private static final PATTERN_FINDMODELBYATTRIBUTE = /find([A-Z]\w*)By([A-Z]\w*)/
-    private static final PATTERN_FINDMODELBY = /find([A-Z]\w*)By/
+    private static final PATTERN_FINDMODELBY = /find(All)?([A-Z]\w*)By(And|Or)/
     private static final PATTERN_DONAMEDQUERY = /do([A-Z]\w*)On([A-Z]\w*)/
     private static final PATTERN_SOFTDELETE = /softDelete([A-Z]\w*)/
 
@@ -347,29 +348,51 @@ final class SimpleJpaHandler {
         }
     }
 
-    def findModelBy = { String model ->
-        Class modelClass = Class.forName(domainClassPackage + "." + model)
+    def findModelBy = { Class modelClass, boolean returnAll, boolean isAnd = true, Map args, Map config = [:] ->
+        LOG.info "Find entities by: model=$modelClass, returnAll=$returnAll, args=$args, confing=$config"
+        executeInsideTransaction {
+            CriteriaBuilder cb = getEntityManager().getCriteriaBuilder()
+            CriteriaQuery c = cb.createQuery()
+            Root rootModel = c.from(modelClass)
+            c.select(rootModel)
 
-        return { Map args, Map config = [:]  ->
-            LOG.info "Executing find${model}By with argument [$args] and config [$config]"
-            executeInsideTransaction {
-                CriteriaBuilder cb = getEntityManager().getCriteriaBuilder()
-                CriteriaQuery c = cb.createQuery()
-                Root rootModel = c.from(modelClass)
-                c.select(rootModel)
-
-                Predicate criteria
+            Predicate criteria
+            if (isAnd) {
                 criteria = cb.conjunction()
                 args.each { key, value ->
-                    criteria = cb.and(criteria, cb.equal(rootModel.get(key), value))
+                    ParameterExpression p = cb.parameter(rootModel.get(key).javaType, key)
+                    criteria = cb.and(criteria, cb.equal(rootModel.get(key), p))
                 }
-
-                c.where(criteria)
-
-                configureCriteria(cb, c, rootModel, config)
-                configureQuery(getEntityManager().createQuery(c), config).getResultList()
+            } else {
+                criteria = cb.disjunction()
+                args.each { key, value ->
+                    ParameterExpression p = cb.parameter(rootModel.get(key).javaType, key)
+                    criteria = cb.or(criteria, cb.equal(rootModel.get(key), p))
+                }
             }
+
+            c.where(criteria)
+            configureCriteria(cb, c, rootModel, config)
+            Query q = configureQuery(getEntityManager().createQuery(c), config)
+            args.each { key, value -> q.setParameter(key, value)}
+            filterResult(q.getResultList(), returnAll)
         }
+    }
+
+    def findByAnd = { Class modelClass, Map args, Map config = [:] ->
+        findModelBy(modelClass, false, true, args, config)
+    }
+
+    def findAllByAnd = { Class modelClass, Map args, Map config = [:] ->
+        findModelBy(modelClass, true, true, args, config)
+    }
+
+    def findByOr = { Class modelClass, Map args, Map config = [:] ->
+        findModelBy(modelClass, false, false, args, config)
+    }
+
+    def findAllByOr = { Class modelClass, Map args, Map config = [:] ->
+        findModelBy(modelClass, true, false, args, config)
     }
 
     def findModelByAttribute = { String model, String attribute ->
@@ -549,11 +572,14 @@ final class SimpleJpaHandler {
 
             // findModelBy
             case ~PATTERN_FINDMODELBY:
-                def modelName = (nameWithoutPrefix =~ PATTERN_FINDMODELBY)[0][1]
+                def match = (nameWithoutPrefix =~ PATTERN_FINDMODELBY)
+                def isReturnAll = match[0][1]!=null? true: false
+                def modelName = match[0][2]
+                def isAnd = (match[0][3] == 'And')
                 LOG.info "First match for model [$modelName]"
-                Closure findModelByClosure = findModelBy(modelName)
-                delegate.metaClass."$name" = findModelByClosure
-                return findModelByClosure.call(*args)
+                Class modelClass = Class.forName(domainClassPackage + "." + modelName)
+                delegate.metaClass."$name" = { Object[] p -> findModelBy(modelClass, isReturnAll, isAnd, *p) }
+                return findModelBy.call(modelClass, isReturnAll, isAnd, *args)
 
             // findModelByAttribute
             case ~PATTERN_FINDMODELBYATTRIBUTE:
