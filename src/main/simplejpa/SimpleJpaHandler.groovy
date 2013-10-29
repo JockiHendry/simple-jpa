@@ -346,7 +346,12 @@ final class SimpleJpaHandler {
             c.where(closure.delegate.criteria)
 
             configureCriteria(cb, c, rootModel, config)
-            filterResult(configureQuery(getEntityManager().createQuery(c), config).resultList, returnAll)
+            Query q = configureQuery(getEntityManager().createQuery(c), config)
+            closure.delegate.parameters.each { Parameter parameter, value ->
+                LOG.info "DSL query named parameter: ${parameter.name} value: $value"
+                q.setParameter(parameter, value)
+            }
+            filterResult(q.resultList, returnAll)
         }
     }
 

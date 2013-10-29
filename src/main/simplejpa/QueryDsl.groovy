@@ -3,6 +3,7 @@ package simplejpa
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 
+import javax.persistence.Parameter
 import javax.persistence.criteria.CriteriaBuilder
 import javax.persistence.criteria.Predicate
 import javax.persistence.criteria.Root
@@ -15,6 +16,7 @@ class QueryDsl {
     Root rootModel
     Predicate criteria
     private String lastJoin
+    Map parameters = [:]
 
     def methodMissing(String methodName, args) {
         def operation = args['operation'][0]
@@ -23,10 +25,20 @@ class QueryDsl {
         Predicate predicate
         if (arguments==null) {
             predicate = cb."$operation"(rootModel.get(methodName))
-        } else if (arguments.class.isArray() || arguments instanceof List) {
-            predicate = cb."$operation"(rootModel.get(methodName), *arguments)
         } else {
-            predicate = cb."$operation"(rootModel.get(methodName), arguments)
+            List paramArgs = []
+            if (arguments.class.isArray() || arguments instanceof List) {
+                arguments.each {
+                    Parameter p = cb.parameter(rootModel.get(methodName).javaType)
+                    parameters[p] = it
+                    paramArgs << p
+                }
+            } else {
+                Parameter p = cb.parameter(rootModel.get(methodName).javaType)
+                parameters[p] = arguments
+                paramArgs << p
+            }
+            predicate = cb."$operation"(rootModel.get(methodName), *paramArgs)
         }
         if (criteria==null) {
             criteria = cb.conjunction()
