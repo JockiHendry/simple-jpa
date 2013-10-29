@@ -27,7 +27,7 @@ final class SimpleJpaHandler {
     private static final PATTERN_FINDMODELBYID_NOTSOFTDELETED = /find([A-Z]\w*)ByIdNotSoftDeleted/
     private static final PATTERN_FINDMODELBYID = /find([A-Z]\w*)ById/
     private static final PATTERN_FINDMODELBYDSL = /find(All)?([A-Z]\w*)ByDsl/
-    private static final PATTERN_FINDMODELBYATTRIBUTE = /find([A-Z]\w*)By([A-Z]\w*)/
+    private static final PATTERN_FINDMODELBYATTRIBUTE = /find(All)?([A-Z]\w*)By([A-Z]\w*)/
     private static final PATTERN_FINDMODELBY = /find(All)?([A-Z]\w*)By(And|Or)/
     private static final PATTERN_DONAMEDQUERY = /do([A-Z]\w*)On([A-Z]\w*)/
     private static final PATTERN_SOFTDELETE = /softDelete([A-Z]\w*)/
@@ -42,6 +42,8 @@ final class SimpleJpaHandler {
     final EntityManagerLifespan entityManagerLifespan
     final boolean isCheckThreadSafeLoading
     final FlushModeType defaultFlushMode
+
+
 
     private boolean convertEmptyStringToNull
     final ConcurrentReaderHashMap mapTransactionHolder = new ConcurrentReaderHashMap()
@@ -395,34 +397,100 @@ final class SimpleJpaHandler {
         findModelBy(modelClass, true, false, args, config)
     }
 
-    def findModelByAttribute = { String model, String attribute ->
-        Class modelClass = Class.forName(domainClassPackage + "." + model)
-
-        return { Object[] args ->
-            LOG.info "Executing find${model}By${attribute} with argument [$args]"
-            executeInsideTransaction {
-                CriteriaBuilder cb = getEntityManager().getCriteriaBuilder()
-                CriteriaQuery c = cb.createQuery()
-                Root rootModel = c.from(modelClass)
-                c.select(rootModel)
-
-                if (args.length > 1 && args[0] instanceof String && !(args[1] instanceof Map) ) {
-                    LOG.info "Operation [${args[0]}]..."
-                    def lastArgumentIndex = (args.last() instanceof Map) ? args.length - 2 : args.length - 1
-                    c.where(cb."${GriffonNameUtils.uncapitalize(args[0])}"(rootModel.get(attribute), *args[1..lastArgumentIndex]))
-                } else {
-                    LOG.info "Operation [eq]..."
-                    c.where(cb.equal(rootModel.get(attribute), args[0]))
-                }
-
-                if (args.last() instanceof Map) {
-                    Map configuration = (Map) args.last()
-                    configureCriteria(cb, c, rootModel, configuration)
-                    return configureQuery(getEntityManager().createQuery(c), configuration).getResultList()
-                } else {
-                    return getEntityManager().createQuery(c).getResultList()
+    public def parseFinder(String finder) {
+        LOG.info "Parsing $finder"
+        List results = []
+        finder.split('(And|Or)').each { String expr ->
+            LOG.info "Expression: $expr"
+            int start = finder.indexOf(expr)
+            int operStart
+            String operName, fieldName
+            int argsCount
+            def availableOperators = QueryDsl.OPERATORS.keySet().toArray()
+            for (int i=0; i<availableOperators.size(); i++) {
+                operStart = expr.toLowerCase().lastIndexOf(availableOperators[i].toLowerCase())
+                if (operStart > -1) {
+                    operName = QueryDsl.OPERATORS[availableOperators[i]].operation
+                    argsCount = QueryDsl.OPERATORS[availableOperators[i]].argsCount
+                    break
                 }
             }
+            if (operStart <= 0) {
+                operName = 'equal'
+                fieldName = GriffonNameUtils.uncapitalize(expr)
+                argsCount = 1
+            } else {
+                fieldName = GriffonNameUtils.uncapitalize(expr.substring(0, operStart))
+            }
+
+            def whereExpr = [field: fieldName, oper: operName, argsCount: argsCount, isAnd: null, isOr: null]
+            if (start > 0) {
+                if (finder.substring(0, start).endsWith('And')) {
+                    whereExpr.isAnd = true
+                } else if (finder.substring(0, start).endsWith('Or')) {
+                    whereExpr.isOr = true
+                }
+            }
+            LOG.info "Result: $whereExpr"
+            results << whereExpr
+        }
+        results
+    }
+
+    def findModelByAttribute = { Class modelClass, boolean returnAll, List whereExprs, Object[] args ->
+        def config = [:]
+        List argsList = args.toList()
+        if (args.length > 0 && args.last() instanceof Map) {
+            config = args.last()
+            argsList.pop()
+        }
+        LOG.info "Find entities by attribute: model=$modelClass, returnAll=$returnAll, whereExprs=$whereExprs, args=$args, confing=$config"
+        executeInsideTransaction {
+            CriteriaBuilder cb = getEntityManager().getCriteriaBuilder()
+            CriteriaQuery c = cb.createQuery()
+            Root rootModel = c.from(modelClass)
+            c.select(rootModel)
+
+            Predicate p
+            List params = []
+
+            if (whereExprs.size()==1) {
+                def arguments = [rootModel.get(whereExprs[0].field)]
+                if (whereExprs[0].argsCount > 0) {
+                    (0..whereExprs[0].argsCount-1).each {
+                        Parameter param = cb.parameter(rootModel.get(whereExprs[0].field).javaType)
+                        arguments << param
+                        params << param
+                    }
+                }
+                p = cb."${whereExprs[0].oper}"(*arguments)
+                c.where(p)
+            } else {
+                whereExprs.each { expr ->
+                    def arguments = [rootModel.get(expr.field)]
+                    if (expr.argsCount > 0) {
+                        (0..expr.argsCount-1).each {
+                            Parameter param = cb.parameter(rootModel.get(expr.field).javaType)
+                            arguments << param
+                            params << param
+                        }
+                    }
+                    Predicate p2 = cb."${expr.oper}"(*arguments)
+                    if (expr.isAnd) {
+                        p = cb.and(p, p2)
+                    } else if (expr.isOr) {
+                        p = cb.or(p, p2)
+                    } else {
+                        p = p2
+                    }
+                }
+                c.where(p)
+            }
+
+            configureCriteria(cb, c, rootModel, config)
+            Query q = configureQuery(getEntityManager().createQuery(c), config)
+            argsList.each{ q.setParameter(params.remove(0), it)}
+            filterResult(q.resultList, returnAll)
         }
     }
 
@@ -584,12 +652,13 @@ final class SimpleJpaHandler {
             // findModelByAttribute
             case ~PATTERN_FINDMODELBYATTRIBUTE:
                 def match = (nameWithoutPrefix =~ PATTERN_FINDMODELBYATTRIBUTE)
-                def modelName = match[0][1]
-                def attributeName = GriffonNameUtils.uncapitalize(match[0][2])
-                LOG.info "First match for model [$modelName] attribute [$attributeName]"
-                Closure findModelByAttributeClosure = findModelByAttribute(modelName, attributeName)
-                delegate.metaClass."$name" = findModelByAttributeClosure
-                return findModelByAttributeClosure.call(args)
+                def isReturnAll = match[0][1]!=null? true: false
+                def modelName = match[0][2]
+                def whereExprs = parseFinder(match[0][3])
+                LOG.info "First match for model [$modelName]"
+                Class modelClass = Class.forName(domainClassPackage + "." + modelName)
+                delegate.metaClass."$name" = { Object[] p -> findModelByAttribute(modelClass, isReturnAll, whereExprs, p) }
+                return findModelByAttribute.call(modelClass, isReturnAll, whereExprs, args)
 
             // doNamedQueryOnModel
             case ~PATTERN_DONAMEDQUERY:

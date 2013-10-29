@@ -95,9 +95,10 @@ First release into griffon artifacts portal.
 1. Add 'contentDecorator' attribute which takes a closure to MVCPopupButton node.
 1. Add Swing builder 'glazedXXX()' node for generating JTable with GlazedLists.
 1. Add 'simple-jpa-console' script command for executing simple-jpa methods interactively.
-1. findModelByDsl() or findByDsl(Model) will return an entity or null while findAllModelByDsl() or findAllByDsl(Model) will return list entities.
+1. findModelByDsl() or findByDsl(Model) will return an entity or null while findAllModelByDsl() or findAllByDsl(Model) will return a list of entities.
 1. findModelBy() is replaced by findModelByAnd() or findByAnd(Model), findAllModelByAnd() or findAllByAnd(Model), findModelByOr() or findByOr(Model), findAllModelByOr() or findAllByOr(Model).
+1. findModelByAttribute() will return an entity or null while findAllModelByAttribute() will return a list of entities.
+1. findModelByAttribute() now supports more than one attributes and operators such as findStudentByNameLikeAndAgeLt('%steve%', 20).
 
 TODO:
-1. Support finders such as findXXXByField1AndField2() or find XXXByField1OrField2AndField3().
 1. Default to EM per transaction (EM per MVCGroup can still be used).

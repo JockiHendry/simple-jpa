@@ -46,6 +46,30 @@ class QueryDsl {
         lastJoin = "and"
     }
 
+    public static OPERATORS = [
+        'eq': [operation: 'equal', argsCount: 1],
+        'equal': [operation: 'equal', argsCount: 1],
+        'ne': [operation: 'notEqual', argsCount: 1],
+        'notEqual': [operation: 'equal', argsCount: 1],
+        'gt': [operation: 'greaterThan', argsCount: 1],
+        'greaterThan': [operation: 'greaterThan', argsCount: 1],
+        'ge': [operation: "greaterThanOrEqualTo", argsCount: 1],
+        'greaterThanEqualTo': [operation: "greaterThanOrEqualTo", argsCount: 1],
+        'lt': [operation: "LessThan", argsCount: 1],
+        'lessThan': [operation: "LessThan", argsCount: 1],
+        'le': [operation: "LessThanOrEqualTo", argsCount: 1],
+        'lessThanEqualTo': [operation: "LessThanOrEqualTo", argsCount: 1],
+        'between': [operation: 'between', argsCount: 2],
+        'isNull': [operation: 'isNull', argsCount: 0],
+        'isNotNull': [operation: 'isNotNull', argsCount: 0],
+        'isEmpty': [operation: 'isEmpty', argsCount: 0],
+        'isNotEmpty': [operation: 'isNotEmpty', argsCount: 0],
+        'isMember': [operation: 'isMember', argsCount: 0],
+        'isNotMember': [operation: 'isNotMember', argsCount: 0],
+        'like': [operation: 'like', argsCount: 1],
+        'notLike': [operation: 'notLike', argsCount: 1],
+    ]
+
     def eq(arg) {
         [operation: "equal", args: arg]
     }
