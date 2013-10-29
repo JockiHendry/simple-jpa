@@ -189,6 +189,14 @@ final class SimpleJpaHandler {
         results
     }
 
+    private void setParameter(Query query, Map parameters ) {
+        parameters.each { def parameter, value ->
+            LOG.info "Set query parameter: ${parameter} value: $value"
+            if (value instanceof GString) value = value.toString()
+            query.setParameter(parameter, value)
+        }
+    }
+
     def beginTransaction = { boolean resume = true, boolean newSession = false ->
         LOG.info "Begin transaction from thread ${Thread.currentThread().id} (resume=$resume) (newSession=$newSession)..."
         if (newSession) {
@@ -347,10 +355,7 @@ final class SimpleJpaHandler {
 
             configureCriteria(cb, c, rootModel, config)
             Query q = configureQuery(getEntityManager().createQuery(c), config)
-            closure.delegate.parameters.each { Parameter parameter, value ->
-                LOG.info "DSL query named parameter: ${parameter.name} value: $value"
-                q.setParameter(parameter, value)
-            }
+            setParameter(q, closure.delegate.parameters)
             filterResult(q.resultList, returnAll)
         }
     }
@@ -381,7 +386,7 @@ final class SimpleJpaHandler {
             c.where(criteria)
             configureCriteria(cb, c, rootModel, config)
             Query q = configureQuery(getEntityManager().createQuery(c), config)
-            args.each { key, value -> q.setParameter(key, value)}
+            setParameter(q, args)
             filterResult(q.getResultList(), returnAll)
         }
     }
@@ -444,10 +449,8 @@ final class SimpleJpaHandler {
 
     def findModelByAttribute = { Class modelClass, boolean returnAll, List whereExprs, Object[] args ->
         def config = [:]
-        List argsList = args.toList()
         if (args.length > 0 && args.last() instanceof Map) {
             config = args.last()
-            argsList.pop()
         }
         LOG.info "Find entities by attribute: model=$modelClass, returnAll=$returnAll, whereExprs=$whereExprs, args=$args, confing=$config"
         executeInsideTransaction {
@@ -457,7 +460,8 @@ final class SimpleJpaHandler {
             c.select(rootModel)
 
             Predicate p
-            List params = []
+            Map params = [:]
+            int argsIndex = 0
 
             if (whereExprs.size()==1) {
                 def arguments = [rootModel.get(whereExprs[0].field)]
@@ -465,7 +469,7 @@ final class SimpleJpaHandler {
                     (0..whereExprs[0].argsCount-1).each {
                         Parameter param = cb.parameter(rootModel.get(whereExprs[0].field).javaType)
                         arguments << param
-                        params << param
+                        params[param] = args[argsIndex++]
                     }
                 }
                 p = cb."${whereExprs[0].oper}"(*arguments)
@@ -477,7 +481,7 @@ final class SimpleJpaHandler {
                         (0..expr.argsCount-1).each {
                             Parameter param = cb.parameter(rootModel.get(expr.field).javaType)
                             arguments << param
-                            params << param
+                            params[param] = args[argsIndex++]
                         }
                     }
                     Predicate p2 = cb."${expr.oper}"(*arguments)
@@ -494,7 +498,7 @@ final class SimpleJpaHandler {
 
             configureCriteria(cb, c, rootModel, config)
             Query q = configureQuery(getEntityManager().createQuery(c), config)
-            argsList.each{ q.setParameter(params.remove(0), it)}
+            setParameter(q, params)
             filterResult(q.resultList, returnAll)
         }
     }
