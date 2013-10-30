@@ -418,8 +418,8 @@ final class SimpleJpaHandler {
             int argsCount
             def availableOperators = QueryDsl.OPERATORS.keySet().toArray()
             for (int i=0; i<availableOperators.size(); i++) {
-                operStart = expr.toLowerCase().lastIndexOf(availableOperators[i].toLowerCase())
-                if (operStart > -1) {
+                if (expr.toLowerCase().endsWith(availableOperators[i].toLowerCase())) {
+                    operStart = expr.toLowerCase().lastIndexOf(availableOperators[i].toLowerCase())
                     operName = QueryDsl.OPERATORS[availableOperators[i]].operation
                     argsCount = QueryDsl.OPERATORS[availableOperators[i]].argsCount
                     break
