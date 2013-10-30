@@ -29,7 +29,6 @@ final class SimpleJpaHandler {
     private static final PATTERN_FINDMODELBYDSL = /find(All)?([A-Z]\w*)ByDsl/
     private static final PATTERN_FINDMODELBYATTRIBUTE = /find(All)?([A-Z]\w*)By([A-Z]\w*)/
     private static final PATTERN_FINDMODELBY = /find(All)?([A-Z]\w*)By(And|Or)/
-    private static final PATTERN_DONAMEDQUERY = /do([A-Z]\w*)On([A-Z]\w*)/
     private static final PATTERN_SOFTDELETE = /softDelete([A-Z]\w*)/
 
     private static final int DEFAULT_PAGE_SIZE = 10
@@ -503,19 +502,16 @@ final class SimpleJpaHandler {
         }
     }
 
-    def doNamedQuery = { String namedQuery, String model ->
-        return { Map args, Map config = [:] ->
-            LOG.info "Executing named query [${model}.${namedQuery}] with argument [$args]"
-            executeInsideTransaction {
-                Query query = getEntityManager().createNamedQuery("${model}.${namedQuery}")
-                args.each { key, value ->
-                    if (query.parameters.find { it.name == key }) {
-                        query.setParameter(key, value)
-                    }
+    def executeNamedQuery = { String namedQuery, Map args, Map config = [:] ->
+        LOG.info "Executing named query: namedQuery=$namedQuery, args=$args, confing=$config"
+        executeInsideTransaction {
+            Query query = getEntityManager().createNamedQuery(namedQuery)
+            args.each { key, value ->
+                if (query.parameters.find { it.name == key }) {
+                    query.setParameter(key, value)
                 }
-
-                configureQuery(query, config).getResultList()
             }
+            configureQuery(query, config).getResultList()
         }
     }
 
@@ -668,16 +664,6 @@ final class SimpleJpaHandler {
                 Class modelClass = Class.forName(domainClassPackage + "." + modelName)
                 delegate.metaClass."$name" = { Object[] p -> findModelByAttribute(modelClass, isReturnAll, whereExprs, p) }
                 return findModelByAttribute.call(modelClass, isReturnAll, whereExprs, args)
-
-            // doNamedQueryOnModel
-            case ~PATTERN_DONAMEDQUERY:
-                def match = (nameWithoutPrefix =~ PATTERN_DONAMEDQUERY)
-                def namedQuery = match[0][1]
-                def modelName = match[0][2]
-                LOG.info "First match for named query [$namedQuery] on model [$modelName]"
-                Closure doNamedQueryClosure = doNamedQuery(namedQuery, modelName)
-                delegate.metaClass."$name" = doNamedQueryClosure
-                return doNamedQueryClosure.call(args)
 
             // softDeleteModel
             case ~PATTERN_SOFTDELETE:

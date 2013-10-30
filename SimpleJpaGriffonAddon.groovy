@@ -88,6 +88,7 @@ class SimpleJpaGriffonAddon {
                 gc.metaClass."${pre}merge" = simpleJpaHandler.merge
                 gc.metaClass."${pre}remove" = simpleJpaHandler.remove
                 gc.metaClass."${pre}softDelete" = simpleJpaHandler.softDelete
+                gc.metaClass."${pre}executeNamedQuery" = simpleJpaHandler.executeNamedQuery
                 gc.metaClass."${pre}executeQuery" = simpleJpaHandler.executeQuery
                 gc.metaClass."${pre}executeNativeQuery" = simpleJpaHandler.executeNativeQuery
 

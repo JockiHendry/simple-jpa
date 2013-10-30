@@ -99,6 +99,7 @@ First release into griffon artifacts portal.
 1. findModelBy() is replaced by findModelByAnd() or findByAnd(Model), findAllModelByAnd() or findAllByAnd(Model), findModelByOr() or findByOr(Model), findAllModelByOr() or findAllByOr(Model).
 1. findModelByAttribute() will return an entity or null while findAllModelByAttribute() will return a list of entities.
 1. findModelByAttribute() now supports more than one attributes and operators such as findStudentByNameLikeAndAgeLt('%steve%', 20).
+1. doNamedQueryOnModel() is replaced by executeNamedQuery().
 
 TODO:
 1. Default to EM per transaction (EM per MVCGroup can still be used).
