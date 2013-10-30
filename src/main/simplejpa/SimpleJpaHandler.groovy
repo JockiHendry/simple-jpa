@@ -29,7 +29,6 @@ final class SimpleJpaHandler {
     private static final PATTERN_FINDMODELBYDSL = /find(All)?([A-Z]\w*)ByDsl/
     private static final PATTERN_FINDMODELBYATTRIBUTE = /find(All)?([A-Z]\w*)By([A-Z]\w*)/
     private static final PATTERN_FINDMODELBY = /find(All)?([A-Z]\w*)By(And|Or)/
-    private static final PATTERN_SOFTDELETE = /softDelete([A-Z]\w*)/
 
     private static final int DEFAULT_PAGE_SIZE = 10
 
@@ -515,16 +514,6 @@ final class SimpleJpaHandler {
         }
     }
 
-    def softDeleteModel = { String model ->
-        return { id ->
-            LOG.info "Executing soft delete for [$model] with id [$id]"
-            executeInsideTransaction {
-                def object = findModelById(model, false).call(id)
-                object."deleted" = "Y"
-            }
-        }
-    }
-
     def softDelete = { model ->
         LOG.info "Executing softDelete for [$model]"
         executeInsideTransaction {
@@ -664,15 +653,6 @@ final class SimpleJpaHandler {
                 Class modelClass = Class.forName(domainClassPackage + "." + modelName)
                 delegate.metaClass."$name" = { Object[] p -> findModelByAttribute(modelClass, isReturnAll, whereExprs, p) }
                 return findModelByAttribute.call(modelClass, isReturnAll, whereExprs, args)
-
-            // softDeleteModel
-            case ~PATTERN_SOFTDELETE:
-                def match = (nameWithoutPrefix =~ PATTERN_SOFTDELETE)
-                def modelName = match[0][1]
-                LOG.info "First match for model [$model]"
-                Closure softDeleteClosure = softDeleteModel(modelName)
-                delegate.metaClass."$name" = softDeleteClosure
-                return softDeleteClosure.call(args)
 
             // findAllModel
             case ~PATTERN_FINDALLMODEL:
