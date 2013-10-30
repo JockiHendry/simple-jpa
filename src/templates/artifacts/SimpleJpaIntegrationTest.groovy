@@ -74,7 +74,7 @@ class $className extends DbUnitTestCase {
         controller.save()
         Thread.sleep(3000)
 
-        Student student = controller.findStudentByName("Class A6")[0]
+        Student student = controller.findStudentByName("Class A6")
         assertEquals("Class A6", student.name)
         assertEquals("A6", student.location)
     }

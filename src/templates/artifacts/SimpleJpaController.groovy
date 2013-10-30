@@ -61,7 +61,7 @@ class $className {
     def search = {
         if (model.${firstField}Search?.length() > 0) {
             execInsideUISync { model.${domainClassAsProp}List.clear() }
-            List result = find${domainClass}By${cls(firstField)}('like', "%\${model.${firstField}Search}%")
+            List result = findAll${domainClass}By${cls(firstField)}Like("%\${model.${firstField}Search}%")
             execInsideUISync {
                 model.${domainClassAsProp}List.addAll(result)
                 model.searchMessage = app.getMessage("simplejpa.search.result.message", ['${natural(firstField)}', model.${firstField}Search])
@@ -127,7 +127,7 @@ class $className {
 
         if (model.id == null) {
             // Insert operation
-            if (find${domainClass}By${cls(firstField)}(${domainClassAsProp}.${firstField})?.size() > 0) {
+            if (find${domainClass}By${cls(firstField)}(${domainClassAsProp}.${firstField})) {
                 model.errors['${firstField}'] = app.getMessage("simplejpa.error.alreadyExist.message")
                 return_failed()
             }
@@ -175,7 +175,7 @@ class $className {
     def delete = {
         ${domainClass} ${domainClassAsProp} = view.table.selectionModel.selected[0]
 <% if (softDelete) {
-        out << "\t\tsoftDelete${domainClass}(${domainClassAsProp}.id)\n"
+        out << "\t\tsoftDelete(${domainClassAsProp})\n"
    } else {
         out << "\t\tremove(${domainClassAsProp})"  } %>
         execInsideUISync {
