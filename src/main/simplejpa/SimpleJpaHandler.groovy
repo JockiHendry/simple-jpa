@@ -1,3 +1,19 @@
+/*
+ * Copyright 2013 Jocki Hendry.
+ *
+ * Licensed under the Apache License, Version 2.0 (the 'License');
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *      http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an 'AS IS' BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
 package simplejpa
 
 import org.codehaus.groovy.runtime.metaclass.ConcurrentReaderHashMap
@@ -5,10 +21,8 @@ import org.slf4j.*
 import simplejpa.transaction.EntityManagerLifespan
 import simplejpa.transaction.ReturnFailedSignal
 import simplejpa.transaction.TransactionHolder
-
 import javax.persistence.*
 import griffon.util.*
-
 import javax.persistence.criteria.CriteriaBuilder
 import javax.persistence.criteria.CriteriaQuery
 import javax.persistence.criteria.ParameterExpression
@@ -56,7 +70,7 @@ final class SimpleJpaHandler {
         //
         griffon.core.GriffonApplication app = griffon.util.ApplicationHolder.application
         this.entityManagerLifespan = ConfigUtils.getConfigValue(app.config,
-            'griffon.simplejpa.entityManager.lifespan', 'MANUAL').toUpperCase()
+            'griffon.simplejpa.entityManager.lifespan', 'TRANSACTION').toUpperCase()
         this.defaultFlushMode = ConfigUtils.getConfigValue(app.config,
             'griffon.simplejpa.entityManager.defaultFlushMode', 'AUTO').toUpperCase()
         this.isCheckThreadSafeLoading = ConfigUtils.getConfigValueAsBoolean(app.config,
