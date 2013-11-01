@@ -36,14 +36,7 @@ griffon.project.dependency.resolution = {
         compile 'javax.validation:validation-api:1.0.0.GA'
         compile 'org.jadira.usertype:usertype.jodatime:2.0.1'
         compile 'joda-time:joda-time:2.1'
-        runtime 'org.hibernate:hibernate-entitymanager:4.1.9.Final'
-        runtime 'org.hibernate:hibernate-validator:4.3.0.Final'
-
-        // automatically depends on these libraries for quick start, but user may not want them.
-        runtime 'mysql:mysql-connector-java:5.1.20'
         compile 'net.java.dev.glazedlists:glazedlists_java15:1.9.0'
-
-        // for integration testing support
         compile 'org.dbunit:dbunit:2.4.9'
         runtime 'org.apache.poi:poi:3.2-FINAL'
     }

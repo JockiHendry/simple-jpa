@@ -20,7 +20,6 @@ class SimpleJpaGriffonPlugin {
     // the version or versions of Griffon the plugin is designed for
     String griffonVersion = '1.2.0 > *'
     // the other plugins this plugin depends on
-    // these plugin dependencies are for quick start, user may not need it!
     Map dependsOn = ['miglayout': '1.0.0', 'swingx-builder': '0.7']
     // resources that are included in plugin packaging
     List pluginIncludes = []

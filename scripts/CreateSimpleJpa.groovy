@@ -23,6 +23,17 @@ import java.sql.Statement
  * Gant script that creates a simple persistence.xml to be configured later.
  *
  */
+final Map JPA_PROVIDERS = [
+    'hibernate':  'org.hibernate:hibernate-entitymanager:4.2.0.Final'
+]
+
+final Map JDBC_DRIVERS = [
+    'mysql': 'mysql:mysql-connector-java:5.1.20'
+]
+
+final List COMMON_DEPENDENCIES = [
+    'org.hibernate:hibernate-validator:4.3.0.Final'
+]
 
 target(name: 'createSimpleJpa', description: "Creates persistence.xml, orm.xml and validation messages if not present", prehook: null, posthook: null) {
 
@@ -35,8 +46,10 @@ DESCRIPTION
 SYNTAX
     create-simple-jpa -user=[databaseUser] -password=[databasePassword]
         -database=[databaseName] -rootPassword=[databaseRootPassword]
+        -provider=[JPAProvider] -jdbc=[databaseType]
     create-simple-jpa -user=[databaseUser] -password=[databasePassword]
-        -database=[databaseName] -skipDatabase
+        -database=[databaseName] -provider=[JPAProvider]
+        -jdbc=[databaseType] -skipDatabase
 
 ARGUMENTS
     user
@@ -64,6 +77,18 @@ ARGUMENTS
             will require password for MySQL root user.  While user name and
             password is saved in persistence.xml for establishing connection,
             root password will never be stored in project files.
+
+    provider
+        Specifies JPA provider that will be used.  The default value for
+        this parameter is 'hibernate'.
+        Available values:
+            hibernate - Use Hibernate JPA.
+
+    databaseType
+        Specifies JDBC driver that will be used.  The default value for
+        this parameter is 'mysql'.
+        Available values:
+            mysql - Use MySQL JDBC.
 
     skipDatabase
         Don't create user and database automatically.  This command will
@@ -111,76 +136,77 @@ description for more information.
         return
     }
 
-
-    String persistenceXml = "${basedir}/griffon-app/conf/metainf/persistence.xml"
-    File file = new File(persistenceXml)
-    if (file.exists()) {
-        fail "Will not create a new file because $persistenceXml already exists!"
-    }
-
     String databaseName = argsMap.database ?: "database"
     String user = argsMap.user ?: "user"
     String password = argsMap.password ?: "password"
     String rootPassword = argsMap['root-password'] ?: (argsMap['rootPassword'] ?: '')
+    String jpaProvider = argsMap.provider ?: 'hibernate'
+    String databaseType = argsMap.jdbc ?: 'mysql'
     boolean skipDatabase = argsMap['skip-database']==true || argsMap['skip-database']=="true" ? true:
         (argsMap['skip-database']==true || argsMap['skipDatabase']=="true" ? true : false)
 
-    if (!skipDatabase) {
-        Connection cn
-        ResultSet rs
-        Statement stmt
-        try {
-            cn = DriverManager.getConnection("jdbc:mysql://localhost", "root", rootPassword)
-            stmt = cn.createStatement()
+    String persistenceXml = "${basedir}/griffon-app/conf/metainf/persistence.xml"
+    File file = new File(persistenceXml)
+    if (file.exists()) {
+        println "Will not create a new file because $persistenceXml already exists!"
+    } else {
 
-            // Check database
-            rs = cn.getMetaData().getCatalogs()
-            boolean found = false
-            while (rs.next()) {
-                if (rs.getString(1).equals(databaseName)) {
-                    println "Database $databaseName already exists. Will not create a new database."
-                    found = true
-                    break
+        if (!skipDatabase) {
+            Connection cn
+            ResultSet rs
+            Statement stmt
+            try {
+                cn = DriverManager.getConnection("jdbc:mysql://localhost", "root", rootPassword)
+                stmt = cn.createStatement()
+
+                // Check database
+                rs = cn.getMetaData().getCatalogs()
+                boolean found = false
+                while (rs.next()) {
+                    if (rs.getString(1).equals(databaseName)) {
+                        println "Database $databaseName already exists. Will not create a new database."
+                        found = true
+                        break
+                    }
                 }
-            }
-            if (!found) {
-                stmt.execute("CREATE DATABASE ${databaseName}")
-                println "Database $databaseName created successfully!"
-            }
-
-            // Check if user already exists
-            rs = stmt.executeQuery("SELECT user, host FROM mysql.user")
-            found = false
-            host = 'localhost'
-            while (rs.next()) {
-                if (rs.getString(1).equals(user)) {
-                    println "User $user already exists. Will not create a new user."
-                    host = rs.getString(2)
-                    found = true
-                    break
+                if (!found) {
+                    stmt.execute("CREATE DATABASE ${databaseName}")
+                    println "Database $databaseName created successfully!"
                 }
-            }
-            if (!found) {
-                stmt.execute("CREATE USER `${user}`@'${host}' IDENTIFIED BY '${password}'")
-                println "User $user created successfully!"
-            }
 
-            // Grant privilleges
-            println "Granting privileges..."
-            stmt.execute("GRANT ALL ON ${databaseName}.* TO `$user`@'${host}'")
-            println "Privileges on $databaseName granted to $user!"
+                // Check if user already exists
+                rs = stmt.executeQuery("SELECT user, host FROM mysql.user")
+                found = false
+                host = 'localhost'
+                while (rs.next()) {
+                    if (rs.getString(1).equals(user)) {
+                        println "User $user already exists. Will not create a new user."
+                        host = rs.getString(2)
+                        found = true
+                        break
+                    }
+                }
+                if (!found) {
+                    stmt.execute("CREATE USER `${user}`@'${host}' IDENTIFIED BY '${password}'")
+                    println "User $user created successfully!"
+                }
 
-        } catch (Exception ex) {
-            ex.printStackTrace()
-            fail "Can't create new database! ${ex.getMessage()}"
-        } finally {
-            rs?.close()
-            stmt?.close()
-            cn?.close()
+                // Grant privilleges
+                println "Granting privileges..."
+                stmt.execute("GRANT ALL ON ${databaseName}.* TO `$user`@'${host}'")
+                println "Privileges on $databaseName granted to $user!"
+
+            } catch (Exception ex) {
+                ex.printStackTrace()
+                fail "Can't create new database! ${ex.getMessage()}"
+            } finally {
+                rs?.close()
+                stmt?.close()
+                cn?.close()
+            }
         }
-    }
 
-    String content = """\
+        String content = """\
 <?xml version="1.0" encoding="UTF-8" ?>
 <persistence xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
     xsi:schemaLocation="http://java.sun.com/xml/ns/persistence http://java.sun.com/xml/ns/persistence/persistence_2_0.xsd"
@@ -200,19 +226,20 @@ description for more information.
     </persistence-unit>
 </persistence>
 """
-    content = content.replaceAll("@database.name@", databaseName).replaceAll("@database.user@", user)
-                .replaceAll("@database.password@", password)
-    FileOutputStream fos = new FileOutputStream(file)
-    fos.write(content.bytes)
-    fos.close()
-    println "File $persistenceXml created succesfully! Please modify this file according to your environments."
+        content = content.replaceAll("@database.name@", databaseName).replaceAll("@database.user@", user)
+                    .replaceAll("@database.password@", password)
+        file.withWriter {
+            it.write content.bytes
+        }
+        println "File $persistenceXml created succesfully! Please modify this file according to your environments."
+    }
 
     String ormXml = "${basedir}/griffon-app/conf/metainf/orm.xml"
     file = new File(ormXml)
     if (file.exists()) {
-        fail "Will not create a new file because $ormXml already exists!"
-    }
-    content = """\
+        println "Will not create a new file because $ormXml already exists!"
+    } else {
+        content = """\
 <?xml version="1.0" encoding="UTF-8"?>
 <entity-mappings version="2.0" xmlns="http://java.sun.com/xml/ns/persistence/orm"
                  xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
@@ -228,17 +255,18 @@ description for more information.
 
 </entity-mappings>
 """
-    fos = new FileOutputStream(file)
-    fos.write(content.bytes)
-    fos.close()
-    println "File $ormXml created succesfully! Please modify this file according to your environments."
+        file.withWriter {
+            it.write content.bytes
+        }
+        println "File $ormXml created succesfully! Please modify this file according to your environments."
+    }
 
     String validationMessages = "${basedir}/griffon-app/i18n/ValidationMessages.properties"
     file = new File(validationMessages)
     if (file.exists()) {
-        fail "Will not create a new file because $validationMessages already exists!"
-    }
-    content = """\
+        println "Will not create a new file because $validationMessages already exists!"
+    } else {
+        content = """\
 
 javax.validation.constraints.AssertFalse.message = must be false
 javax.validation.constraints.AssertTrue.message  = must be true
@@ -270,26 +298,64 @@ org.hibernate.validator.constraints.br.TituloEleitor.message = invalid Brazilian
 simplejpa.converter.toInteger = must be a number
 
 """
-    fos = new FileOutputStream(file)
-    fos.write(content.bytes)
-    fos.close()
-
-    println "File $validationMessages created succesfully!"
+        file.withWriter {
+            it.write content.bytes
+        }
+        println "File $validationMessages created succesfully!"
+    }
 
     def config = new ConfigSlurper().parse(configFile.toURL())
     def basenames = config?.resources?.basenames ?: []
     if (basenames.contains('ValidationMessages')) {
-        fail "Will not add new entry to $configFile because it is already exists!"
-    }
-    basenames << "messages"
-    basenames << "ValidationMessages"
-    def configText = configFile.text.split('\n').grep { !it.contains("i18n.basenames") }.join('\n')
-    configText += "\ni18n.basenames = ['${basenames.join("','")}']"
-    configFile.withWriter { writer ->
-        writer.write configText
+        println "Will not add new entry to $configFile because it is already exists!"
+    } else {
+        basenames << "messages"
+        basenames << "ValidationMessages"
+        def configText = configFile.text.split('\n').grep { !it.contains("i18n.basenames") }.join('\n')
+        configText += "\ni18n.basenames = ['${basenames.join("','")}']"
+        configFile.withWriter { writer ->
+            writer.write configText
+        }
+        println "File $configFile successfully updated!"
     }
 
-    println "File $configFile successfully updated!"
+    //
+    // Add dependencies to project
+    //
+
+    def buildConfigFile = new File("${basedir}/griffon-app/conf/BuildConfig.groovy")
+    def buildConfigText = buildConfigFile.text
+
+    def dependencies = []
+    dependencies.addAll(COMMON_DEPENDENCIES)
+    if (!JPA_PROVIDERS[jpaProvider]) {
+        println "JPA Provider: $jpaProvider is not supported.  You will need to add dependency to this provider manually by editing $buildConfigFile."
+    } else {
+        dependencies << JPA_PROVIDERS[jpaProvider.toLowerCase()]
+    }
+    if (!JDBC_DRIVERS[databaseType]) {
+        println "JDBC Driver: $databaseType is not supported.  You will need to add dependency to this JDBC driver manually by editing $buildConfigFile."
+    } else {
+        dependencies << JDBC_DRIVERS[databaseType.toLowerCase()]
+    }
+
+    dependencies.each { String dependency ->
+        if (buildConfigText =~ /(?s)\s*$dependency\s*/)  {
+            println "The following dependency wasn't added because it is already exists: $dependency"
+        } else {
+            println "Add new dependency: $dependency"
+            buildConfigText = buildConfigText.replaceAll(/\s*dependencies\s*\{/, """
+    dependencies {
+        runtime '$dependency'""")
+        }
+    }
+
+    buildConfigFile.withWriter {
+        it.write buildConfigText
+    }
+
+    println "File $buildConfigFile successfully updated!"
+
 }
 
 setDefaultTarget(createSimpleJpa)

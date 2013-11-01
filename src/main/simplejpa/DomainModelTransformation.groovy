@@ -1,3 +1,19 @@
+/*
+ * Copyright 2013 Jocki Hendry.
+ *
+ * Licensed under the Apache License, Version 2.0 (the 'License');
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *      http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an 'AS IS' BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
 package simplejpa
 
 import org.codehaus.griffon.ast.AbstractASTTransformation
@@ -11,10 +27,6 @@ import org.codehaus.groovy.ast.expr.PropertyExpression
 import org.codehaus.groovy.control.CompilePhase
 import org.codehaus.groovy.control.SourceUnit
 import org.codehaus.groovy.transform.GroovyASTTransformation
-import org.hibernate.annotations.GenericGenerator
-import org.hibernate.annotations.Type
-import org.joda.time.DateTime
-import org.joda.time.LocalDateTime
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 
@@ -22,6 +34,8 @@ import javax.persistence.Entity
 import javax.persistence.GeneratedValue
 import javax.persistence.GenerationType
 import javax.persistence.Id
+import javax.persistence.Temporal
+import javax.persistence.TemporalType
 
 @GroovyASTTransformation(phase = CompilePhase.SEMANTIC_ANALYSIS)
 class DomainModelTransformation extends AbstractASTTransformation {
@@ -54,12 +68,13 @@ class DomainModelTransformation extends AbstractASTTransformation {
             idAnnotation, generatedValueAnnotation])
 
         // Add attribute for auditing
-        AnnotationNode typeAnnotation = new AnnotationNode(ClassHelper.make(Type.class))
-        typeAnnotation.addMember("type", new ConstantExpression("org.jadira.usertype.dateandtime.joda.PersistentDateTime"))
-        classNode.addField("createdDate", ACC_PUBLIC, ClassHelper.make(DateTime.class), null)
-            .addAnnotation(typeAnnotation)
-        classNode.addField("modifiedDate", ACC_PUBLIC, ClassHelper.make(DateTime.class), null)
-            .addAnnotation(typeAnnotation)
+        AnnotationNode temporalAnnotation = new AnnotationNode(ClassHelper.make(Temporal))
+        temporalAnnotation.addMember('value', new PropertyExpression(
+           new ClassExpression(ClassHelper.make(TemporalType)), 'TIMESTAMP'))
+        classNode.addField("createdDate", ACC_PUBLIC, ClassHelper.make(Date.class), null)
+            .addAnnotation(temporalAnnotation)
+        classNode.addField("modifiedDate", ACC_PUBLIC, ClassHelper.make(Date.class), null)
+            .addAnnotation(temporalAnnotation)
     }
 
 }
