@@ -6,21 +6,15 @@ import org.codehaus.groovy.ast.builder.AstBuilder
 import org.codehaus.groovy.ast.expr.*
 import org.codehaus.groovy.ast.stmt.BlockStatement
 import org.codehaus.groovy.ast.stmt.CatchStatement
-import org.codehaus.groovy.ast.stmt.EmptyStatement
 import org.codehaus.groovy.ast.stmt.ExpressionStatement
-import org.codehaus.groovy.ast.stmt.IfStatement
 import org.codehaus.groovy.ast.stmt.Statement
 import org.codehaus.groovy.ast.stmt.TryCatchStatement
 import org.codehaus.groovy.control.CompilePhase
 import org.codehaus.groovy.control.SourceUnit
-import org.codehaus.groovy.runtime.metaclass.MethodHelper
-import org.codehaus.groovy.syntax.Token
-import org.codehaus.groovy.syntax.Types
 import org.codehaus.groovy.transform.GroovyASTTransformation
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
-import griffon.util.GriffonClassUtils
-
+import griffon.util.*
 import javax.persistence.PersistenceException
 
 @GroovyASTTransformation(phase = CompilePhase.SEMANTIC_ANALYSIS)
@@ -29,16 +23,16 @@ public class TransactionTransformation extends AbstractASTTransformation {
     private static final Logger LOG = LoggerFactory.getLogger(TransactionTransformation.class)
 
     public void visit(ASTNode[] astNodes, SourceUnit sourceUnit) {
-        LOG.info "AST Transformation for SimpleJPATransaction is being executed..."
+        LOG.info "AST Transformation for @Transaction is being executed..."
 
         AnnotationNode annotation = astNodes[0]
         AnnotatedNode node = astNodes[1]
 
-        if (getPolicy(annotation)==SimpleJpaTransaction.Policy.SKIP) return
+        if (getPolicy(annotation)==Transaction.Policy.SKIP) return
 
         if (node instanceof ClassNode) {
 
-            ClassNode annotationClass = new ClassNode(SimpleJpaTransaction.class)
+            ClassNode annotationClass = new ClassNode(Transaction.class)
 
             node.fields?.each { FieldNode field ->
                 if (field.initialExpression instanceof ClosureExpression &&
@@ -73,13 +67,13 @@ public class TransactionTransformation extends AbstractASTTransformation {
         }
     }
 
-    private static SimpleJpaTransaction.Policy getPolicy(AnnotationNode annotation) {
+    private static Transaction.Policy getPolicy(AnnotationNode annotation) {
         PropertyExpression value = (PropertyExpression) annotation.getMember("value")
-        value? SimpleJpaTransaction.Policy.valueOf(value.getPropertyAsString()): SimpleJpaTransaction.Policy.PROPAGATE
+        value? Transaction.Policy.valueOf(value.getPropertyAsString()): Transaction.Policy.PROPAGATE
     }
 
     private static boolean isResume(AnnotationNode annotation) {
-        if (getPolicy(annotation)==SimpleJpaTransaction.Policy.NO_PROPAGATE) {
+        if (getPolicy(annotation)==Transaction.Policy.NO_PROPAGATE) {
             return false
         } else {
             return true

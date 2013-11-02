@@ -1,10 +1,10 @@
 package $packageName
 
 import ${domainPackage}.*
-import simplejpa.transaction.SimpleJpaTransaction
+import simplejpa.transaction.Transaction
 import javax.swing.*
 
-@SimpleJpaTransaction
+@Transaction
 class $className {
 
     def model

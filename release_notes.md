@@ -102,3 +102,5 @@ First release into griffon artifacts portal.
 1. doNamedQueryOnModel() is replaced by executeNamedQuery().
 1. Refactor JPA provider and JDBC driver out from simple-jpa so that simple-jpa only contains APIs.  create-simple-jpa command will add dependency to JPA provider and JDBC driver for the project.
 1. Default value for 'griffon.simplejpa.entityManager.lifespan' is set to TRANSACTION.
+1. Rename @DomainModel to @DomainClass and add attributes to excludes injected fields.
+1. Rename @SimpleJpaTransaction to @Transaction.

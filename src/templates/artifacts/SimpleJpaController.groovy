@@ -1,11 +1,11 @@
 package $packageName
 
 import ${domainPackage}.*
-import simplejpa.transaction.SimpleJpaTransaction
+import simplejpa.transaction.Transaction
 import javax.swing.*
 import javax.swing.event.ListSelectionEvent
 
-@SimpleJpaTransaction
+@Transaction
 class $className {
 
     def model
@@ -19,7 +19,7 @@ class $className {
         destroyEntityManager()
     }
 
-    @SimpleJpaTransaction(newSession = true)
+    @Transaction(newSession = true)
     def listAll = {
         execInsideUISync {
             model.${domainClassAsProp}List.clear()
@@ -57,7 +57,7 @@ class $className {
 %>        }
     }
 
-    @SimpleJpaTransaction(newSession = true)
+    @Transaction(newSession = true)
     def search = {
         if (model.${firstField}Search?.length() > 0) {
             execInsideUISync { model.${domainClassAsProp}List.clear() }
@@ -184,7 +184,7 @@ class $className {
         }
     }
 
-    @SimpleJpaTransaction(SimpleJpaTransaction.Policy.SKIP)
+    @Transaction(Transaction.Policy.SKIP)
     def clear = {
         execInsideUISync {
             model.id = null
@@ -215,7 +215,7 @@ class $className {
         }
     }
 
-    @SimpleJpaTransaction(SimpleJpaTransaction.Policy.SKIP)
+    @Transaction(Transaction.Policy.SKIP)
     def tableSelectionChanged = { ListSelectionEvent event ->
         execInsideUISync {
             if (view.table.selectionModel.isSelectionEmpty()) {

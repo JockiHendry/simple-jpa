@@ -1,7 +1,7 @@
 package simplejpa.transaction
 
 import org.codehaus.groovy.transform.GroovyASTTransformationClass
-import simplejpa.transaction.SimpleJpaTransaction.Policy
+import simplejpa.transaction.Transaction.Policy
 
 import java.lang.annotation.ElementType
 import java.lang.annotation.Retention
@@ -11,7 +11,7 @@ import java.lang.annotation.Target
 @Retention(RetentionPolicy.SOURCE)
 @Target([ElementType.TYPE, ElementType.METHOD, ElementType.FIELD])
 @GroovyASTTransformationClass("simplejpa.transaction.TransactionTransformation")
-public @interface SimpleJpaTransaction {
+public @interface Transaction {
 
     Policy value() default Policy.PROPAGATE
 
