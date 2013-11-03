@@ -74,11 +74,11 @@ final class SimpleJpaHandler {
         this.defaultFlushMode = ConfigUtils.getConfigValue(app.config,
             'griffon.simplejpa.entityManager.defaultFlushMode', 'AUTO').toUpperCase()
         this.isCheckThreadSafeLoading = ConfigUtils.getConfigValueAsBoolean(app.config,
-            'config.griffon.simplejpa.entityManager.checkThreadSafeLoading', false)
-        this.prefix = ConfigUtils.getConfigValueAsString(app.config, 'griffon.simplejpa.method.prefix', '')
-        this.domainClassPackage = ConfigUtils.getConfigValueAsString(app.config, 'griffon.simplejpa.domain.package', 'domain')
+            'griffon.simplejpa.entityManager.checkThreadSafeLoading', false)
+        this.prefix = ConfigUtils.getConfigValueAsString(app.config, 'griffon.simplejpa.finders.prefix', '')
         this.alwaysExcludeSoftDeleted = ConfigUtils.getConfigValueAsBoolean(app.config,
-            'griffon.simplejpa.finder.alwaysExcludeSoftDeleted', false)
+            'griffon.simplejpa.finders.alwaysExcludeSoftDeleted', false)
+        this.domainClassPackage = ConfigUtils.getConfigValueAsString(app.config, 'griffon.simplejpa.domain.package', 'domain')
         this.convertEmptyStringToNull = ConfigUtils.getConfigValueAsBoolean(app.config,
             'griffon.simplejpa.validation.convertEmptyStringToNull', false)
 
@@ -89,7 +89,7 @@ final class SimpleJpaHandler {
                 "griffon.simplejpa.entityManager.checkThreadSafeLoading = $isCheckThreadSafeLoading\n" +
                 "griffon.simplejpa.method.prefix = $prefix\n" +
                 "griffon.simplejpa.domain.package = $domainClassPackage\n" +
-                "griffon.simplejpa.finder.alwaysExcludeSoftDeleted = $alwaysExcludeSoftDeleted\n" +
+                "griffon.simplejpa.finders.alwaysExcludeSoftDeleted = $alwaysExcludeSoftDeleted\n" +
                 "griffon.simplejpa.validation.convertEmptyStringToNull = $convertEmptyStringToNull\n"
         }
 

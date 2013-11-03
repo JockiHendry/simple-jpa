@@ -29,7 +29,7 @@ includeTargets << griffonScript("_GriffonCreateArtifacts")
 target(name: 'createDomainClass', description: "Create an empty domain class and register it in persistence file", prehook: null, posthook: null) {
 
     def config = new ConfigSlurper().parse(configFile.toURL())
-    String packageName = ConfigUtils.getConfigValueAsString(config, 'griffon.simplejpa.model.package', 'domain')
+    String packageName = ConfigUtils.getConfigValueAsString(config, 'griffon.simplejpa.domain.package', 'domain')
 
     def helpDescription = """
 DESCRIPTION
@@ -66,7 +66,7 @@ EXAMPLES
     griffon create-domain-class Teacher,Student
 
 CONFIGURATIONS
-    griffon.simplejpa.model.package.value = $packageName
+    griffon.simplejpa.domain.package.value = $packageName
 """
 
     if (argsMap?.params?.isEmpty() || argsMap['info']) {

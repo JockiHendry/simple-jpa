@@ -426,7 +426,7 @@ target(name: 'generateAll', description: "Create CRUD scaffolding for specified 
 
     def config = new ConfigSlurper().parse(configFile.toURL())
     domainPackageName = ConfigUtils.getConfigValueAsString(config, 'griffon.simplejpa.model.package', 'domain')
-    softDelete = ConfigUtils.getConfigValueAsBoolean(config, 'griffon.simplejpa.finder.alwaysExcludeSoftDeleted', false)
+    softDelete = ConfigUtils.getConfigValueAsBoolean(config, 'griffon.simplejpa.finders.alwaysExcludeSoftDeleted', false)
 
     def helpDescription = """
 DESCRIPTION
@@ -484,7 +484,7 @@ DETAILS
     griffon.simplejpa.model.package in Config.groovy.  The default value for
     package is 'domain'.
 
-    The value of griffon.simplejpa.finder.alwaysExcludeSoftDeleted will have
+    The value of griffon.simplejpa.finders.alwaysExcludeSoftDeleted will have
     impact to the generated controller classes.  If you change this
     configuration value after generating domain classes, than you will need
     to alter the generated controllers manually.
@@ -502,7 +502,7 @@ EXAMPLES
 
 CONFIGURATIONS
     griffon.simplejpa.model.package = $domainPackageName
-    griffon.simplejpa.finder.alwaysExcludeSoftDeleted = $softDelete
+    griffon.simplejpa.finders.alwaysExcludeSoftDeleted = $softDelete
 """
     if (argsMap['info']) {
         println helpDescription

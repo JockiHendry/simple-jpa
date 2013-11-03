@@ -52,13 +52,14 @@ import javax.validation.Validation
 import javax.validation.Validator
 import java.beans.PropertyChangeListener
 import java.util.concurrent.ConcurrentHashMap
+import griffon.util.*
 
 class SimpleJpaGriffonAddon {
 
     private static Logger LOG = LoggerFactory.getLogger(SimpleJpaHandler)
 
     void addonPostInit(GriffonApplication app) {
-        def types = app.config.griffon?.simplejpa?.injectInto ?: ['controller']
+        def types = ConfigUtils.getConfigValue(app.config, 'griffon.simplejpa.finders.injectInto', ['controller'])
 
         final EntityManagerFactory emf = Persistence.createEntityManagerFactory("default", SimpleJpaUtil.instance.getJpaConfig())
         final Validator validator = Validation.buildDefaultValidatorFactory().getValidator()
