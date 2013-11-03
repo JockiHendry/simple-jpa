@@ -109,6 +109,37 @@ target(name: 'simplejpaconsole',
         prehook: null, posthook: null) {
     depends(createConfig)
 
+    def helpDescription = """
+DESCRIPTION
+    simple-jpa-console
+
+    Launch Groovy Console which is loaded with Griffon and simple-jpa.  Use
+    this console to execute code interactively.
+
+SYNTAX
+    simple-jpa-console
+
+ARGUMENTS
+
+DETAILS
+    You can use app variable to refer to GriffonApplication.  To see available
+    variables, select Script, Inspect Variables.
+
+    To access  model, view, or controller for MVCGroup, add 'model',
+    'controller', or 'view' suffix to the MVCGroup name.  For example, if
+    MVCGroup name is 'student', you can refer to its controller by using
+    'studentController'.
+
+    When console is started, it only loads startup MVCGroup.  To load the
+    other MVCGroups, select simple-jpa, MVCGroups and check one or more
+    MVCGroups.
+"""
+
+    if (argsMap['info']) {
+        println helpDescription
+        return
+    }
+
     jardir = ant.antProject.replaceProperties(buildConfig.griffon.jars.destDir)
     ant.copy(todir: jardir) { fileset(dir: "${griffonHome}/lib/", includes: "jline-*.jar") }
 
