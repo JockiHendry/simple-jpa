@@ -58,6 +58,13 @@ class SimpleJpaGriffonAddon {
 
     private static Logger LOG = LoggerFactory.getLogger(SimpleJpaHandler)
 
+    private String generateMethodName(String prefix, String methodName) {
+        if (!prefix || prefix?.trim()?.isEmpty()) {
+            return methodName
+        }
+        return prefix + GriffonNameUtils.capitalize(methodName)
+    }
+
     void addonPostInit(GriffonApplication app) {
         def types = ConfigUtils.getConfigValue(app.config, 'griffon.simplejpa.finders.injectInto', ['controller'])
 
@@ -84,22 +91,22 @@ class SimpleJpaGriffonAddon {
                 gc.metaClass.getEntityManager = simpleJpaHandler.getEntityManager
 
                 String pre = simpleJpaHandler.prefix
-                gc.metaClass."${pre}persist" = simpleJpaHandler.persist
-                gc.metaClass."${pre}validate" = simpleJpaHandler.validate
-                gc.metaClass."${pre}merge" = simpleJpaHandler.merge
-                gc.metaClass."${pre}remove" = simpleJpaHandler.remove
-                gc.metaClass."${pre}softDelete" = simpleJpaHandler.softDelete
-                gc.metaClass."${pre}executeNamedQuery" = simpleJpaHandler.executeNamedQuery
-                gc.metaClass."${pre}executeQuery" = simpleJpaHandler.executeQuery
-                gc.metaClass."${pre}executeNativeQuery" = simpleJpaHandler.executeNativeQuery
+                gc.metaClass."${generateMethodName(pre, 'persist')}" = simpleJpaHandler.persist
+                gc.metaClass."${generateMethodName(pre, 'validate')}" = simpleJpaHandler.validate
+                gc.metaClass."${generateMethodName(pre, 'merge')}" = simpleJpaHandler.merge
+                gc.metaClass."${generateMethodName(pre, 'remove')}" = simpleJpaHandler.remove
+                gc.metaClass."${generateMethodName(pre, 'softDelete')}" = simpleJpaHandler.softDelete
+                gc.metaClass."${generateMethodName(pre, 'executeNamedQuery')}" = simpleJpaHandler.executeNamedQuery
+                gc.metaClass."${generateMethodName(pre, 'executeQuery')}" = simpleJpaHandler.executeQuery
+                gc.metaClass."${generateMethodName(pre, 'executeNativeQuery')}" = simpleJpaHandler.executeNativeQuery
 
                 // meta-methods for finders
-                gc.metaClass."${pre}findByDsl" = simpleJpaHandler.findByDsl
-                gc.metaClass."${pre}findAllByDsl" = simpleJpaHandler.findAllByDsl
-                gc.metaClass."${pre}findByAnd" = simpleJpaHandler.findByAnd
-                gc.metaClass."${pre}findAllByAnd" = simpleJpaHandler.findAllByAnd
-                gc.metaClass."${pre}findByOr" = simpleJpaHandler.findByOr
-                gc.metaClass."${pre}findAllByOr" = simpleJpaHandler.findAllByOr
+                gc.metaClass."${generateMethodName(pre, 'findByDsl')}" = simpleJpaHandler.findByDsl
+                gc.metaClass."${generateMethodName(pre, 'findAllByDsl')}" = simpleJpaHandler.findAllByDsl
+                gc.metaClass."${generateMethodName(pre, 'findByAnd')}" = simpleJpaHandler.findByAnd
+                gc.metaClass."${generateMethodName(pre, 'findAllByAnd')}" = simpleJpaHandler.findAllByAnd
+                gc.metaClass."${generateMethodName(pre, 'findByOr')}" = simpleJpaHandler.findByOr
+                gc.metaClass."${generateMethodName(pre, 'findAllByOr')}" = simpleJpaHandler.findAllByOr
 
             }
         }
