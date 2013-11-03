@@ -1,14 +1,14 @@
 package ${packageName}
 
 import groovy.transform.*
-import simplejpa.DomainModel
+import simplejpa.DomainClass
 import javax.persistence.*
 import org.hibernate.annotations.Type
 import javax.validation.constraints.*
 import org.hibernate.validator.constraints.*
 import org.joda.time.*
 
-@DomainModel @Entity @Canonical
+@DomainClass @Entity @Canonical
 class ${className} {
 
     // Example of attribute declaration:
