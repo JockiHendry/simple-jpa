@@ -1,6 +1,7 @@
 package simplejpa
 
-import org.codehaus.groovy.transform.GroovyASTTransformationClass;
+import org.codehaus.groovy.transform.GroovyASTTransformationClass
+import javax.persistence.GenerationType;
 import java.lang.annotation.ElementType;
 import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
@@ -13,4 +14,5 @@ public @interface DomainClass {
     boolean excludeId() default false
     boolean excludeAuditing() default false
     boolean excludeDeletedFlag() default false
+    GenerationType idGenerationStrategy() default GenerationType.TABLE
 }

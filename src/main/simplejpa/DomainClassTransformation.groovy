@@ -71,8 +71,12 @@ class DomainClassTransformation extends AbstractASTTransformation {
         } else {
             AnnotationNode idAnnotation = new AnnotationNode(ClassHelper.make(Id.class))
             AnnotationNode generatedValueAnnotation = new AnnotationNode(ClassHelper.make(GeneratedValue.class))
-            generatedValueAnnotation.addMember("strategy", new PropertyExpression(
-                new ClassExpression(ClassHelper.make(GenerationType.class)), "TABLE"))
+            Expression idGenerationStrategy = annotation.getMember('idGenerationStrategy')
+            if (!idGenerationStrategy) {
+                idGenerationStrategy = new PropertyExpression(new ClassExpression(ClassHelper.make(GenerationType)), 'TABLE')
+            }
+            generatedValueAnnotation.addMember("strategy", idGenerationStrategy)
+
             classNode.addField("id", ACC_PUBLIC, ClassHelper.Long_TYPE, null).addAnnotations([
                 idAnnotation, generatedValueAnnotation])
         }
