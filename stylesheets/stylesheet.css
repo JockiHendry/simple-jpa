@@ -33,6 +33,9 @@ body {
 ol, ul {
 	list-style: none;
 }
+ul.toc li{
+	list-style: none;	
+}
 blockquote, q {
 	quotes: none;
 }
@@ -322,6 +325,14 @@ footer a {
 }
 footer a:hover {
   color: #444;
+}
+
+.warning {
+	color: #9F6000;
+	background-color: #FEEFB3;
+	border: 1px solid;
+	margin: 10px 0px;
+	padding: 8px;		
 }
 
 /* MISC */
