@@ -69,11 +69,11 @@ public class TransactionTransformation extends AbstractASTTransformation {
 
     private static Transaction.Policy getPolicy(AnnotationNode annotation) {
         PropertyExpression value = (PropertyExpression) annotation.getMember("value")
-        value? Transaction.Policy.valueOf(value.getPropertyAsString()): Transaction.Policy.PROPAGATE
+        value? Transaction.Policy.valueOf(value.getPropertyAsString()): Transaction.Policy.NORMAL
     }
 
     private static boolean isResume(AnnotationNode annotation) {
-        if (getPolicy(annotation)==Transaction.Policy.NO_PROPAGATE) {
+        if (getPolicy(annotation)==Transaction.Policy.SKIP_PROPAGATION) {
             return false
         } else {
             return true

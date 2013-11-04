@@ -13,10 +13,10 @@ import java.lang.annotation.Target
 @GroovyASTTransformationClass("simplejpa.transaction.TransactionTransformation")
 public @interface Transaction {
 
-    Policy value() default Policy.PROPAGATE
+    Policy value() default Policy.NORMAL
 
     boolean newSession() default false
 
-    public enum Policy { PROPAGATE, NO_PROPAGATE, SKIP }
+    public enum Policy { NORMAL, SKIP_PROPAGATION, SKIP }
 
 }
