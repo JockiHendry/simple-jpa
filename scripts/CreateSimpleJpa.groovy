@@ -229,7 +229,7 @@ description for more information.
         content = content.replaceAll("@database.name@", databaseName).replaceAll("@database.user@", user)
                     .replaceAll("@database.password@", password)
         file.withWriter {
-            it.write content.bytes
+            it.write content
         }
         println "File $persistenceXml created succesfully! Please modify this file according to your environments."
     }
@@ -256,7 +256,7 @@ description for more information.
 </entity-mappings>
 """
         file.withWriter {
-            it.write content.bytes
+            it.write content
         }
         println "File $ormXml created succesfully! Please modify this file according to your environments."
     }
@@ -299,7 +299,7 @@ simplejpa.converter.toInteger = must be a number
 
 """
         file.withWriter {
-            it.write content.bytes
+            it.write content
         }
         println "File $validationMessages created succesfully!"
     }

@@ -16,7 +16,7 @@
 
 class SimpleJpaGriffonPlugin {
     // the plugin version
-    String version = '0.5'
+    String version = '0.5.1'
     // the version or versions of Griffon the plugin is designed for
     String griffonVersion = '1.2.0 > *'
     // the other plugins this plugin depends on
@@ -55,9 +55,9 @@ class SimpleJpaGriffonPlugin {
 **Warning**: During developer preview stage, new release may include features or changes that are
 not compatible with previous releases.
 
-Documentation: http://jockihendry.github.io/simple-jpa
+Documentation: [http://jockihendry.github.io/simple-jpa](http://jockihendry.github.io/simple-jpa)
 
-News: http://thesolidsnake.wordpress.com/tag/simple-jpa
+News: [http://thesolidsnake.wordpress.com/tag/simple-jpa](http://thesolidsnake.wordpress.com/tag/simple-jpa)
 
 '''
 }
