@@ -5,13 +5,14 @@ import org.slf4j.LoggerFactory
 
 import javax.persistence.Parameter
 import javax.persistence.criteria.CriteriaBuilder
+import javax.persistence.criteria.Path
 import javax.persistence.criteria.Predicate
 import javax.persistence.criteria.Root
 
 class QueryDsl {
 
     private static Logger LOG = LoggerFactory.getLogger(QueryDsl)
-
+    private static String PROPERTY_SEPARATOR = '__'
     CriteriaBuilder cb
     Root rootModel
     Predicate criteria
@@ -22,6 +23,18 @@ class QueryDsl {
         def operation = args['operation'][0]
         def arguments = args['args'][0]
         LOG.info "Creating predicate method for attribute $methodName, operation $operation and arguments $arguments..."
+        Path attribute = null
+        if (methodName.contains(PROPERTY_SEPARATOR)) {
+            methodName.split(PROPERTY_SEPARATOR).each { String node ->
+                if (!attribute) {
+                    attribute = rootModel.get(node)
+                } else {
+                    attribute = attribute.get(node)
+                }
+            }
+        } else {
+            attribute = rootModel.get(methodName)
+        }
         Predicate predicate
         if (arguments==null) {
             predicate = cb."$operation"(rootModel.get(methodName))
@@ -29,16 +42,16 @@ class QueryDsl {
             List paramArgs = []
             if (arguments.class.isArray() || arguments instanceof List) {
                 arguments.each {
-                    Parameter p = cb.parameter(rootModel.get(methodName).javaType)
+                    Parameter p = cb.parameter(attribute.javaType)
                     parameters[p] = it
                     paramArgs << p
                 }
             } else {
-                Parameter p = cb.parameter(rootModel.get(methodName).javaType)
+                Parameter p = cb.parameter(attribute.javaType)
                 parameters[p] = arguments
                 paramArgs << p
             }
-            predicate = cb."$operation"(rootModel.get(methodName), *paramArgs)
+            predicate = cb."$operation"(attribute, *paramArgs)
         }
         if (criteria==null) {
             criteria = cb.conjunction()

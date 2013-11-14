@@ -104,3 +104,9 @@ First release into griffon artifacts portal.
 1. Default value for 'griffon.simplejpa.entityManager.lifespan' is set to TRANSACTION.
 1. Rename @DomainModel to @DomainClass and add attributes to excludes injected fields.
 1. Rename @SimpleJpaTransaction to @Transaction.
+
+### 0.5.1
+1. Fixes can't run create-simple-jpa.
+
+### 0.5.2
+1. New nested attributes support in findByDsl() by separating attributes using double underscores(__), for example: item__category__name eq('CAT1').
