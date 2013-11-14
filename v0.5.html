@@ -1317,6 +1317,17 @@ List result = findByDsl(Student) {
 }
 </pre>
 
+<p>
+Since version 0.5.2, this method can accept nested path by separating them using double underscores (__).
+ For example, to find <code>Order</code>s based on their <code>OrderItem</code>'s <code>Category</code>, use the following code:
+</p>
+
+<pre>
+List result = findOrderByDsl {
+    orderItem__category__name eq('CAT1')
+}
+</pre>
+
 <a id="events"><h3>9. Events</h3></a>
 
 <p>
