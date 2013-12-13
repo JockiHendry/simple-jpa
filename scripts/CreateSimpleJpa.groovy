@@ -14,10 +14,15 @@
  * limitations under the License.
  */
 
-import java.sql.Connection
-import java.sql.DriverManager
-import java.sql.ResultSet
-import java.sql.Statement
+
+import gant.Gant
+import org.codehaus.gant.GantBinding
+import org.codehaus.griffon.cli.GriffonScriptRunner
+import org.codehaus.griffon.cli.GriffonSetup
+import simplejpa.script.Database
+import simplejpa.script.MySQLDatabase
+import simplejpa.script.UnknownDatabase
+import griffon.util.*
 
 /**
  * Gant script that creates a simple persistence.xml to be configured later.
@@ -27,8 +32,8 @@ final Map JPA_PROVIDERS = [
     'hibernate':  'org.hibernate:hibernate-entitymanager:4.2.0.Final'
 ]
 
-final Map JDBC_DRIVERS = [
-    'mysql': 'mysql:mysql-connector-java:5.1.20'
+final Map DATABASES = [
+    'mysql': new MySQLDatabase(),
 ]
 
 final List COMMON_DEPENDENCIES = [
@@ -114,8 +119,15 @@ EXAMPLES
     griffon create-simple-jpa -user=steven -password=12345 -database=sample
         -rootPassword=secret
 
+    griffon create-simple-jpa -user=steven -password=12345 -database=sample
+        -rootPassword=secret -jdbc=mysql -provider=hibernate
+
     griffon create-simple-jpa -user=scott -password=tiger -database=ha
         -skip-database
+
+    griffon create-simple-jpa -user=steven -password=12345 -database=sample
+        -jdbc=mysql -provider=hibernate -skip-database
+
 """
 
     if (argsMap['info']) {
@@ -123,9 +135,7 @@ EXAMPLES
         return
     }
 
-    if ((argsMap['user']==null || argsMap['password']==null || argsMap['database']==null) ||
-        ((argsMap['root-password']==null && argsMap['rootPassword']==null) &&
-         (argsMap['skip-database']==null && argsMap['skipDatabase']==null))) {
+    if (argsMap['user']==null || argsMap['password']==null || argsMap['database']==null)  {
         println '''
 
 You didn't specify all required arguments.  Please see the following
@@ -141,7 +151,10 @@ description for more information.
     String password = argsMap.password ?: "password"
     String rootPassword = argsMap['root-password'] ?: (argsMap['rootPassword'] ?: '')
     String jpaProvider = argsMap.provider ?: 'hibernate'
-    String databaseType = argsMap.jdbc ?: 'mysql'
+    Database database = DATABASES[argsMap.jdbc ?: 'mysql'] ?: new UnknownDatabase()
+    if (database instanceof UnknownDatabase) {
+        println "Database type ${argsMap.jdbc} is not supported! You'll need to configure generated files manually."
+    }
     boolean skipDatabase = argsMap['skip-database']==true || argsMap['skip-database']=="true" ? true:
         (argsMap['skip-database']==true || argsMap['skipDatabase']=="true" ? true : false)
 
@@ -151,61 +164,6 @@ description for more information.
         println "Will not create a new file because $persistenceXml already exists!"
     } else {
 
-        if (!skipDatabase) {
-            Connection cn
-            ResultSet rs
-            Statement stmt
-            try {
-                cn = DriverManager.getConnection("jdbc:mysql://localhost", "root", rootPassword)
-                stmt = cn.createStatement()
-
-                // Check database
-                rs = cn.getMetaData().getCatalogs()
-                boolean found = false
-                while (rs.next()) {
-                    if (rs.getString(1).equals(databaseName)) {
-                        println "Database $databaseName already exists. Will not create a new database."
-                        found = true
-                        break
-                    }
-                }
-                if (!found) {
-                    stmt.execute("CREATE DATABASE ${databaseName}")
-                    println "Database $databaseName created successfully!"
-                }
-
-                // Check if user already exists
-                rs = stmt.executeQuery("SELECT user, host FROM mysql.user")
-                found = false
-                host = 'localhost'
-                while (rs.next()) {
-                    if (rs.getString(1).equals(user)) {
-                        println "User $user already exists. Will not create a new user."
-                        host = rs.getString(2)
-                        found = true
-                        break
-                    }
-                }
-                if (!found) {
-                    stmt.execute("CREATE USER `${user}`@'${host}' IDENTIFIED BY '${password}'")
-                    println "User $user created successfully!"
-                }
-
-                // Grant privilleges
-                println "Granting privileges..."
-                stmt.execute("GRANT ALL ON ${databaseName}.* TO `$user`@'${host}'")
-                println "Privileges on $databaseName granted to $user!"
-
-            } catch (Exception ex) {
-                ex.printStackTrace()
-                fail "Can't create new database! ${ex.getMessage()}"
-            } finally {
-                rs?.close()
-                stmt?.close()
-                cn?.close()
-            }
-        }
-
         String content = """\
 <?xml version="1.0" encoding="UTF-8" ?>
 <persistence xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
@@ -214,20 +172,18 @@ description for more information.
     <persistence-unit name="default" transaction-type="RESOURCE_LOCAL">
         <provider>org.hibernate.ejb.HibernatePersistence</provider>
         <properties>
-            <property name="javax.persistence.jdbc.driver"   value="com.mysql.jdbc.Driver" />
-            <property name="javax.persistence.jdbc.url"      value="jdbc:mysql://localhost/@database.name@" />
-            <property name="javax.persistence.jdbc.user"     value="@database.user@" />
-            <property name="javax.persistence.jdbc.password" value="@database.password@" />
+            <property name="javax.persistence.jdbc.driver"   value="${database.jdbcDriver}" />
+            <property name="javax.persistence.jdbc.url"      value="${database.getJdbcUrl(user, password, databaseName)}" />
+            <property name="javax.persistence.jdbc.user"     value="$user" />
+            <property name="javax.persistence.jdbc.password" value="$password" />
             <property name="hibernate.connection.autocommit" value="false" />
-            <property name="hibernate.dialect" value="org.hibernate.dialect.MySQL5Dialect" />
+            <property name="hibernate.dialect" value="${database.dialect}" />
             <property name="hibernate.hbm2ddl.auto" value="create-drop" />
             <property name="jadira.usertype.autoRegisterUserTypes" value="true"/>
         </properties>
     </persistence-unit>
 </persistence>
 """
-        content = content.replaceAll("@database.name@", databaseName).replaceAll("@database.user@", user)
-                    .replaceAll("@database.password@", password)
         file.withWriter {
             it.write content
         }
@@ -333,11 +289,8 @@ simplejpa.converter.toInteger = must be a number
     } else {
         dependencies << JPA_PROVIDERS[jpaProvider.toLowerCase()]
     }
-    if (!JDBC_DRIVERS[databaseType]) {
-        println "JDBC Driver: $databaseType is not supported.  You will need to add dependency to this JDBC driver manually by editing $buildConfigFile."
-    } else {
-        dependencies << JDBC_DRIVERS[databaseType.toLowerCase()]
-    }
+
+    dependencies << database.dependencyConfig
 
     dependencies.each { String dependency ->
         if (buildConfigText =~ /(?s)\s*$dependency\s*/)  {
@@ -355,6 +308,35 @@ simplejpa.converter.toInteger = must be a number
     }
 
     println "File $buildConfigFile successfully updated!"
+
+    if (!skipDatabase) {
+        println "Creating database schema..."
+
+        // Re-resolve dependencies (including JDBC driver)
+        try {
+            BuildSettings build = new BuildSettings(new File(System.getProperty("griffon.home")));
+            BuildSettingsHolder.settings = build
+            GriffonSetup.run()
+            GriffonScriptRunner runner = new GriffonScriptRunner(build)
+            runner.setup()
+            GantBinding binding = new GantBinding()
+            binding.with {
+                setVariable(GriffonScriptRunner.VAR_SCRIPT_NAME, "test");
+                setVariable(GriffonScriptRunner.VAR_SCRIPT_ARGS_MAP, []);
+                setVariable(GriffonScriptRunner.VAR_SCRIPT_UNPARSED_ARGS, []);
+                setVariable(GriffonScriptRunner.VAR_SYS_PROPERTIES, []);
+                setVariable("default", {
+                    database.setup(user, password, databaseName, rootPassword)
+                })
+            }
+            Gant gant = runner.createGantInstance(binding)
+            runner.executeWithGantInstance(gant, binding)
+            database.setup(user, password, databaseName, rootPassword)
+        } catch (Exception ex) {
+            fail "An error occurred while creating database schema: ${ex.message}"
+        }
+    }
+
 
 }
 
