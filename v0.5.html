@@ -128,6 +128,43 @@
 </p>
 <div class='warning'><strong>Warning:</strong>  These changes make simple-jpa 0.5 not compatible with previous releases.  It is not recommended for project which uses previous release to upgrade to simple-jpa 0.5.</div>
 
+<p>
+simple-jpa 0.5.2 fixes bugs that causes <a href='#create-simple-jpa'>create-simple-jpa</a> command not working as expected.  In this release, <a href='#create-simple-jpa'>create-simple-jpa</a> will download required JDBC driver from Maven central repository based on <code>-jdbc</code> value if it is not available.   This will be disabled if <code>-skip-database</code> argument is present.
+</p>
+
+<p>
+simple-jpa 0.5.2 also introduces support for Apache Derby embedded database in <a href='#create-simple-jpa'>create-simple-jpa</a> command.  For example, the following command will setup an embedded Apache Derby database:
+</p>
+
+<pre>
+griffon create-simple-jpa -user=myuser -password=mypassword 
+    -rootPassword=password -database=C:/database 
+    -jdbc=derby-embedded
+</pre>
+
+<p>
+The command above will use Derby database stored in <strong>C:/database</strong>.  If it doesn't exist, a new database will be created in the same location.  The owner of this new database is user <strong>root</strong> and her password is <strong>password</strong> (specified in <code>-rootPassword</code>).  User <strong>myuser</strong> (password is <strong>mypassword</strong>) will also be created.  The project will connect to the specified Derby database as user <strong>myuser</strong>.
+</p>
+
+<p>
+<a href='#findDomainClassByDsl'>find[DomainClass]ByDsl()</a> now accepts nested path by separating them by double underscores (__).  For example:
+</p>
+
+<pre>
+def result = findOrderByDsl {
+    orderItem__category__name eq('CAT1')
+}
+</pre>
+
+<p>
+The code above produces the same result as:
+</p>
+
+<pre>
+def result = executeQuery("FROM Order o 
+    WHERE o.orderItem.category.name = 'CAT1'")
+</pre>
+
 <a id='gettingStarted'><h3>3. Getting Started</h3></a>
 
 <p>Work in progress...</p>
