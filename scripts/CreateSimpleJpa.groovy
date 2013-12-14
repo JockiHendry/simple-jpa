@@ -20,6 +20,7 @@ import org.codehaus.gant.GantBinding
 import org.codehaus.griffon.cli.GriffonScriptRunner
 import org.codehaus.griffon.cli.GriffonSetup
 import simplejpa.script.Database
+import simplejpa.script.DerbyEmbeddedDatabase
 import simplejpa.script.MySQLDatabase
 import simplejpa.script.UnknownDatabase
 import griffon.util.*
@@ -34,6 +35,7 @@ final Map JPA_PROVIDERS = [
 
 final Map DATABASES = [
     'mysql': new MySQLDatabase(),
+    'derby-embedded': new DerbyEmbeddedDatabase(),
 ]
 
 final List COMMON_DEPENDENCIES = [
@@ -65,23 +67,19 @@ ARGUMENTS
 
     password
         This is the password used when establishing connection to the
-        database.
-        MySQL Only:
-            User with this password will be create if it doesn't exists.
+        database.  User with this password will be create if it doesn't
+        exists.
 
     database
-        This is the database name or schema name.
-        MySQL Only:
-            If this database doesn't exists, it will be created automatically.
-            Specified user will also be granted privilleges to use
-            this database.
+        This is the database name or schema name. If this database doesn't
+        exists, it will be created automatically. Specified user will also
+        be granted privilleges to use this database.
 
     rootPassword
-        MySQL Only:
-            To create user & database and grants privilleges, this command
-            will require password for MySQL root user.  While user name and
-            password is saved in persistence.xml for establishing connection,
-            root password will never be stored in project files.
+        To create user & database and grants privilleges, this command
+        will require password for db admin/root user.  While user name and
+        password is saved in persistence.xml for establishing connection,
+        db root password will never be stored in project files.
 
     provider
         Specifies JPA provider that will be used.  The default value for
@@ -94,6 +92,7 @@ ARGUMENTS
         this parameter is 'mysql'.
         Available values:
             mysql - Use MySQL JDBC.
+            derby-embedded - Use Derby embedded JDBC.
 
     skipDatabase
         Don't create user and database automatically.  This command will
@@ -111,9 +110,6 @@ DETAILS
     another database, you should always add -skipDatabase argument when
     invoking this command.  You will need to modify persistence.xml manually.
     You will also need to add required JDBC driver for your database.
-
-    *NOTE*:  In the future, this command will allow user to select database
-    type, JPA version and JPA implementation!
 
 EXAMPLES
     griffon create-simple-jpa -user=steven -password=12345 -database=sample
@@ -155,7 +151,7 @@ description for more information.
     if (database instanceof UnknownDatabase) {
         println "Database type ${argsMap.jdbc} is not supported! You'll need to configure generated files manually."
     }
-    boolean skipDatabase = argsMap['skip-database']==true || argsMap['skip-database']=="true" ? true:
+    boolean skipDatabase = argsMap['skip-database']==true || argsMap['skipDatabase']=="true" ? true:
         (argsMap['skip-database']==true || argsMap['skipDatabase']=="true" ? true : false)
 
     String persistenceXml = "${basedir}/griffon-app/conf/metainf/persistence.xml"
@@ -303,6 +299,8 @@ simplejpa.converter.toInteger = must be a number
         }
     }
 
+    buildConfigText = buildConfigText.replace('//mavenCentral()', 'mavenCentral()')
+
     buildConfigFile.withWriter {
         it.write buildConfigText
     }
@@ -331,7 +329,6 @@ simplejpa.converter.toInteger = must be a number
             }
             Gant gant = runner.createGantInstance(binding)
             runner.executeWithGantInstance(gant, binding)
-            database.setup(user, password, databaseName, rootPassword)
         } catch (Exception ex) {
             fail "An error occurred while creating database schema: ${ex.message}"
         }

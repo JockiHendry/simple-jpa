@@ -111,3 +111,4 @@ First release into griffon artifacts portal.
 ### 0.5.2
 1. New nested attributes support in findByDsl() by separating attributes using double underscores(__), for example: item__category__name eq('CAT1').
 1. Fixes create-simple-jpa failed with error 'java.sql.SQLException: No suitable driver found'.
+1. Add '-jdbc=derby-embedded' to create-simple-jpa command.
