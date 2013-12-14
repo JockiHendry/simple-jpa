@@ -6,14 +6,23 @@
       <sourceFolder url="file://$MODULE_DIR$/src/main" isTestSource="false" />
       <sourceFolder url="file://$MODULE_DIR$/griffon-app/conf" isTestSource="false" />
       <sourceFolder url="file://$MODULE_DIR$" isTestSource="false" />
+      <sourceFolder url="file://$MODULE_DIR$/test/unit" isTestSource="true" />
+      <sourceFolder url="file://$MODULE_DIR$/test/integration" isTestSource="true" />
+      <sourceFolder url="file://$MODULE_DIR$/griffon-app/models" isTestSource="false" />
+      <sourceFolder url="file://$MODULE_DIR$/griffon-app/views" isTestSource="false" />
+      <sourceFolder url="file://$MODULE_DIR$/griffon-app/controllers" isTestSource="false" />
+      <sourceFolder url="file://$MODULE_DIR$/griffon-app/lifecycle" isTestSource="false" />
     </content>
     <orderEntry type="inheritedJdk" />
     <orderEntry type="sourceFolder" forTests="false" />
     <orderEntry type="module-library" exported="">
       <library name="Griffon:lib (simple-jpa)">
-        <CLASSES />
+        <CLASSES>
+          <root url="file://$MODULE_DIR$/lib" />
+        </CLASSES>
         <JAVADOC />
         <SOURCES />
+        <jarDirectory url="file://$MODULE_DIR$/lib" recursive="false" />
       </library>
     </orderEntry>
     <orderEntry type="module-library">
