@@ -186,7 +186,7 @@ griffon [command-name] -info
 <a id='create-simple-jpa'><h4>4.1. create-simple-jpa</h4></a>
 
 <p>
-This command is usually the first command that will be invoked before working with Java Persistence API (JPA). It will create persistence.xml and orm.xml in current project.  It will also create some resource files that are commonly required when working with JPA.  In current version, this command assume the use of MySQL Server database.  If not using MySQL Server database, developer should always add <code>-skipDatabase</code> argument when calling this command.  Developer will need to modify persistence.xml and add required JDBC driver manually.
+This command is usually the first command that will be invoked before working with Java Persistence API (JPA). It will create persistence.xml and orm.xml in current project.  It will also create some resource files that are commonly required when working with JPA.
 </p>
 
 <p>
@@ -221,6 +221,7 @@ The syntax for this command is:
 <p><code>databaseType</code> is the name of JDBC driver that will be used.  The default value for this parameter is 'mysql'.  The following is list of Available values:</p>
 <ul>
     <li><code>mysql</code> - Use MySQL JDBC</li>
+    <li><code>derby-embedded</code> - Use Apache Derby embedded database JDBC</li>
 </ul>
 
 <p><code>skipDatabase</code> is used to tell this command to not create user and database automatically.  This command will only write to persistence.xml and assume required database schema and user is available.</p>
