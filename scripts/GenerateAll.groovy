@@ -435,13 +435,13 @@ DESCRIPTION
     Generate an MVCGroup with scaffolding code.
 
 SYNTAX
-    griffon generate-all * [-generatedPackage] [-forceOverwrite] [-setStartup]
-        [-skipExcel] [-startupGroup=value]
-    griffon generate-all [domainClassName] [-generatedPackage]
+    griffon generate-all * [-generatedPackage=value] [-forceOverwrite]
+        [-setStartup] [-skipExcel] [-startupGroup=value]
+    griffon generate-all [domainClassName] [-generatedPackage=value]
         [-forceOverwrite] [-setStartup] [-skipExcel] [-startupGroup=value]
     griffon generate-all [domainClassName] [domainClassName] ...
-        [-generatedPackage] [-forceOverwrite] [-setStartup] [-skipExcel]
-        [-startupGroup=value]
+        [-generatedPackage=value] [-forceOverwrite] [-setStartup]
+        [-skipExcel] [-startupGroup=value]
 
 ARGUMENTS
     *
@@ -452,7 +452,8 @@ ARGUMENTS
 
     generatedPackage (optional)
         By default, generate-all will place the generated files in package
-        'project'.  You can the generated package name by using this argument.
+        'project'.  You can set the generated package name by using this
+        argument.
 
     forceOverwrite (optional)
         If this argument is present, generate-all will replace all existing
@@ -509,7 +510,7 @@ CONFIGURATIONS
         return
     }
 
-    if (argsMap?.params?.isEmpty() && (!argsMap['startup-group'] || !argsMap['startupGroup'])) {
+    if (argsMap?.params?.isEmpty() && !(argsMap['startup-group'] || argsMap['startupGroup'])) {
         println '''
 
 You didn't specify all required arguments.  Please see the following
