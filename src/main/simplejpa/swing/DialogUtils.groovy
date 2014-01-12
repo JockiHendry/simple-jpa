@@ -9,6 +9,8 @@ import griffon.core.GriffonApplication
 
 class DialogUtils {
 
+    public static Closure defaultContentDecorator = null
+
     static showMVCGroup(String mvcGroupName, Map args, GriffonApplication app, GriffonView view,
             Map dialogProperties = null, Closure onFinish = null, Closure contentDecorator = null) {
         app.withMVCGroup(mvcGroupName, args) { m, v, c ->
@@ -16,6 +18,8 @@ class DialogUtils {
             JDialog dialog = new JDialog(thisWindow, Dialog.ModalityType.APPLICATION_MODAL)
             if (contentDecorator) {
                 dialog.contentPane = contentDecorator(v.mainPanel)
+            } else if (DialogUtils.defaultContentDecorator) {
+                dialog.contentPane = DialogUtils.defaultContentDecorator.call(v.mainPanel)
             } else {
                 dialog.contentPane = v.mainPanel
             }
