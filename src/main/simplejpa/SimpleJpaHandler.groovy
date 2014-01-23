@@ -299,10 +299,12 @@ final class SimpleJpaHandler {
         throw new ReturnFailedSignal()
     }
 
-    def executeQuery = { String jpql, Map config = [:] ->
+    def executeQuery = { String jpql, Map config = [:], Map params = [:] ->
         LOG.info "Executing query $jpql"
         executeInsideTransaction {
-            configureQuery(getEntityManager().createQuery(jpql), config).getResultList()
+            Query query = configureQuery(getEntityManager().createQuery(jpql), config)
+            params.each { k, v -> query.setParameter(k,v)}
+            query.getResultList()
         }
     }
 

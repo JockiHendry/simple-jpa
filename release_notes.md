@@ -115,3 +115,4 @@ First release into griffon artifacts portal.
 
 ### 0.5.3
 1. Allow user to specify default content decorator for `mvcPopupButton()` in `DialogUtils`.
+1. `executeQuery()` now supports named parameter.
