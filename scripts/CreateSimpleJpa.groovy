@@ -30,7 +30,7 @@ import griffon.util.*
  *
  */
 final Map JPA_PROVIDERS = [
-    'hibernate':  'org.hibernate:hibernate-entitymanager:4.2.0.Final'
+    'hibernate':  'org.hibernate:hibernate-entitymanager:4.3.1.Final'
 ]
 
 final Map DATABASES = [
@@ -39,7 +39,7 @@ final Map DATABASES = [
 ]
 
 final List COMMON_DEPENDENCIES = [
-    'org.hibernate:hibernate-validator:4.3.0.Final'
+    'org.hibernate:hibernate-validator:5.0.3.Final'
 ]
 
 target(name: 'createSimpleJpa', description: "Creates persistence.xml, orm.xml and validation messages if not present", prehook: null, posthook: null) {

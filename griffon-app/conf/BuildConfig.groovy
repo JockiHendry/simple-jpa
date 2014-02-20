@@ -32,8 +32,8 @@ griffon.project.dependency.resolution = {
     dependencies {
         // specify dependencies here under either 'scripts.build', 'compile', 'runtime' or 'test' scopes eg.
 
-        compile 'org.hibernate.javax.persistence:hibernate-jpa-2.0-api:1.0.1.Final'
-        compile 'javax.validation:validation-api:1.0.0.GA'
+        compile 'org.hibernate.javax.persistence:hibernate-jpa-2.1-api:1.0.0.Final'
+        compile 'javax.validation:validation-api:1.1.0.Final'
         compile 'org.jadira.usertype:usertype.jodatime:2.0.1'
         compile 'joda-time:joda-time:2.1'
         compile 'net.java.dev.glazedlists:glazedlists_java15:1.9.0'
