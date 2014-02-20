@@ -15,6 +15,7 @@
  */
 
 import groovy.swing.factory.BeanFactory
+import org.reflections.Reflections
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 import simplejpa.SimpleJpaHandler
@@ -33,6 +34,7 @@ import simplejpa.swing.TableColumnConfig
 import simplejpa.swing.TagChooser
 import simplejpa.swing.TemplateListCellRenderer
 import simplejpa.swing.glazed.factory.TemplateRendererFactory
+import simplejpa.transaction.Transaction
 import simplejpa.validation.BasicHighlightErrorNotification
 import simplejpa.validation.ConverterFactory
 import simplejpa.validation.DateTimePickerErrorCleaner
@@ -74,41 +76,55 @@ class SimpleJpaGriffonAddon {
         SimpleJpaUtil util = SimpleJpaUtil.instance
         util.entityManagerFactory = emf
 
-        types.each {
-            app.artifactManager.getClassesOfType(it).each { GriffonClass gc ->
-                LOG.debug "Creating new SimpleJpaHandler for ${gc.fullName}"
-                SimpleJpaHandler simpleJpaHandler = new SimpleJpaHandler(emf, validator)
-                util.registerHandler(simpleJpaHandler)
-                gc.metaClass.methodMissing =  simpleJpaHandler.methodMissingHandler
+        // Classes that will be injected with simple-jpa methods
+        def targets = []
+        for (String type: types) {
+            app.artifactManager.getClassesOfType(type).each { targets << it }
+        }
 
-                // Add these methods dynamically
-                gc.metaClass.beginTransaction = simpleJpaHandler.beginTransaction
-                gc.metaClass.commitTransaction = simpleJpaHandler.commitTransaction
-                gc.metaClass.rollbackTransaction = simpleJpaHandler.rollbackTransaction
-                gc.metaClass.return_failed = simpleJpaHandler.returnFailed
-                gc.metaClass.createEntityManager = simpleJpaHandler.createEntityManager
-                gc.metaClass.destroyEntityManager = simpleJpaHandler.destroyEntityManager
-                gc.metaClass.getEntityManager = simpleJpaHandler.getEntityManager
+        // Also injects simple-jpa methods to domain classes annotated with @Transaction
+        String basePackage = ConfigUtils.getConfigValueAsString(app.config, 'griffon.simplejpa.domain.package', 'domain').replace('.', '/')
+        LOG.debug("Start scanning ${basePackage} for @Transaction")
+        Reflections reflections = new Reflections(basePackage)
+        reflections.getTypesAnnotatedWith(Transaction).each {
+            LOG.debug("Found @Transaction class: ${it.name}")
+            targets << it
+        }
 
-                String pre = simpleJpaHandler.prefix
-                gc.metaClass."${generateMethodName(pre, 'persist')}" = simpleJpaHandler.persist
-                gc.metaClass."${generateMethodName(pre, 'validate')}" = simpleJpaHandler.validate
-                gc.metaClass."${generateMethodName(pre, 'merge')}" = simpleJpaHandler.merge
-                gc.metaClass."${generateMethodName(pre, 'remove')}" = simpleJpaHandler.remove
-                gc.metaClass."${generateMethodName(pre, 'softDelete')}" = simpleJpaHandler.softDelete
-                gc.metaClass."${generateMethodName(pre, 'executeNamedQuery')}" = simpleJpaHandler.executeNamedQuery
-                gc.metaClass."${generateMethodName(pre, 'executeQuery')}" = simpleJpaHandler.executeQuery
-                gc.metaClass."${generateMethodName(pre, 'executeNativeQuery')}" = simpleJpaHandler.executeNativeQuery
+        SimpleJpaHandler simpleJpaHandler = new SimpleJpaHandler(emf, validator)
+        util.registerHandler(simpleJpaHandler)
 
-                // meta-methods for finders
-                gc.metaClass."${generateMethodName(pre, 'findByDsl')}" = simpleJpaHandler.findByDsl
-                gc.metaClass."${generateMethodName(pre, 'findAllByDsl')}" = simpleJpaHandler.findAllByDsl
-                gc.metaClass."${generateMethodName(pre, 'findByAnd')}" = simpleJpaHandler.findByAnd
-                gc.metaClass."${generateMethodName(pre, 'findAllByAnd')}" = simpleJpaHandler.findAllByAnd
-                gc.metaClass."${generateMethodName(pre, 'findByOr')}" = simpleJpaHandler.findByOr
-                gc.metaClass."${generateMethodName(pre, 'findAllByOr')}" = simpleJpaHandler.findAllByOr
+        for (def target: targets) {
+            LOG.debug "Add SimpleJpaHandler to ${target.class}"
 
-            }
+            target.metaClass.methodMissing =  simpleJpaHandler.methodMissingHandler
+
+            // Add these methods dynamically
+            target.metaClass.beginTransaction = simpleJpaHandler.beginTransaction
+            target.metaClass.commitTransaction = simpleJpaHandler.commitTransaction
+            target.metaClass.rollbackTransaction = simpleJpaHandler.rollbackTransaction
+            target.metaClass.return_failed = simpleJpaHandler.returnFailed
+            target.metaClass.createEntityManager = simpleJpaHandler.createEntityManager
+            target.metaClass.destroyEntityManager = simpleJpaHandler.destroyEntityManager
+            target.metaClass.getEntityManager = simpleJpaHandler.getEntityManager
+
+            String pre = simpleJpaHandler.prefix
+            target.metaClass."${generateMethodName(pre, 'persist')}" = simpleJpaHandler.persist
+            target.metaClass."${generateMethodName(pre, 'validate')}" = simpleJpaHandler.validate
+            target.metaClass."${generateMethodName(pre, 'merge')}" = simpleJpaHandler.merge
+            target.metaClass."${generateMethodName(pre, 'remove')}" = simpleJpaHandler.remove
+            target.metaClass."${generateMethodName(pre, 'softDelete')}" = simpleJpaHandler.softDelete
+            target.metaClass."${generateMethodName(pre, 'executeNamedQuery')}" = simpleJpaHandler.executeNamedQuery
+            target.metaClass."${generateMethodName(pre, 'executeQuery')}" = simpleJpaHandler.executeQuery
+            target.metaClass."${generateMethodName(pre, 'executeNativeQuery')}" = simpleJpaHandler.executeNativeQuery
+
+            // meta-methods for finders
+            target.metaClass."${generateMethodName(pre, 'findByDsl')}" = simpleJpaHandler.findByDsl
+            target.metaClass."${generateMethodName(pre, 'findAllByDsl')}" = simpleJpaHandler.findAllByDsl
+            target.metaClass."${generateMethodName(pre, 'findByAnd')}" = simpleJpaHandler.findByAnd
+            target.metaClass."${generateMethodName(pre, 'findAllByAnd')}" = simpleJpaHandler.findAllByAnd
+            target.metaClass."${generateMethodName(pre, 'findByOr')}" = simpleJpaHandler.findByOr
+            target.metaClass."${generateMethodName(pre, 'findAllByOr')}" = simpleJpaHandler.findAllByOr
         }
 
         // For validation-handling

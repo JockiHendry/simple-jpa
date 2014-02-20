@@ -11,6 +11,7 @@ import org.codehaus.groovy.ast.stmt.Statement
 import org.codehaus.groovy.ast.stmt.TryCatchStatement
 import org.codehaus.groovy.control.CompilePhase
 import org.codehaus.groovy.control.SourceUnit
+import org.codehaus.groovy.syntax.Token
 import org.codehaus.groovy.transform.GroovyASTTransformation
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
@@ -119,51 +120,33 @@ public class TransactionTransformation extends AbstractASTTransformation {
 
         BlockStatement catchPersistenceBlock = new BlockStatement()
         catchPersistenceBlock.addStatement(new AstBuilder().buildFromCode(CompilePhase.SEMANTIC_ANALYSIS, true) {
-            log.debug "start of catch_persistence_block"
             try {
-                model.errors.'exception' = ex.message
-                log.debug "trying to rollback from catch_persistence_block"
+                __transactionError__ = true
                 rollbackTransaction()
             } finally {
-                log.error "Persistence Error: ${ex.message}"
-                log.debug "signaling error event from catch_persistence_block..."
-                app.event('jpaError', [ex])
-                log.debug "rethrowing exception from catch_persistence_block..."
                 throw new Exception(ex)
             }
-            log.info "end of catch_persistence_block"
         }[0])
 
         BlockStatement catchReturnFailedBlock = new BlockStatement()
         catchReturnFailedBlock.addStatement(new AstBuilder().buildFromCode(CompilePhase.SEMANTIC_ANALYSIS, true) {
-            log.debug "trying to rollback from catch_return_failed"
             rollbackTransaction()
-            log.debug "end of catch_return_failed"
         })
 
         BlockStatement catchGenericBlock = new BlockStatement()
         catchGenericBlock.addStatement(new AstBuilder().buildFromCode(CompilePhase.SEMANTIC_ANALYSIS, true) {
-           log.debug "start of catch_generic_block"
            try {
-               model.errors.'exception' = ex.message
-               log.debug "trying to rollback from catch_generic_block"
+               __transactionError__ = true
                rollbackTransaction()
            } finally {
-               log.error "Exception: ${ex.message}"
-               log.debug "rethrowing exception from catch_generic_block"
                throw new Exception(ex)
            }
-           log.debug "end of catch_generic_block"
         }[0])
 
         BlockStatement finallyBlock = new AstBuilder().buildFromCode(CompilePhase.SEMANTIC_ANALYSIS, true) {
-            log.debug "start of finally_block"
-            if (!model.errors.'exception') {
-                log.debug "committing transaction in finally_block..."
+            if (!__transactionError__) {
                 commitTransaction()
             }
-            model.errors.remove('exception')
-            log.debug "end of finally_block"
         }[0]
 
         TryCatchStatement tryCatchStatement = new TryCatchStatement(originalBlock, finallyBlock)
@@ -178,8 +161,11 @@ public class TransactionTransformation extends AbstractASTTransformation {
         beginTransactionParams << new ConstantExpression(isResume(annotation))
         beginTransactionParams << new ConstantExpression(isNewSession(annotation))
 
+        newBlock.addStatement(new ExpressionStatement(new DeclarationExpression(
+            new VariableExpression("__transactionError__", new ClassNode(Boolean)), Token.newSymbol("=", 1,1),
+            new ConstantExpression(Boolean.FALSE))));
         MethodCallExpression beginTransactionCall = new MethodCallExpression(new VariableExpression("this"),
-            "beginTransaction", new ArgumentListExpression(beginTransactionParams))
+                "beginTransaction", new ArgumentListExpression(beginTransactionParams))
         newBlock.addStatement(new ExpressionStatement(beginTransactionCall))
         newBlock.addStatement(tryCatchStatement)
 

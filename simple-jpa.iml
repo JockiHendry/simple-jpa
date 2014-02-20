@@ -3,20 +3,23 @@
   <component name="NewModuleRootManager" inherit-compiler-output="true">
     <exclude-output />
     <content url="file://$MODULE_DIR$">
-      <sourceFolder url="file://$MODULE_DIR$/src/main" isTestSource="false" />
-      <sourceFolder url="file://$MODULE_DIR$/griffon-app/conf" isTestSource="false" />
-      <sourceFolder url="file://$MODULE_DIR$" isTestSource="false" />
-      <sourceFolder url="file://$MODULE_DIR$/test/unit" isTestSource="true" />
-      <sourceFolder url="file://$MODULE_DIR$/test/integration" isTestSource="true" />
+      <sourceFolder url="file://$MODULE_DIR$/griffon-app/controllers" isTestSource="false" />
       <sourceFolder url="file://$MODULE_DIR$/griffon-app/models" isTestSource="false" />
       <sourceFolder url="file://$MODULE_DIR$/griffon-app/views" isTestSource="false" />
-      <sourceFolder url="file://$MODULE_DIR$/griffon-app/controllers" isTestSource="false" />
+      <sourceFolder url="file://$MODULE_DIR$/src/main" isTestSource="false" />
+      <sourceFolder url="file://$MODULE_DIR$/test/unit" isTestSource="true" />
+      <sourceFolder url="file://$MODULE_DIR$/test/integration" isTestSource="true" />
+      <sourceFolder url="file://$MODULE_DIR$/griffon-app/conf" isTestSource="false" />
       <sourceFolder url="file://$MODULE_DIR$/griffon-app/lifecycle" isTestSource="false" />
+      <sourceFolder url="file://$MODULE_DIR$" isTestSource="false" />
+      <excludeFolder url="file://$MODULE_DIR$/target/classes" />
+      <excludeFolder url="file://$MODULE_DIR$/target/test-classes" />
     </content>
     <orderEntry type="inheritedJdk" />
     <orderEntry type="sourceFolder" forTests="false" />
-    <orderEntry type="module-library" exported="">
-      <library name="Griffon:lib (simple-jpa)">
+    <orderEntry type="library" name="griffon-1.5.0" level="project" />
+    <orderEntry type="module-library">
+      <library name="Griffon:lib">
         <CLASSES>
           <root url="file://$MODULE_DIR$/lib" />
         </CLASSES>
@@ -25,88 +28,7 @@
         <jarDirectory url="file://$MODULE_DIR$/lib" recursive="false" />
       </library>
     </orderEntry>
-    <orderEntry type="module-library">
-      <library>
-        <CLASSES>
-          <root url="jar://$IVY_CACHE$/org.hibernate.javax.persistence/hibernate-jpa-2.0-api/jars/hibernate-jpa-2.0-api-1.0.1.Final.jar!/" />
-        </CLASSES>
-        <JAVADOC />
-        <SOURCES />
-      </library>
-    </orderEntry>
-    <orderEntry type="module-library">
-      <library>
-        <CLASSES>
-          <root url="jar://$IVY_CACHE$/javax.validation/validation-api/jars/validation-api-1.0.0.GA.jar!/" />
-        </CLASSES>
-        <JAVADOC />
-        <SOURCES />
-      </library>
-    </orderEntry>
-    <orderEntry type="module-library">
-      <library>
-        <CLASSES>
-          <root url="jar://$IVY_CACHE$/org.hibernate/hibernate-core/jars/hibernate-core-4.1.9.Final.jar!/" />
-        </CLASSES>
-        <JAVADOC />
-        <SOURCES />
-      </library>
-    </orderEntry>
-    <orderEntry type="module-library">
-      <library>
-        <CLASSES>
-          <root url="jar://$IVY_CACHE$/joda-time/joda-time/jars/joda-time-2.1.jar!/" />
-        </CLASSES>
-        <JAVADOC />
-        <SOURCES />
-      </library>
-    </orderEntry>
-    <orderEntry type="module-library">
-      <library>
-        <CLASSES>
-          <root url="jar://$IVY_CACHE$/org.swinglabs.swingx/swingx-core/jars/swingx-core-1.6.4.jar!/" />
-        </CLASSES>
-        <JAVADOC />
-        <SOURCES />
-      </library>
-    </orderEntry>
-    <orderEntry type="module-library">
-      <library>
-        <CLASSES>
-          <root url="jar://$IVY_CACHE$/net.java.dev.glazedlists/glazedlists_java15/jars/glazedlists_java15-1.9.0.jar!/" />
-        </CLASSES>
-        <JAVADOC />
-        <SOURCES />
-      </library>
-    </orderEntry>
-    <orderEntry type="module-library">
-      <library>
-        <CLASSES>
-          <root url="jar://$IVY_CACHE$/org.swinglabs.swingx/swingx-autocomplete/jars/swingx-autocomplete-1.6.4.jar!/" />
-        </CLASSES>
-        <JAVADOC />
-        <SOURCES />
-      </library>
-    </orderEntry>
-    <orderEntry type="module-library">
-      <library>
-        <CLASSES>
-          <root url="jar://$IVY_CACHE$/org.dbunit/dbunit/jars/dbunit-2.4.9.jar!/" />
-        </CLASSES>
-        <JAVADOC />
-        <SOURCES />
-      </library>
-    </orderEntry>
-    <orderEntry type="module-library">
-      <library>
-        <CLASSES>
-          <root url="jar://$IVY_CACHE$/org.apache.poi/poi/jars/poi-3.2-FINAL.jar!/" />
-        </CLASSES>
-        <JAVADOC />
-        <SOURCES />
-      </library>
-    </orderEntry>
-    <orderEntry type="library" name="griffon-1.5.0" level="application" />
+    <orderEntry type="module" module-name="simple-jpa-griffonPluginFixes" />
     <orderEntry type="module" module-name="simple-jpa-griffonPlugins" />
   </component>
 </module>
