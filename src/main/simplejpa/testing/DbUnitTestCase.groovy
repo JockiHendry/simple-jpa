@@ -47,12 +47,14 @@ abstract class DbUnitTestCase extends GriffonUnitTestCase {
             }
 
             app.startup()
-            if (app.controllers[mvcGroup]==null) {
-                app.createMVCGroup(mvcGroup)
+            if (app.mvcGroupManager.findGroup(mvcGroup) != null) {
+                if (app.controllers[mvcGroup]==null) {
+                    app.createMVCGroup(mvcGroup)
+                }
+                controller = app.controllers[mvcGroup]
+                model = app.models[mvcGroup]
+                view = app.views[mvcGroup]
             }
-            controller = app.controllers[mvcGroup]
-            model = app.models[mvcGroup]
-            view = app.views[mvcGroup]
 
             Connection jdbcConnection = DriverManager.getConnection(dbUrl, dbUser, dbPassword)
             jdbcConnection.autoCommit = dbAutoCommit
