@@ -177,6 +177,7 @@ class SimpleJpaGriffonAddon {
         'default': new JTextFieldErrorCleaner(),
         'javax.swing.JTextField' : new JTextFieldErrorCleaner(),
         'javax.swing.JComboBox': new JComboBoxErrorCleaner(),
+        'javax.swing.JCheckBox': new JComboBoxErrorCleaner(),
         'javax.swing.JButton': new JButtonErrorCleaner(),
 
         'org.jdesktop.swingx.JXDatePicker': new JXDatePickerErrorCleaner(),
