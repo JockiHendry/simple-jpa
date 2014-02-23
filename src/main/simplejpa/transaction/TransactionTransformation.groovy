@@ -124,7 +124,7 @@ public class TransactionTransformation extends AbstractASTTransformation {
                 __transactionError__ = true
                 rollbackTransaction()
             } finally {
-                throw new Exception(ex)
+                throw ex
             }
         }[0])
 
@@ -139,7 +139,7 @@ public class TransactionTransformation extends AbstractASTTransformation {
                __transactionError__ = true
                rollbackTransaction()
            } finally {
-               throw new Exception(ex)
+               throw ex
            }
         }[0])
 
