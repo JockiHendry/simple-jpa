@@ -29,6 +29,7 @@ import javax.persistence.criteria.ParameterExpression
 import javax.persistence.criteria.Predicate
 import javax.persistence.criteria.Root
 import javax.validation.ConstraintViolation
+import javax.validation.ValidationException
 import javax.validation.Validator
 import javax.validation.groups.Default
 import java.lang.reflect.Method
@@ -572,28 +573,38 @@ final class SimpleJpaHandler {
         }
     }
 
-    def validate = { model, group = Default ->
-        LOG.info "Validating model [$model] group [$group]"
+    def validate = { model, group = Default, viewModel = null ->
+        LOG.info "Validating model [$model] group [$group] viewModel [$viewModel]"
 
-        // Make sure no existing errors before validating
-        def viewModel = delegate.model
-        if (viewModel.hasError()) return false
+        boolean valid = true
+
+        if (viewModel==null && delegate.model!=null) {
+            viewModel = delegate.model
+        }
+        LOG.info "View model to store validation constraint messages: [$viewModel]"
+
+        if (viewModel?.hasError()) return false
 
         // Convert empty string to null if required
         if (convertEmptyStringToNull) {
             model.properties.each { k, v ->
-                if (v instanceof String && v.isEmpty()) {
+                if (v instanceof String && v.isAllWhitespace()) {
                     model.putAt(k, null)
                 }
             }
         }
 
         validator.validate(model, group).each { ConstraintViolation cv ->
-            LOG.info "Adding error path [${cv.propertyPath}] with message [${cv.message}]"
-            viewModel.errors[cv.propertyPath.toString()] = cv.message
+            if (viewModel) {
+                LOG.info "Adding error path [${cv.propertyPath}] with message [${cv.message}]"
+                viewModel.errors[cv.propertyPath.toString()] = cv.message
+            } else {
+                throw new ValidationException("Validation fail on ${cv.propertyPath}: ${cv.message}")
+            }
+            valid = false
         }
 
-        !viewModel.hasError()
+        valid
     }
 
     def methodMissingHandler = { String name, args ->
