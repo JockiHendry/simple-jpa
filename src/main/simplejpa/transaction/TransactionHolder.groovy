@@ -39,9 +39,9 @@ class TransactionHolder {
         assert em != null
         if (resumeLevel > 0) {
             if (!resume) {
-                LOG.info "Commiting transaction."
+                LOG.debug "Commiting transaction."
                 em.transaction.commit()
-                LOG.info "Starting new transaction."
+                LOG.debug "Starting new transaction."
                 em.transaction.begin()
                 resumeLevel = 1
                 return true
@@ -51,7 +51,7 @@ class TransactionHolder {
                 return false
             }
         } else if (resumeLevel==0) {
-            LOG.info "Start a new transaction..."
+            LOG.debug "Start a new transaction..."
             if (!em.transaction.active) {
                 em.transaction.begin()
             }
@@ -72,17 +72,17 @@ class TransactionHolder {
                     rollbackTransaction()
                     return false
                 }
-                LOG.info "Commiting transaction..."
+                LOG.debug "Commiting transaction..."
                 em.transaction.commit()
                 commit = true
             } else {
-                LOG.info "Not committing yet [$resumeLevel]."
+                LOG.debug "Not committing yet [$resumeLevel]."
             }
             resumeLevel--
             LOG.debug "Now in tr  [${resumeLevel>0?resumeLevel:'no transaction'}]."
             return commit
         } else if (resumeLevel==0) {
-            LOG.info "Can't commit: Not inside a transaction. This is normal if transaction was rollbacked due to exception."
+            LOG.debug "Can't commit: Not inside a transaction. This is normal if transaction was rollbacked due to exception."
             return false
         }
     }
@@ -90,10 +90,10 @@ class TransactionHolder {
     public boolean rollbackTransaction() {
         assert em != null
         if (resumeLevel==0) {
-            LOG.info "Can't rollback: Not inside a transaction."
+            LOG.debug "Can't rollback: Not inside a transaction."
             return false
         } else if (resumeLevel==1) {
-            LOG.info "Rollback transaction..."
+            LOG.debug "Rollback transaction..."
             em.transaction.rollback()
             resumeLevel = 0
             LOG.debug "Now in [no transaction]."

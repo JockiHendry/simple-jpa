@@ -97,14 +97,14 @@ final class SimpleJpaHandler {
     }
 
     private void debugEntityManager() {
-        if (LOG.isInfoEnabled()) {
+        if (LOG.isDebugEnabled()) {
             def result = mapTransactionHolder.collect{k,v -> "${k.id}=$v"}.join('\n')
-            LOG.info "List of cached EntityManager:\n$result"
+            LOG.debug "List of cached EntityManager:\n$result"
         }
     }
 
     def getEntityManager = {
-        LOG.info "Retrieving current EntityManager from thread ${Thread.currentThread().id}..."
+        LOG.debug "Retrieving current EntityManager from thread ${Thread.currentThread().id}..."
         EntityManager em = mapTransactionHolder.get(Thread.currentThread())?.em
         debugEntityManager()
         em
@@ -113,10 +113,10 @@ final class SimpleJpaHandler {
     def createEntityManager = { TransactionHolder copy = null ->
         TransactionHolder th
         if (copy) {
-            LOG.info "Creating a new entity manager based on $copy..."
+            LOG.debug "Creating a new entity manager based on $copy..."
             th = new TransactionHolder(emf.createEntityManager(), copy)
         } else {
-            LOG.info "Creating a new entity manager..."
+            LOG.debug "Creating a new entity manager..."
             EntityManager em = emf.createEntityManager()
             em.setFlushMode(defaultFlushMode)
             th = new TransactionHolder(em)
@@ -128,7 +128,7 @@ final class SimpleJpaHandler {
     }
 
     def destroyEntityManager = {
-        LOG.info "Destroying all entity managers..."
+        LOG.debug "Destroying all entity managers..."
         mapTransactionHolder.each { Thread k, TransactionHolder v ->
             if (v.em.isOpen()) {
                 v.em.close()
@@ -140,25 +140,25 @@ final class SimpleJpaHandler {
     }
 
     private configureCriteria(CriteriaBuilder cb, CriteriaQuery c, Root model, Map config) {
-        LOG.info "Processing configuration [$config]..."
+        LOG.debug "Processing configuration [$config]..."
 
         Predicate p = c.getRestriction()?: cb.conjunction()
 
         if (alwaysExcludeSoftDeleted || config["notSoftDeleted"]==true) {
-            LOG.info "Applying not soft deleted..."
+            LOG.debug "Applying not soft deleted..."
             p = cb.and(p, cb.equal(model.get("deleted"), "N"))
             c.where(p)
         }
         if (config['excludeSubclass']!=null) {
             String excludeSubclass = config['excludeSubclass']
             if (excludeSubclass=='*') {
-                LOG.info "Exclude all subclasses..."
+                LOG.debug "Exclude all subclasses..."
                 p = cb.and(p, cb.equal(model.type(), cb.literal(model.model.javaType)))
                 c.where(p)
             } else {
                 excludeSubclass.split(',').each {
                     Class subclass = Class.forName("${domainClassPackage}.${it.trim()}")
-                    LOG.info "Exclude subclass: ${subclass}..."
+                    LOG.debug "Exclude subclass: ${subclass}..."
                     p = cb.and(p, cb.notEqual(model.type(), cb.literal(subclass)))
                 }
                 c.where(p)
@@ -175,7 +175,7 @@ final class SimpleJpaHandler {
                 orders << cb."$direction"(model.get(fieldName))
             }
 
-            LOG.info "Applying order by [$orders]..."
+            LOG.debug "Applying order by [$orders]..."
             if (orders.size() > 0) c.orderBy(orders)
         }
     }
@@ -195,25 +195,28 @@ final class SimpleJpaHandler {
     }
 
     private def filterResult(List results, boolean returnAll) {
-        if (!returnAll) {
-            if (results.isEmpty()) return null
-            return results[0]
+        if (returnAll) {
+            return results
+        } else {
+            if (results.isEmpty())
+                return null
+            else
+                return results[0]
         }
-        results
     }
 
     private void setParameter(Query query, Map parameters ) {
         parameters.each { def parameter, value ->
-            LOG.info "Set query parameter: ${parameter} value: $value"
+            LOG.debug "Set query parameter: ${parameter} value: $value"
             if (value instanceof GString) value = value.toString()
             query.setParameter(parameter, value)
         }
     }
 
     def beginTransaction = { boolean resume = true, boolean newSession = false ->
-        LOG.info "Begin transaction from thread ${Thread.currentThread().id} (resume=$resume) (newSession=$newSession)..."
+        LOG.debug "Begin transaction from thread ${Thread.currentThread().id} (resume=$resume) (newSession=$newSession)..."
         if (newSession) {
-            LOG.info "Start a new session..."
+            LOG.debug "Start a new session..."
             destroyEntityManager()
         }
 
@@ -238,33 +241,39 @@ final class SimpleJpaHandler {
         if (th) {
             ApplicationHolder.application.event("simpleJpaBeforeCloseEntityManager", [th])
             th.em.close()
-            LOG.info "EntityManager for $th is closed!"
+            LOG.debug "EntityManager for $th is closed!"
             mapTransactionHolder.remove(Thread.currentThread())
-            LOG.info "EntityManager for thread ${Thread.currentThread()} is removed!"
+            LOG.debug "EntityManager for thread ${Thread.currentThread()} is removed!"
         }
     }
 
     def commitTransaction = {
-        LOG.info "Commit transaction from thread ${Thread.currentThread()} (${Thread.currentThread().id})..."
+        LOG.debug "Commit transaction from thread ${Thread.currentThread()} (${Thread.currentThread().id})..."
         TransactionHolder th = mapTransactionHolder.get(Thread.currentThread())
         if (th?.commitTransaction()) {
             if (entityManagerLifespan==EntityManagerLifespan.TRANSACTION) {
                 closeAndRemoveCurrentEntityManager()
             }
             ApplicationHolder.application.event("simpleJpaCommitTransaction", [th])
+        } else {
+            if (LOG.isWarnEnabled()) LOG.warn "TransactionHolder is null for ${Thread.currentThread()}!"
         }
     }
 
     def rollbackTransaction = {
-        LOG.info "Rollback transaction from thread ${Thread.currentThread()} (${Thread.currentThread().id})..."
+        LOG.debug "Rollback transaction from thread ${Thread.currentThread()} (${Thread.currentThread().id})..."
         TransactionHolder th = mapTransactionHolder.get(Thread.currentThread())
-        th.em.clear()
-        if (th.rollbackTransaction()) {
-            closeAndRemoveCurrentEntityManager()
-            if (entityManagerLifespan==EntityManagerLifespan.MANUAL) {
-                createEntityManager(th)
+        if (th) {
+            th.em.clear()
+            if (th.rollbackTransaction()) {
+                closeAndRemoveCurrentEntityManager()
+                if (entityManagerLifespan==EntityManagerLifespan.MANUAL) {
+                    createEntityManager(th)
+                }
+                ApplicationHolder.application.event("simpleJpaRollbackTransaction", [th])
             }
-            ApplicationHolder.application.event("simpleJpaRollbackTransaction", [th])
+        } else {
+            if (LOG.isWarnEnabled()) LOG.warn "TransactionHolder is null for ${Thread.currentThread()}!"
         }
     }
 
@@ -277,7 +286,7 @@ final class SimpleJpaHandler {
             ApplicationHolder.application.event("simpleJpaBeforeAutoCreateTransaction")
             beginTransaction()
         }
-        LOG.info "Not in a transaction? ${!insideTransaction}"
+        LOG.debug "Not in a transaction? ${!insideTransaction}"
         try {
             result = action()
         } catch (Exception ex) {
@@ -286,13 +295,13 @@ final class SimpleJpaHandler {
                 isError = true
                 rollbackTransaction()
             }
-            throw new Exception(ex)
+            throw ex
         } finally {
             if (!insideTransaction && !isError) {
                 commitTransaction()
             }
         }
-        LOG.info "Transaction is done!"
+        LOG.debug "Transaction is done!"
         return result
     }
 
@@ -301,7 +310,7 @@ final class SimpleJpaHandler {
     }
 
     def executeQuery = { String jpql, Map config = [:], Map params = [:] ->
-        LOG.info "Executing query $jpql"
+        LOG.debug "Executing query $jpql"
         executeInsideTransaction {
             Query query = configureQuery(getEntityManager().createQuery(jpql), config)
             params.each { k, v -> query.setParameter(k,v)}
@@ -310,7 +319,7 @@ final class SimpleJpaHandler {
     }
 
     def executeNativeQuery = { String sql, Map config = [:] ->
-        LOG.info "Executing native query $sql"
+        LOG.debug "Executing native query $sql"
         executeInsideTransaction {
             configureQuery(getEntityManager().createNativeQuery(sql), config).getResultList()
         }
@@ -318,7 +327,7 @@ final class SimpleJpaHandler {
 
     def findAllModel = { String model ->
         return { Map config = [:] ->
-            LOG.info "Executing findAll$model"
+            LOG.debug "Executing findAll$model"
             executeInsideTransaction {
                 CriteriaBuilder cb = getEntityManager().getCriteriaBuilder()
                 CriteriaQuery c = cb.createQuery()
@@ -335,7 +344,7 @@ final class SimpleJpaHandler {
         def modelClass = Class.forName(domainClassPackage + "." + model)
 
         return { id ->
-            LOG.info "Executing find$model for class $modelClass and id [$id]"
+            LOG.debug "Executing find$model for class $modelClass and id [$id]"
             executeInsideTransaction {
                 def idClass = getEntityManager().metamodel.entity(modelClass).idType.javaType
                 Object object = getEntityManager().find(modelClass, idClass.newInstance(id))
@@ -356,7 +365,7 @@ final class SimpleJpaHandler {
     }
 
     def findModelByDsl = { Class modelClass, boolean returnAll, Map config = [:], Closure closure ->
-        LOG.info "Find entities by Dsl: model=$modelClass, returnAll=$returnAll, config=$config"
+        LOG.debug "Find entities by Dsl: model=$modelClass, returnAll=$returnAll, config=$config"
         executeInsideTransaction {
             CriteriaBuilder cb = getEntityManager().getCriteriaBuilder()
             CriteriaQuery c = cb.createQuery()
@@ -376,7 +385,7 @@ final class SimpleJpaHandler {
     }
 
     def findModelBy = { Class modelClass, boolean returnAll, boolean isAnd = true, Map args, Map config = [:] ->
-        LOG.info "Find entities by: model=$modelClass, returnAll=$returnAll, args=$args, confing=$config"
+        LOG.debug "Find entities by: model=$modelClass, returnAll=$returnAll, args=$args, confing=$config"
         executeInsideTransaction {
             CriteriaBuilder cb = getEntityManager().getCriteriaBuilder()
             CriteriaQuery c = cb.createQuery()
@@ -423,10 +432,10 @@ final class SimpleJpaHandler {
     }
 
     public def parseFinder(String finder) {
-        LOG.info "Parsing $finder"
+        LOG.debug "Parsing $finder"
         List results = []
         finder.split('(And|Or)').each { String expr ->
-            LOG.info "Expression: $expr"
+            LOG.debug "Expression: $expr"
             int start = finder.indexOf(expr)
             int operStart
             String operName, fieldName
@@ -456,7 +465,7 @@ final class SimpleJpaHandler {
                     whereExpr.isOr = true
                 }
             }
-            LOG.info "Result: $whereExpr"
+            LOG.debug "Result: $whereExpr"
             results << whereExpr
         }
         results
@@ -467,7 +476,7 @@ final class SimpleJpaHandler {
         if (args.length > 0 && args.last() instanceof Map) {
             config = args.last()
         }
-        LOG.info "Find entities by attribute: model=$modelClass, returnAll=$returnAll, whereExprs=$whereExprs, args=$args, confing=$config"
+        LOG.debug "Find entities by attribute: model=$modelClass, returnAll=$returnAll, whereExprs=$whereExprs, args=$args, confing=$config"
         executeInsideTransaction {
             CriteriaBuilder cb = getEntityManager().getCriteriaBuilder()
             CriteriaQuery c = cb.createQuery()
@@ -519,7 +528,7 @@ final class SimpleJpaHandler {
     }
 
     def executeNamedQuery = { String namedQuery, Map args, Map config = [:] ->
-        LOG.info "Executing named query: namedQuery=$namedQuery, args=$args, confing=$config"
+        LOG.debug "Executing named query: namedQuery=$namedQuery, args=$args, confing=$config"
         executeInsideTransaction {
             Query query = getEntityManager().createNamedQuery(namedQuery)
             args.each { key, value ->
@@ -532,7 +541,7 @@ final class SimpleJpaHandler {
     }
 
     def softDelete = { model ->
-        LOG.info "Executing softDelete for [$model]"
+        LOG.debug "Executing softDelete for [$model]"
         executeInsideTransaction {
             EntityManager em = getEntityManager()
             if (!em.contains(model)) {
@@ -543,7 +552,7 @@ final class SimpleJpaHandler {
     }
 
     def persist = { model ->
-        LOG.info "Executing persist for [$model]"
+        LOG.debug "Executing persist for [$model]"
         executeInsideTransaction {
             EntityManager em = getEntityManager()
             em.persist(model)
@@ -551,7 +560,7 @@ final class SimpleJpaHandler {
     }
 
     def merge = { model ->
-        LOG.info "Executing merge for [$model]"
+        LOG.debug "Executing merge for [$model]"
         executeInsideTransaction {
             EntityManager em = getEntityManager()
             return em.merge(model)
@@ -559,7 +568,7 @@ final class SimpleJpaHandler {
     }
 
     def remove = { model ->
-        LOG.info "Executing remove for [$model]"
+        LOG.debug "Executing remove for [$model]"
         executeInsideTransaction {
             def persistedModel = model
             EntityManager em = getEntityManager()
@@ -574,14 +583,14 @@ final class SimpleJpaHandler {
     }
 
     def validate = { model, group = Default, viewModel = null ->
-        LOG.info "Validating model [$model] group [$group] viewModel [$viewModel]"
+        LOG.debug "Validating model [$model] group [$group] viewModel [$viewModel]"
 
         boolean valid = true
 
         if (viewModel==null && delegate.model!=null) {
             viewModel = delegate.model
         }
-        LOG.info "View model to store validation constraint messages: [$viewModel]"
+        LOG.debug "View model to store validation constraint messages: [$viewModel]"
 
         if (viewModel?.hasError()) return false
 
@@ -596,7 +605,7 @@ final class SimpleJpaHandler {
 
         validator.validate(model, group).each { ConstraintViolation cv ->
             if (viewModel) {
-                LOG.info "Adding error path [${cv.propertyPath}] with message [${cv.message}]"
+                LOG.debug "Adding error path [${cv.propertyPath}] with message [${cv.message}]"
                 viewModel.errors[cv.propertyPath.toString()] = cv.message
             } else {
                 throw new ValidationException("Validation fail on ${cv.propertyPath}: ${cv.message}")
@@ -609,11 +618,11 @@ final class SimpleJpaHandler {
 
     def methodMissingHandler = { String name, args ->
 
-        LOG.info "Searching for method [$name] and args [$args]"
+        LOG.debug "Searching for method [$name] and args [$args]"
 
         // Check for prefix
         if (prefix=="") {
-            LOG.info "No prefix is used for injected methods."
+            LOG.debug "No prefix is used for injected methods."
         }  else if (!name.startsWith(prefix)) {
             LOG.error "Missing method $name !"
             throw new MissingMethodException(name, delegate.class, (Object[]) args)
@@ -624,7 +633,7 @@ final class SimpleJpaHandler {
         fName << name[Math.max(0, prefix.length())].toLowerCase()
         fName << name.substring(Math.max(1, prefix.length()+1))
         String nameWithoutPrefix = fName.toString()
-        LOG.info "Method name without prefix [$nameWithoutPrefix]"
+        LOG.debug "Method name without prefix [$nameWithoutPrefix]"
 
         // Checking for injected methods
         switch(nameWithoutPrefix) {
@@ -633,7 +642,7 @@ final class SimpleJpaHandler {
             case ~PATTERN_FINDMODELBYID_NOTSOFTDELETED:
                 def match = nameWithoutPrefix =~ PATTERN_FINDMODELBYID_NOTSOFTDELETED
                 def modelName = match[0][1]
-                LOG.info "First match for model [$modelName] not soft deleted"
+                LOG.debug "First match for model [$modelName] not soft deleted"
 
                 Closure findModelByIdClosure = findModelById(modelName, true)
                 delegate.metaClass."$name" = findModelByIdClosure
@@ -643,7 +652,7 @@ final class SimpleJpaHandler {
             case ~PATTERN_FINDMODELBYID:
                 def match = (nameWithoutPrefix =~ PATTERN_FINDMODELBYID)
                 def modelName = match[0][1]
-                LOG.info "First match for model [$modelName]"
+                LOG.debug "First match for model [$modelName]"
 
                 Closure findModelByIdClosure = findModelById(modelName, alwaysExcludeSoftDeleted)
                 delegate.metaClass."$name" = findModelByIdClosure
@@ -654,7 +663,7 @@ final class SimpleJpaHandler {
                 def match = (nameWithoutPrefix =~ PATTERN_FINDMODELBYDSL)
                 def isReturnAll = match[0][1]!=null? true: false
                 def modelName = match[0][2]
-                LOG.info "First match for model [$modelName]"
+                LOG.debug "First match for model [$modelName]"
                 Class modelClass = Class.forName(domainClassPackage + "." + modelName)
                 delegate.metaClass."$name" = { Object[] p -> findModelByDsl(modelClass, isReturnAll, *p) }
                 return findModelByDsl(modelClass, isReturnAll, *args)
@@ -665,7 +674,7 @@ final class SimpleJpaHandler {
                 def isReturnAll = match[0][1]!=null? true: false
                 def modelName = match[0][2]
                 def isAnd = (match[0][3] == 'And')
-                LOG.info "First match for model [$modelName]"
+                LOG.debug "First match for model [$modelName]"
                 Class modelClass = Class.forName(domainClassPackage + "." + modelName)
                 delegate.metaClass."$name" = { Object[] p -> findModelBy(modelClass, isReturnAll, isAnd, *p) }
                 return findModelBy.call(modelClass, isReturnAll, isAnd, *args)
@@ -676,7 +685,7 @@ final class SimpleJpaHandler {
                 def isReturnAll = match[0][1]!=null? true: false
                 def modelName = match[0][2]
                 def whereExprs = parseFinder(match[0][3])
-                LOG.info "First match for model [$modelName]"
+                LOG.debug "First match for model [$modelName]"
                 Class modelClass = Class.forName(domainClassPackage + "." + modelName)
                 delegate.metaClass."$name" = { Object[] p -> findModelByAttribute(modelClass, isReturnAll, whereExprs, p) }
                 return findModelByAttribute.call(modelClass, isReturnAll, whereExprs, args)
@@ -685,7 +694,7 @@ final class SimpleJpaHandler {
             case ~PATTERN_FINDALLMODEL:
                 def match = nameWithoutPrefix =~ PATTERN_FINDALLMODEL
                 def modelName = match[0][1]
-                LOG.info "First match for model [$modelName]"
+                LOG.debug "First match for model [$modelName]"
 
                 Closure findAllModelClosure = findAllModel(modelName)
                 delegate.metaClass."$name" = findAllModelClosure
@@ -697,7 +706,7 @@ final class SimpleJpaHandler {
                 // Is this one of EntityManager's methods?
                 Method method = EntityManager.methods.find { it.name == nameWithoutPrefix }
                 if (method) {
-                    LOG.info "Executing EntityManager.${nameWithoutPrefix}"
+                    LOG.debug "Executing EntityManager.${nameWithoutPrefix}"
                     executeInsideTransaction {
                         EntityManager em = getEntityManager()
                         return method.invoke(em, args)

@@ -53,6 +53,7 @@ class SimpleJpaUtil {
                 false
             }
         }
+        if (LOG.isWarnEnabled()) LOG.warn "Can't find thread for object [$object]!"
         result
     }
 

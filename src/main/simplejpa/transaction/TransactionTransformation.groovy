@@ -24,7 +24,7 @@ public class TransactionTransformation extends AbstractASTTransformation {
     private static final Logger LOG = LoggerFactory.getLogger(TransactionTransformation.class)
 
     public void visit(ASTNode[] astNodes, SourceUnit sourceUnit) {
-        LOG.info "AST Transformation for @Transaction is being executed..."
+        LOG.debug "AST Transformation for @Transaction is being executed..."
 
         AnnotationNode annotation = astNodes[0]
         AnnotatedNode node = astNodes[1]
@@ -38,7 +38,7 @@ public class TransactionTransformation extends AbstractASTTransformation {
             node.fields?.each { FieldNode field ->
                 if (field.initialExpression instanceof ClosureExpression &&
                     field.getAnnotations(annotationClass).isEmpty()) {
-                        LOG.info "Processing field $field.name..."
+                        LOG.debug "Processing field $field.name..."
                         wrapStatements(field.initialExpression, node, annotation)
                 }
             }
@@ -46,7 +46,7 @@ public class TransactionTransformation extends AbstractASTTransformation {
             node.methods?.each { MethodNode method ->
                 if (GriffonClassUtils.isPlainMethod(methodDescriptorFor(method)) &&
                     method.getAnnotations(annotationClass).isEmpty()) {
-                        LOG.info "Processing method $method.name..."
+                        LOG.debug "Processing method $method.name..."
                         wrapStatements(method, node, annotation)
                 }
             }
@@ -54,14 +54,14 @@ public class TransactionTransformation extends AbstractASTTransformation {
         } else if (node instanceof FieldNode) {
 
             if (node.initialExpression instanceof ClosureExpression) {
-                LOG.info "Processing field $node.name..."
+                LOG.debug "Processing field $node.name..."
                 wrapStatements(node.initialExpression, node, annotation)
             }
 
         } else if (node instanceof MethodNode) {
 
             if (GriffonClassUtils.isPlainMethod(methodDescriptorFor(node))) {
-                LOG.info "Processing method $node.name..."
+                LOG.debug "Processing method $node.name..."
                 wrapStatements(node, node, annotation)
             }
 
@@ -93,21 +93,21 @@ public class TransactionTransformation extends AbstractASTTransformation {
     }
 
     private static void wrapStatements(MethodNode method, AnnotatedNode node, AnnotationNode annotation) {
-        LOG.info "Transforming method..."
+        LOG.debug "Transforming method..."
         Statement code = method.getCode()
         Statement wrappedCode = wrapStatements(code, node, annotation)
         if (code!=wrappedCode) {
-            LOG.info "Set a new code to method..."
+            LOG.debug "Set a new code to method..."
             method.setCode(wrappedCode)
         }
     }
 
     private static void wrapStatements(ClosureExpression closure, AnnotatedNode node, AnnotationNode annotation) {
-        LOG.info "Transforming closure..."
+        LOG.debug "Transforming closure..."
         Statement code = closure.getCode()
         Statement wrappedCode = wrapStatements(code, node, annotation)
         if (code!=wrappedCode) {
-            LOG.info "Set a new code to closure..."
+            LOG.debug "Set a new code to closure..."
             closure.setCode(wrappedCode)
         }
     }
@@ -169,7 +169,7 @@ public class TransactionTransformation extends AbstractASTTransformation {
         newBlock.addStatement(new ExpressionStatement(beginTransactionCall))
         newBlock.addStatement(tryCatchStatement)
 
-        LOG.info "New code for closure has been created"
+        LOG.debug "New code for closure has been created"
         newBlock
     }
 

@@ -22,7 +22,7 @@ class QueryDsl {
     def methodMissing(String methodName, args) {
         def operation = args['operation'][0]
         def arguments = args['args'][0]
-        LOG.info "Creating predicate method for attribute $methodName, operation $operation and arguments $arguments..."
+        LOG.debug "Creating predicate method for attribute $methodName, operation $operation and arguments $arguments..."
         Path attribute = null
         if (methodName.contains(PROPERTY_SEPARATOR)) {
             methodName.split(PROPERTY_SEPARATOR).each { String node ->
@@ -62,12 +62,12 @@ class QueryDsl {
     }
 
     def or() {
-        LOG.info "Conjuction method found..."
+        LOG.debug "Conjuction method found..."
         lastJoin = "or"
     }
 
     def and() {
-        LOG.info "Disjunction method found..."
+        LOG.debug "Disjunction method found..."
         lastJoin = "and"
     }
 

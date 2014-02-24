@@ -54,20 +54,20 @@ class DomainClassTransformation extends AbstractASTTransformation {
                     it.classNode.typeClass == DomainClass.class ||
                     it.classNode.typeClass == Entity.class
                 }) {
-            LOG.info "Didn't inject attributes to $classNode because its superclass is a domain class!"
+            LOG.debug "Didn't inject attributes to $classNode because its superclass is a domain class!"
             return
         }
 
         // Add attribute for soft delete
         if (getBooleanProperty(annotation, 'excludeDeletedFlag')) {
-            LOG.info "Didn't inject 'deleted' attribute to $classNode"
+            LOG.debug "Didn't inject 'deleted' attribute to $classNode"
         } else {
             classNode.addField("deleted", ACC_PUBLIC, ClassHelper.STRING_TYPE, new ConstantExpression("N"))
         }
 
         // Add attribute for surrogate primary key
         if (getBooleanProperty(annotation, 'excludeId')) {
-            LOG.info "Didn't inject 'id' attribute to $classNode"
+            LOG.debug "Didn't inject 'id' attribute to $classNode"
         } else {
             AnnotationNode idAnnotation = new AnnotationNode(ClassHelper.make(Id.class))
             AnnotationNode generatedValueAnnotation = new AnnotationNode(ClassHelper.make(GeneratedValue.class))
@@ -83,7 +83,7 @@ class DomainClassTransformation extends AbstractASTTransformation {
 
         // Add attribute for auditing
         if (getBooleanProperty(annotation, 'excludeAuditing')) {
-            LOG.info "Didn't inject 'createdDate' and 'modifiedDate' attribute to $classNode"
+            LOG.debug "Didn't inject 'createdDate' and 'modifiedDate' attribute to $classNode"
         } else {
             AnnotationNode temporalAnnotation = new AnnotationNode(ClassHelper.make(Temporal))
             temporalAnnotation.addMember('value', new PropertyExpression(
