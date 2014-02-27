@@ -166,7 +166,7 @@ description for more information.
     xsi:schemaLocation="http://java.sun.com/xml/ns/persistence http://java.sun.com/xml/ns/persistence/persistence_2_0.xsd"
     version="2.0" xmlns="http://java.sun.com/xml/ns/persistence">
     <persistence-unit name="default" transaction-type="RESOURCE_LOCAL">
-        <provider>org.hibernate.ejb.HibernatePersistence</provider>
+        <provider>org.hibernate.jpa.HibernatePersistenceProvider</provider>
         <properties>
             <property name="javax.persistence.jdbc.driver"   value="${database.jdbcDriver}" />
             <property name="javax.persistence.jdbc.url"      value="${database.getJdbcUrl(user, password, databaseName)}" />
@@ -174,7 +174,7 @@ description for more information.
             <property name="javax.persistence.jdbc.password" value="$password" />
             <property name="hibernate.connection.autocommit" value="false" />
             <property name="hibernate.dialect" value="${database.dialect}" />
-            <property name="hibernate.hbm2ddl.auto" value="create-drop" />
+            <property name="javax.persistence.schema-generation.database.action" value="drop-and-create" />
             <property name="jadira.usertype.autoRegisterUserTypes" value="true"/>
         </properties>
     </persistence-unit>
