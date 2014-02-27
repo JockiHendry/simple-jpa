@@ -119,6 +119,7 @@ First release into griffon artifacts portal.
 
 ### 0.6
 1. Update to Griffon 1.5, JPA 2.1 and Bean Validation API 1.1.0.
+1. Add `generate-schema` command.
 1. Using `@Transaction` for domain classes will also inject simple-jpa methods (finders, add, remove, etc) to them.  This can be used to implement repositories and domain services (based on domain driven design).
 1. Fixes integration testing error if specified MVCGroup doesn't exists.
 1. Allow executing `validate()` outside MVCGroup (not tied to current MVCGroup's model).
