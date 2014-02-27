@@ -22,6 +22,7 @@ import org.slf4j.LoggerFactory
 import simplejpa.transaction.TransactionHolder
 
 import javax.persistence.EntityManagerFactory
+import javax.persistence.PersistenceUnitUtil
 
 class SimpleJpaUtil {
 
@@ -108,6 +109,10 @@ class SimpleJpaUtil {
 
         LOG.debug "Properties overrides: $config"
         config
+    }
+
+    public PersistenceUnitUtil getPersistenceUnitUtil() {
+        entityManagerFactory.getPersistenceUnitUtil()
     }
 
     // Methods for globally manipulating handlers here!

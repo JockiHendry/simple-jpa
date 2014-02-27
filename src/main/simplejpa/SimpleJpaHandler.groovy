@@ -45,6 +45,9 @@ final class SimpleJpaHandler {
     private static final PATTERN_FINDMODELBYATTRIBUTE = /find(All)?([A-Z]\w*)By([A-Z]\w*)/
     private static final PATTERN_FINDMODELBY = /find(All)?([A-Z]\w*)By(And|Or)/
 
+    private static final JPA_PROPERTIES_FETCH_GRAPH = 'javax.persistence.fetchgraph'
+    private static final JPA_PROPERTIES_LOAD_GRAPH = 'javax.persistence.loadgraph'
+
     private static final int DEFAULT_PAGE_SIZE = 10
 
     final String prefix
@@ -190,6 +193,23 @@ final class SimpleJpaHandler {
         }
         if (config['flushMode']) {
             query.setFlushMode(config['flushMode'])
+        }
+        if (config['fetchGraph'] && config['loadGraph']) {
+            throw new IllegalArgumentException('fetchGraph and loadGraph can not be used together!')
+        }
+        if (config['fetchGraph']) {
+            if (config['fetchGraph'] instanceof String) {
+                query.setHint(JPA_PROPERTIES_FETCH_GRAPH, getEntityManager().createEntityGraph(config['fetchGraph']))
+            } else {
+                query.setHint(JPA_PROPERTIES_FETCH_GRAPH, config['fetchGraph'])
+            }
+        }
+        if (config['loadGraph']) {
+            if (config['loadGraph'] instanceof String) {
+                query.setHint(JPA_PROPERTIES_LOAD_GRAPH, getEntityManager().createEntityGraph(config['loadGraph']))
+            } else {
+                query.setHint(JPA_PROPERTIES_LOAD_GRAPH, config['loadGraph'])
+            }
         }
         query
     }
