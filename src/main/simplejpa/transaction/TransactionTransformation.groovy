@@ -24,17 +24,20 @@ public class TransactionTransformation extends AbstractASTTransformation {
     private static final Logger LOG = LoggerFactory.getLogger(TransactionTransformation.class)
 
     public void visit(ASTNode[] astNodes, SourceUnit sourceUnit) {
-        LOG.debug "AST Transformation for @Transaction is being executed..."
 
         AnnotationNode annotation = astNodes[0]
         AnnotatedNode node = astNodes[1]
+
+        LOG.debug "Starting AST Transformation for ${node}..."
 
         if (getPolicy(annotation)==Transaction.Policy.SKIP) return
 
         if (node instanceof ClassNode) {
 
+            LOG.debug "It is a class: ${node.name}"
             ClassNode annotationClass = new ClassNode(Transaction.class)
 
+            LOG.debug "Fields are ${node.fields}"
             node.fields?.each { FieldNode field ->
                 if (field.initialExpression instanceof ClosureExpression &&
                     field.getAnnotations(annotationClass).isEmpty()) {
@@ -43,16 +46,21 @@ public class TransactionTransformation extends AbstractASTTransformation {
                 }
             }
 
+            LOG.debug "Methods are ${node.methods}"
             node.methods?.each { MethodNode method ->
-                if (GriffonClassUtils.isPlainMethod(methodDescriptorFor(method)) &&
-                    method.getAnnotations(annotationClass).isEmpty()) {
+                if (!isValidMethod(methodDescriptorFor(method)) || !method.getAnnotations(annotationClass).isEmpty()) {
+                    LOG.warn "Not transforming method: ${method.name}"
+                } else {
+                    if (method.getAnnotations(annotationClass).isEmpty()) {
                         LOG.debug "Processing method $method.name..."
                         wrapStatements(method, node, annotation)
+                    }
                 }
             }
 
         } else if (node instanceof FieldNode) {
 
+            LOG.debug "It is a field: ${node.name}"
             if (node.initialExpression instanceof ClosureExpression) {
                 LOG.debug "Processing field $node.name..."
                 wrapStatements(node.initialExpression, node, annotation)
@@ -60,12 +68,29 @@ public class TransactionTransformation extends AbstractASTTransformation {
 
         } else if (node instanceof MethodNode) {
 
-            if (GriffonClassUtils.isPlainMethod(methodDescriptorFor(node))) {
+            LOG.debug "It is a method: ${node.name}"
+            if (!isValidMethod(methodDescriptorFor(node))) {
+                LOG.warn "Not transforming method: ${node.name}"
+            } else {
                 LOG.debug "Processing method $node.name..."
                 wrapStatements(node, node, annotation)
             }
 
         }
+    }
+
+    public static boolean isValidMethod(GriffonClassUtils.MethodDescriptor method) {
+        return GriffonClassUtils.isInstanceMethod(method) &&
+            !GriffonClassUtils.isBasicMethod(method) &&
+            !GriffonClassUtils.isGroovyInjectedMethod(method) &&
+            !GriffonClassUtils.isThreadingMethod(method) &&
+            !GriffonClassUtils.isArtifactMethod(method) &&
+            !GriffonClassUtils.isMvcMethod(method) &&
+            !GriffonClassUtils.isServiceMethod(method) &&
+            !GriffonClassUtils.isEventPublisherMethod(method) &&
+            !GriffonClassUtils.isObservableMethod(method) &&
+            !GriffonClassUtils.isResourceHandlerMethod(method) &&
+            !GriffonClassUtils.isContributionMethod(method);
     }
 
     private static Transaction.Policy getPolicy(AnnotationNode annotation) {
