@@ -39,10 +39,12 @@ final class SimpleJpaHandler {
     private static Logger LOG = LoggerFactory.getLogger(SimpleJpaHandler)
 
     private static final PATTERN_FINDALLMODEL = /findAll([A-Z]\w*)/
+    private static final PATTERN_FINDALLMODELFETCH = /findAll([A-Z]\w*)(Fetch|Load)([A-Z]\w*)/
     private static final PATTERN_FINDMODELBYID_NOTSOFTDELETED = /find([A-Z]\w*)ByIdNotSoftDeleted/
     private static final PATTERN_FINDMODELBYID = /find([A-Z]\w*)ById/
-    private static final PATTERN_FINDMODELBYDSL = /find(All)?([A-Z]\w*)ByDsl/
+    private static final PATTERN_FINDMODELBYDSL = /find(All)?([A-Z]\w*)ByDsl((Fetch|Load)([A-Z]\w*))?/
     private static final PATTERN_FINDMODELBYATTRIBUTE = /find(All)?([A-Z]\w*)By([A-Z]\w*)/
+    private static final PATTERN_FINDMODELBYATTRIBUTEFETCH = /find(All)?([A-Z]\w*)By([A-Z]\w*)(Fetch|Load)([A-Z]\w*)/
     private static final PATTERN_FINDMODELBY = /find(All)?([A-Z]\w*)By(And|Or)/
 
     private static final JPA_PROPERTIES_FETCH_GRAPH = 'javax.persistence.fetchgraph'
@@ -188,24 +190,28 @@ final class SimpleJpaHandler {
             int page = config["page"] as Integer ?: 1
             page = (page - 1) >= 0 ? (page-1) : 0
             int pageSize = config["pageSize"] as Integer ?: DEFAULT_PAGE_SIZE
+            LOG.debug "page = $page and pageSize = $pageSize"
             query.setFirstResult(page*pageSize)
             query.setMaxResults(pageSize)
         }
         if (config['flushMode']) {
+            LOG.debug "flushMode = ${config['flushMode']}"
             query.setFlushMode(config['flushMode'])
         }
         if (config['fetchGraph'] && config['loadGraph']) {
             throw new IllegalArgumentException('fetchGraph and loadGraph can not be used together!')
         }
         if (config['fetchGraph']) {
-            if (config['fetchGraph'] instanceof String) {
+            LOG.debug "fetchGraph = ${config['fetchGraph']}"
+            if (config['fetchGraph'] instanceof String || config['fetchGraph'] instanceof GString) {
                 query.setHint(JPA_PROPERTIES_FETCH_GRAPH, getEntityManager().createEntityGraph(config['fetchGraph']))
             } else {
                 query.setHint(JPA_PROPERTIES_FETCH_GRAPH, config['fetchGraph'])
             }
         }
         if (config['loadGraph']) {
-            if (config['loadGraph'] instanceof String) {
+            LOG.debug "loadGraph = ${config['loadGraph']}"
+            if (config['loadGraph'] instanceof String || config['fetchGraph'] instanceof GString) {
                 query.setHint(JPA_PROPERTIES_LOAD_GRAPH, getEntityManager().createEntityGraph(config['loadGraph']))
             } else {
                 query.setHint(JPA_PROPERTIES_LOAD_GRAPH, config['loadGraph'])
@@ -257,43 +263,49 @@ final class SimpleJpaHandler {
     }
 
     def closeAndRemoveCurrentEntityManager = {
+        LOG.debug "Close EntityManager: Searching for TransactionHolder for thread ${Thread.currentThread()}"
         TransactionHolder th = mapTransactionHolder.get(Thread.currentThread())
+        LOG.debug "Close EntityManager: Associated with TransactionHolder $th..."
         if (th) {
             ApplicationHolder.application.event("simpleJpaBeforeCloseEntityManager", [th])
             th.em.close()
-            LOG.debug "EntityManager for $th is closed!"
+            LOG.debug "Close EntityManager: EntityManager for $th is closed!"
             mapTransactionHolder.remove(Thread.currentThread())
-            LOG.debug "EntityManager for thread ${Thread.currentThread()} is removed!"
+            LOG.debug "Close EntityManager: EntityManager for thread ${Thread.currentThread()} is removed!"
         }
     }
 
     def commitTransaction = {
-        LOG.debug "Commit transaction from thread ${Thread.currentThread()} (${Thread.currentThread().id})..."
+        LOG.debug "Commit Transaction: From thread ${Thread.currentThread()} (${Thread.currentThread().id})..."
         TransactionHolder th = mapTransactionHolder.get(Thread.currentThread())
         if (th?.commitTransaction()) {
             if (entityManagerLifespan==EntityManagerLifespan.TRANSACTION) {
+                LOG.debug "Commit Transaction: Closing EntityManager..."
                 closeAndRemoveCurrentEntityManager()
             }
             ApplicationHolder.application.event("simpleJpaCommitTransaction", [th])
         } else {
-            if (LOG.isWarnEnabled()) LOG.warn "TransactionHolder is null for ${Thread.currentThread()}!"
+            if (LOG.isWarnEnabled()) LOG.warn "Commit Transaction: TransactionHolder is null for ${Thread.currentThread()}!"
         }
     }
 
     def rollbackTransaction = {
-        LOG.debug "Rollback transaction from thread ${Thread.currentThread()} (${Thread.currentThread().id})..."
+        LOG.debug "Rollback Transaction: From thread ${Thread.currentThread()} (${Thread.currentThread().id})..."
         TransactionHolder th = mapTransactionHolder.get(Thread.currentThread())
         if (th) {
+            LOG.debug "Rollback Transaction: Clearing EntityManager..."
             th.em.clear()
             if (th.rollbackTransaction()) {
+                LOG.debug "Rollback Transaction: Closing EntityManager..."
                 closeAndRemoveCurrentEntityManager()
                 if (entityManagerLifespan==EntityManagerLifespan.MANUAL) {
+                    LOG.debug "Rollback Transaction: Creating a new EntityManager..."
                     createEntityManager(th)
                 }
                 ApplicationHolder.application.event("simpleJpaRollbackTransaction", [th])
             }
         } else {
-            if (LOG.isWarnEnabled()) LOG.warn "TransactionHolder is null for ${Thread.currentThread()}!"
+            if (LOG.isWarnEnabled()) LOG.warn "Rollback Transaction: TransactionHolder is null for ${Thread.currentThread()}!"
         }
     }
 
@@ -306,22 +318,24 @@ final class SimpleJpaHandler {
             ApplicationHolder.application.event("simpleJpaBeforeAutoCreateTransaction")
             beginTransaction()
         }
-        LOG.debug "Not in a transaction? ${!insideTransaction}"
+        LOG.debug "Auto Create Transaction: Active [${!insideTransaction}]"
         try {
             result = action()
         } catch (Exception ex) {
-            LOG.error "Error when not in a transaction? ${!insideTransaction}", ex
+            LOG.error "Auto Create Transaction: Active [${!insideTransaction}] Exception is raised", ex
             if (!insideTransaction) {
                 isError = true
                 rollbackTransaction()
             }
             throw ex
         } finally {
+            LOG.debug "Auto Create Transaction: Active [${!insideTransaction}] Finally..."
             if (!insideTransaction && !isError) {
+                LOG.debug "Auto Create Transaction: Active [${!insideTransaction}] Commiting transaction..."
                 commitTransaction()
             }
         }
-        LOG.debug "Transaction is done!"
+        LOG.debug "Auto Create Transaction: Active [${!insideTransaction}] Done"
         return result
     }
 
@@ -345,15 +359,16 @@ final class SimpleJpaHandler {
         }
     }
 
-    def findAllModel = { String model ->
+    def findAllModel = { String model, Map additionalConfig = [:] ->
         return { Map config = [:] ->
-            LOG.debug "Executing findAll$model"
+            LOG.debug "Executing findAll$model with additionalConfig [$additionalConfig]"
             executeInsideTransaction {
                 CriteriaBuilder cb = getEntityManager().getCriteriaBuilder()
                 CriteriaQuery c = cb.createQuery()
                 Root rootModel = c.from(Class.forName(domainClassPackage + "." + model))
                 c.select(rootModel)
 
+                config << additionalConfig
                 configureCriteria(cb, c, rootModel, config)
                 configureQuery(getEntityManager().createQuery(c), config).getResultList()
             }
@@ -491,12 +506,13 @@ final class SimpleJpaHandler {
         results
     }
 
-    def findModelByAttribute = { Class modelClass, boolean returnAll, List whereExprs, Object[] args ->
+    def findModelByAttribute = { Class modelClass, boolean returnAll, List whereExprs, Map additionalConfig = [:], Object[] args ->
         def config = [:]
         if (args.length > 0 && args.last() instanceof Map) {
             config = args.last()
         }
-        LOG.debug "Find entities by attribute: model=$modelClass, returnAll=$returnAll, whereExprs=$whereExprs, args=$args, confing=$config"
+        config << additionalConfig
+        LOG.debug "Find entities by attribute: model=$modelClass, returnAll=$returnAll, whereExprs=$whereExprs, args=$args, config=$config"
         executeInsideTransaction {
             CriteriaBuilder cb = getEntityManager().getCriteriaBuilder()
             CriteriaQuery c = cb.createQuery()
@@ -683,10 +699,22 @@ final class SimpleJpaHandler {
                 def match = (nameWithoutPrefix =~ PATTERN_FINDMODELBYDSL)
                 def isReturnAll = match[0][1]!=null? true: false
                 def modelName = match[0][2]
-                LOG.debug "First match for model [$modelName]"
+                def config = [:]
+                if (match[0][3]) {
+                    def graphOperation = match[0][4] == 'Fetch' ? 'fetchGraph': 'loadGraph'
+                    def graphName = "$modelName.${match[0][5]}"
+                    config.put(graphOperation, graphName)
+                }
+
+                LOG.debug "First match for model [$modelName] with implicit config $config"
+
                 Class modelClass = Class.forName(domainClassPackage + "." + modelName)
-                delegate.metaClass."$name" = { Object[] p -> findModelByDsl(modelClass, isReturnAll, *p) }
-                return findModelByDsl(modelClass, isReturnAll, *args)
+                def action = { cfg = [:], closure ->
+                    cfg << config
+                    findModelByDsl(modelClass, isReturnAll, cfg, closure)
+                }
+                delegate.metaClass."$name" = action
+                return action(*args)
 
             // findModelBy
             case ~PATTERN_FINDMODELBY:
@@ -699,6 +727,25 @@ final class SimpleJpaHandler {
                 delegate.metaClass."$name" = { Object[] p -> findModelBy(modelClass, isReturnAll, isAnd, *p) }
                 return findModelBy.call(modelClass, isReturnAll, isAnd, *args)
 
+            // findModelByAttributeFetch
+            case ~PATTERN_FINDMODELBYATTRIBUTEFETCH:
+                def match = (nameWithoutPrefix =~ PATTERN_FINDMODELBYATTRIBUTEFETCH)
+                def isReturnAll = match[0][1]!=null? true: false
+                def modelName = match[0][2]
+                def whereExprs = parseFinder(match[0][3])
+                def graphOperation = match[0][4] == 'Fetch' ? 'fetchGraph': 'loadGraph'
+                def graphName = "$modelName.${match[0][5]}"
+                def config = [:]
+                config.put(graphOperation, graphName)
+
+                LOG.debug "First match for model [$modelName] with implicit config $config"
+
+                Class modelClass = Class.forName(domainClassPackage + "." + modelName)
+                delegate.metaClass."$name" = { Object[] p ->
+                    findModelByAttribute(modelClass, isReturnAll, whereExprs, config, p)
+                }
+                return findModelByAttribute.call(modelClass, isReturnAll, whereExprs, config, args)
+
             // findModelByAttribute
             case ~PATTERN_FINDMODELBYATTRIBUTE:
                 def match = (nameWithoutPrefix =~ PATTERN_FINDMODELBYATTRIBUTE)
@@ -709,6 +756,21 @@ final class SimpleJpaHandler {
                 Class modelClass = Class.forName(domainClassPackage + "." + modelName)
                 delegate.metaClass."$name" = { Object[] p -> findModelByAttribute(modelClass, isReturnAll, whereExprs, p) }
                 return findModelByAttribute.call(modelClass, isReturnAll, whereExprs, args)
+
+            // findAllModelFetch
+            case ~PATTERN_FINDALLMODELFETCH:
+                def match = nameWithoutPrefix =~ PATTERN_FINDALLMODELFETCH
+                def modelName = match[0][1]
+                def graphOperation = match[0][2] == 'Fetch' ? 'fetchGraph': 'loadGraph'
+                def graphName = "$modelName.${match[0][3]}"
+                def config = [:]
+                config.put(graphOperation, graphName)
+
+                LOG.debug "First match for model [$modelName] with implicit config $config"
+
+                Closure findAllModelClosure = findAllModel(modelName, config)
+                delegate.metaClass."$name" = findAllModelClosure
+                return findAllModelClosure.call(args)
 
             // findAllModel
             case ~PATTERN_FINDALLMODEL:
