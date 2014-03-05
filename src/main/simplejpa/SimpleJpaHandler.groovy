@@ -57,6 +57,7 @@ final class SimpleJpaHandler {
     final EntityManagerFactory emf
     final Validator validator
     final boolean alwaysExcludeSoftDeleted
+    final boolean alwaysAllowDuplicate
     final EntityManagerLifespan entityManagerLifespan
     final boolean isCheckThreadSafeLoading
     final FlushModeType defaultFlushMode
@@ -84,6 +85,8 @@ final class SimpleJpaHandler {
         this.prefix = ConfigUtils.getConfigValueAsString(app.config, 'griffon.simplejpa.finders.prefix', '')
         this.alwaysExcludeSoftDeleted = ConfigUtils.getConfigValueAsBoolean(app.config,
             'griffon.simplejpa.finders.alwaysExcludeSoftDeleted', false)
+        this.alwaysAllowDuplicate = ConfigUtils.getConfigValueAsBoolean(app.config,
+            'griffon.simplejpa.finders.alwaysAllowDuplicate', false)
         this.domainClassPackage = ConfigUtils.getConfigValueAsString(app.config, 'griffon.simplejpa.domain.package', 'domain')
         this.convertEmptyStringToNull = ConfigUtils.getConfigValueAsBoolean(app.config,
             'griffon.simplejpa.validation.convertEmptyStringToNull', false)
@@ -96,6 +99,7 @@ final class SimpleJpaHandler {
                 "griffon.simplejpa.method.prefix = $prefix\n" +
                 "griffon.simplejpa.domain.package = $domainClassPackage\n" +
                 "griffon.simplejpa.finders.alwaysExcludeSoftDeleted = $alwaysExcludeSoftDeleted\n" +
+                "griffon.simplejpa.finders.alwaysAllowDuplicate = $alwaysAllowDuplicate\n" +
                 "griffon.simplejpa.validation.convertEmptyStringToNull = $convertEmptyStringToNull\n"
         }
 
@@ -182,6 +186,12 @@ final class SimpleJpaHandler {
 
             LOG.debug "Applying order by [$orders]..."
             if (orders.size() > 0) c.orderBy(orders)
+        }
+
+        if (config['allowDuplicate']!=null) {
+            c.distinct(!config['allowDuplicate'])
+        } else {
+            c.distinct(!alwaysAllowDuplicate)
         }
     }
 
