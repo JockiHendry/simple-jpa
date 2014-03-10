@@ -99,7 +99,7 @@ $helpDescription
             temp = param.split(";")
         }
         temp.each {
-            domainModelName << it.replaceAll("[^A-Za-z0-9\$_]", ' ').trim()
+            domainModelName << it.replaceAll("[^A-Za-z0-9\$_\\.]", ' ').trim()
         }
     }
 
@@ -113,8 +113,18 @@ $helpDescription
         return
     }
 
-    domainModelName.each { param ->
-        String domainClassFileName = "${basedir}/src/main/${packageName?.replace('.','/')}/${param}.groovy"
+    domainModelName.each { String param ->
+        def currentPackage = packageName
+        def currentClass = param
+        if (param.contains('.')) {
+            String[] packages = param.split('\\.')
+            for (int i=0; i<packages.length-1; i++) {
+                currentPackage = "${currentPackage}.${packages[i]}"
+            }
+            currentClass = packages.last()
+        }
+        currentClass = griffon.util.GriffonNameUtils.getClassNameRepresentation(currentClass)
+        String domainClassFileName = "${basedir}/src/main/${currentPackage.replace('.','/')}/${currentClass}.groovy"
         File domainClassFile = new File(domainClassFileName)
         if (domainClassFile.exists()) {
             fail("File $domainClassFileName already exists")
@@ -125,18 +135,18 @@ $helpDescription
         domainClassFile.createNewFile()
 
         def template = new GStringTemplateEngine().createTemplate(templateFile.file)
-        def binding = ['packageName': packageName, 'className': param]
+        def binding = ['packageName': currentPackage, 'className': currentClass]
         String result = template.make(binding)
         domainClassFile.write(result)
 
         println "OK"
 
-        String fullClassName = "${packageName}.${param}"
+        String fullClassName = "${currentPackage}.${currentClass}"
         if (!persistenceRoot."persistence-unit".'class'.find{it=="$fullClassName" }.isEmpty()) {
             println "$fullClassName already listed in persistence file!"
         } else {
             persistenceRoot."persistence-unit"."provider" + {
-                'class'("${packageName}.${param}")
+                'class'("${fullClassName}")
             }
         }
     }

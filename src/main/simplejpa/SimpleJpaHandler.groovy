@@ -28,6 +28,7 @@ import javax.persistence.criteria.CriteriaQuery
 import javax.persistence.criteria.ParameterExpression
 import javax.persistence.criteria.Predicate
 import javax.persistence.criteria.Root
+import javax.persistence.metamodel.EntityType
 import javax.validation.ConstraintViolation
 import javax.validation.ValidationException
 import javax.validation.Validator
@@ -63,7 +64,7 @@ final class SimpleJpaHandler {
     final FlushModeType defaultFlushMode
 
 
-
+    final ConcurrentReaderHashMap mapEntityList = new ConcurrentReaderHashMap()
     private boolean convertEmptyStringToNull
     final ConcurrentReaderHashMap mapTransactionHolder = new ConcurrentReaderHashMap()
 
@@ -101,6 +102,16 @@ final class SimpleJpaHandler {
                 "griffon.simplejpa.finders.alwaysExcludeSoftDeleted = $alwaysExcludeSoftDeleted\n" +
                 "griffon.simplejpa.finders.alwaysAllowDuplicate = $alwaysAllowDuplicate\n" +
                 "griffon.simplejpa.validation.convertEmptyStringToNull = $convertEmptyStringToNull\n"
+        }
+
+        //
+        //  Add entity list (key = simple name to value = Class)
+        //
+        emf.metamodel.entities.each { EntityType e ->
+            if (LOG.isDebugEnabled()) {
+                LOG.debug "simple-jpa Entity List: Name [${e.name}] Java Class [${e.javaType}]"
+            }
+            mapEntityList[e.name] = e.javaType
         }
 
     }
@@ -166,7 +177,7 @@ final class SimpleJpaHandler {
                 c.where(p)
             } else {
                 excludeSubclass.split(',').each {
-                    Class subclass = Class.forName("${domainClassPackage}.${it.trim()}")
+                    Class subclass = mapEntityList[it.trim()]
                     LOG.debug "Exclude subclass: ${subclass}..."
                     p = cb.and(p, cb.notEqual(model.type(), cb.literal(subclass)))
                 }
@@ -375,7 +386,7 @@ final class SimpleJpaHandler {
             executeInsideTransaction {
                 CriteriaBuilder cb = getEntityManager().getCriteriaBuilder()
                 CriteriaQuery c = cb.createQuery()
-                Root rootModel = c.from(Class.forName(domainClassPackage + "." + model))
+                Root rootModel = c.from(mapEntityList[model])
                 c.select(rootModel)
 
                 config << additionalConfig
@@ -386,12 +397,12 @@ final class SimpleJpaHandler {
     }
 
     def findModelById = { String model, boolean notSoftDeleted ->
-        def modelClass = Class.forName(domainClassPackage + "." + model)
+        def modelClass = mapEntityList[model]
+        def idClass = emf.metamodel.entity(modelClass).idType.javaType
 
         return { id ->
             LOG.debug "Executing find$model for class $modelClass and id [$id]"
             executeInsideTransaction {
-                def idClass = getEntityManager().metamodel.entity(modelClass).idType.javaType
                 Object object = getEntityManager().find(modelClass, idClass.newInstance(id))
                 if (notSoftDeleted) {
                     if (object."deleted"=="Y") return null
@@ -718,7 +729,7 @@ final class SimpleJpaHandler {
 
                 LOG.debug "First match for model [$modelName] with implicit config $config"
 
-                Class modelClass = Class.forName(domainClassPackage + "." + modelName)
+                Class modelClass = mapEntityList[modelName]
                 def action = { cfg = [:], closure ->
                     cfg << config
                     findModelByDsl(modelClass, isReturnAll, cfg, closure)
@@ -733,7 +744,7 @@ final class SimpleJpaHandler {
                 def modelName = match[0][2]
                 def isAnd = (match[0][3] == 'And')
                 LOG.debug "First match for model [$modelName]"
-                Class modelClass = Class.forName(domainClassPackage + "." + modelName)
+                Class modelClass = mapEntityList[modelName]
                 delegate.metaClass."$name" = { Object[] p -> findModelBy(modelClass, isReturnAll, isAnd, *p) }
                 return findModelBy.call(modelClass, isReturnAll, isAnd, *args)
 
@@ -750,7 +761,7 @@ final class SimpleJpaHandler {
 
                 LOG.debug "First match for model [$modelName] with implicit config $config"
 
-                Class modelClass = Class.forName(domainClassPackage + "." + modelName)
+                Class modelClass = mapEntityList[modelName]
                 delegate.metaClass."$name" = { Object[] p ->
                     findModelByAttribute(modelClass, isReturnAll, whereExprs, config, p)
                 }
@@ -763,7 +774,7 @@ final class SimpleJpaHandler {
                 def modelName = match[0][2]
                 def whereExprs = parseFinder(match[0][3])
                 LOG.debug "First match for model [$modelName]"
-                Class modelClass = Class.forName(domainClassPackage + "." + modelName)
+                Class modelClass = mapEntityList[modelName]
                 delegate.metaClass."$name" = { Object[] p -> findModelByAttribute(modelClass, isReturnAll, whereExprs, p) }
                 return findModelByAttribute.call(modelClass, isReturnAll, whereExprs, args)
 
