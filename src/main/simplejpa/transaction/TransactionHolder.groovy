@@ -73,12 +73,17 @@ class TransactionHolder {
                     return false
                 }
                 LOG.debug "Commiting transaction..."
-                em.transaction.commit()
-                commit = true
+                try {
+                    em.transaction.commit()
+                } finally {
+                    commit = true
+                    resumeLevel--
+                    return commit
+                }
             } else {
                 LOG.debug "Not committing yet [$resumeLevel]."
+                resumeLevel--
             }
-            resumeLevel--
             LOG.debug "Now in tr  [${resumeLevel>0?resumeLevel:'no transaction'}]."
             return commit
         } else if (resumeLevel==0) {
@@ -94,11 +99,14 @@ class TransactionHolder {
             return false
         } else if (resumeLevel==1) {
             LOG.debug "Rollback transaction..."
-            em.transaction.rollback()
-            resumeLevel = 0
-            LOG.debug "Now in [no transaction]."
-            isRollback = false
-            return true
+            try {
+                em.transaction.rollback()
+            } finally {
+                resumeLevel = 0
+                LOG.debug "Now in [no transaction]."
+                isRollback = false
+                return true
+            }
         } else if (resumeLevel > 1) {
             LOG.debug "No rollback yet [$resumeLevel]"
             isRollback = true

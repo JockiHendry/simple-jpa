@@ -132,3 +132,4 @@ First release into griffon artifacts portal.
 1. Domain classes now can be in any packages.
 1. Fixes `@Transaction` to restrictive: allow transformation on getter and setter.
 1. Finders by default will remove duplicate entities.  Use `allowDuplicate: true` config or global `griffon.simplejpa.finders.alwaysAllowDuplicate` config to allow duplicate entities in the result.
+1. Fixes incosistencies when Exception was thrown while committing transaction.

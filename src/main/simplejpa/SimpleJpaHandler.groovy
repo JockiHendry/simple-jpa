@@ -270,7 +270,10 @@ final class SimpleJpaHandler {
         TransactionHolder th
         if (entityManagerLifespan==EntityManagerLifespan.TRANSACTION) {
             // always create new EntityManager for each transaction
-            th = createEntityManager()
+            th = mapTransactionHolder.get(Thread.currentThread())
+            if (th == null || th.resumeLevel==0) {
+                th = createEntityManager()
+            }
         } else if (entityManagerLifespan==EntityManagerLifespan.MANUAL) {
             // reuse previous EntityManager if possible
             th = mapTransactionHolder.get(Thread.currentThread())
@@ -300,7 +303,7 @@ final class SimpleJpaHandler {
         LOG.debug "Commit Transaction: From thread ${Thread.currentThread()} (${Thread.currentThread().id})..."
         TransactionHolder th = mapTransactionHolder.get(Thread.currentThread())
         if (th?.commitTransaction()) {
-            if (entityManagerLifespan==EntityManagerLifespan.TRANSACTION) {
+            if (entityManagerLifespan==EntityManagerLifespan.TRANSACTION && th.resumeLevel==0) {
                 LOG.debug "Commit Transaction: Closing EntityManager..."
                 closeAndRemoveCurrentEntityManager()
             }
