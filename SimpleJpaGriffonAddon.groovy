@@ -107,6 +107,7 @@ class SimpleJpaGriffonAddon {
             target.metaClass.createEntityManager = simpleJpaHandler.createEntityManager
             target.metaClass.destroyEntityManager = simpleJpaHandler.destroyEntityManager
             target.metaClass.getEntityManager = simpleJpaHandler.getEntityManager
+            target.metaClass.withTransaction = simpleJpaHandler.&executeInsideTransaction
 
             String pre = simpleJpaHandler.prefix
             target.metaClass."${generateMethodName(pre, 'persist')}" = simpleJpaHandler.persist

@@ -75,10 +75,14 @@ class TransactionHolder {
                 LOG.debug "Commiting transaction..."
                 try {
                     em.transaction.commit()
-                } finally {
                     commit = true
+                } catch (Exception ex) {
+                    LOG.error "Exception while committing!", ex
+                    throw ex
+                }
+                finally {
+                    LOG.debug "After committing, tr [$resumeLevel]."
                     resumeLevel--
-                    return commit
                 }
             } else {
                 LOG.debug "Not committing yet [$resumeLevel]."
