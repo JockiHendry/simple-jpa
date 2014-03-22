@@ -27,23 +27,22 @@ class TemplateRendererFactory extends ConditionRendererFactory {
 
         if (FactoryBuilderSupport.checkValueIsType(value, name, String)) {
             template = value
-        } else if (FactoryBuilderSupport.checkValueIsType(value, name, Closure)) {
-            template = value
         } else if (FactoryBuilderSupport.checkValueIsType(value, name, TemplateTableCellRenderer)) {
             return value
+        } else {
+            def keys = ['templateString', 'templateExpression', 'exp']
+            for (String s: keys) {
+                template = attributes.remove(s)
+            }
         }
 
-        if (attributes.containsKey('templateString')) {
-            template = attributes.remove('templateString')
-        }
-        if (attributes.containsKey('templateExpression')) {
-            template = attributes.remove('templateExpression')
-        }
-        if (!template) {
-            throw new IllegalArgumentException("In $name you must define a value for templateString or templateExpression.  List of attributes: $attributes")
+        if (template) {
+            result = new TemplateTableCellRenderer(template)
+        } else {
+            throw new IllegalArgumentException("In $name you must define a value for one of $keys.  List of attributes: $attributes")
         }
 
-        new TemplateTableCellRenderer(template)
+        result
     }
 
 }
