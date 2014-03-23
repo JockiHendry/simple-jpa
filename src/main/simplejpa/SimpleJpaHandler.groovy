@@ -225,7 +225,7 @@ final class SimpleJpaHandler {
         if (config['fetchGraph']) {
             LOG.debug "fetchGraph = ${config['fetchGraph']}"
             if (config['fetchGraph'] instanceof String || config['fetchGraph'] instanceof GString) {
-                query.setHint(JPA_PROPERTIES_FETCH_GRAPH, getEntityManager().createEntityGraph(config['fetchGraph']))
+                query.setHint(JPA_PROPERTIES_FETCH_GRAPH, getEntityManager().getEntityGraph(config['fetchGraph']))
             } else {
                 query.setHint(JPA_PROPERTIES_FETCH_GRAPH, config['fetchGraph'])
             }
@@ -233,7 +233,7 @@ final class SimpleJpaHandler {
         if (config['loadGraph']) {
             LOG.debug "loadGraph = ${config['loadGraph']}"
             if (config['loadGraph'] instanceof String || config['fetchGraph'] instanceof GString) {
-                query.setHint(JPA_PROPERTIES_LOAD_GRAPH, getEntityManager().createEntityGraph(config['loadGraph']))
+                query.setHint(JPA_PROPERTIES_LOAD_GRAPH, getEntityManager().getEntityGraph(config['loadGraph']))
             } else {
                 query.setHint(JPA_PROPERTIES_LOAD_GRAPH, config['loadGraph'])
             }
