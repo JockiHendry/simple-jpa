@@ -164,10 +164,11 @@ final class SimpleJpaHandler {
 
         Predicate p = c.getRestriction()?: cb.conjunction()
 
-        if (alwaysExcludeSoftDeleted || config["notSoftDeleted"]==true) {
-            LOG.debug "Applying not soft deleted..."
-            p = cb.and(p, cb.equal(model.get("deleted"), "N"))
-            c.where(p)
+        if ((alwaysExcludeSoftDeleted && !config.containsKey('excludeDeleted')) ||
+            (config.containsKey('excludeDeleted') && config['excludeDeleted'])) {
+                LOG.debug "Exclude soft deleted records..."
+                p = cb.and(p, cb.equal(model.get("deleted"), "N"))
+                c.where(p)
         }
         if (config['excludeSubclass']!=null) {
             String excludeSubclass = config['excludeSubclass']
