@@ -19,6 +19,13 @@ class QueryDsl {
     private String lastJoin
     Map parameters = [:]
 
+    public Predicate getCriteria() {
+        if (criteria == null) {
+            return cb.conjunction()
+        }
+        criteria
+    }
+
     def methodMissing(String methodName, args) {
         def operation = args['operation'][0]
         def arguments = args['args'][0]
@@ -54,8 +61,7 @@ class QueryDsl {
             predicate = cb."$operation"(attribute, *paramArgs)
         }
         if (criteria==null) {
-            criteria = cb.conjunction()
-            criteria = cb.and(criteria, predicate)
+            criteria = cb.and(cb.conjunction(), predicate)
         } else {
             criteria = cb."$lastJoin"(criteria, predicate)
         }
