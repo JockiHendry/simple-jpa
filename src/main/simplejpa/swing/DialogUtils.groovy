@@ -11,8 +11,9 @@ class DialogUtils {
 
     public static Closure defaultContentDecorator = null
 
-    static showMVCGroup(String mvcGroupName, Map args, GriffonApplication app, GriffonView view,
+    static def showMVCGroup(String mvcGroupName, Map args, GriffonApplication app, GriffonView view,
             Map dialogProperties = null, Closure onFinish = null, Closure contentDecorator = null) {
+        def result = null
         app.withMVCGroup(mvcGroupName, args) { m, v, c ->
             Window thisWindow = SwingUtilities.getWindowAncestor(view.mainPanel)
             JDialog dialog = new JDialog(thisWindow, Dialog.ModalityType.APPLICATION_MODAL)
@@ -30,7 +31,8 @@ class DialogUtils {
             dialog.setLocationRelativeTo(thisWindow)
             dialog.setVisible(true)
 
-            onFinish?.call(m, v, c)
+            result = onFinish?.call(m, v, c)
         }
+        result
     }
 }

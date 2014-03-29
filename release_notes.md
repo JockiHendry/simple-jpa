@@ -136,3 +136,4 @@ First release into griffon artifacts portal.
 1. Fixes incosistencies when Exception was thrown while committing transaction.
 1. Add shortcut attribute `exp` that accepts both String and Closure for `templateRenderer`.
 1. Change `notSoftDeleted` config to `excludeDeleted`.
+1. `showMVCGroup()` will return value of `onFinish` closure or `null` if not defined.
