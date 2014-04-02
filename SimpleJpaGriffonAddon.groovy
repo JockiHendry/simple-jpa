@@ -171,6 +171,7 @@ class SimpleJpaGriffonAddon {
         tagChooser: new BeanFactory(TagChooser, false),
         dateTimePicker: new BeanFactory(DateTimePicker, false),
         numberTextField: new NumberTextFieldFactory(),
+        decimalTextField: new NumberTextFieldFactory(true),
         maskTextField: new MaskTextFieldFactory(),
     ]
 

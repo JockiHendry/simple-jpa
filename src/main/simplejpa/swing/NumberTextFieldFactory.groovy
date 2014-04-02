@@ -9,12 +9,21 @@ import javax.swing.JFormattedTextField
 import javax.swing.text.DefaultFormatterFactory
 import javax.swing.text.NumberFormatter
 import java.text.DecimalFormat
-import java.text.NumberFormat
 
 
 class NumberTextFieldFactory extends AbstractFactory {
 
     private Logger LOG = LoggerFactory.getLogger(NumberTextFieldFactory)
+
+    private boolean returnBigDecimal
+
+    public NumberTextFieldFactory() {
+        this(false)
+    }
+
+    public NumberTextFieldFactory(boolean returnBigDecimal) {
+        this.returnBigDecimal = returnBigDecimal
+    }
 
     @Override
     Object newInstance(FactoryBuilderSupport builder, Object name, Object value, Map attributes) throws InstantiationException, IllegalAccessException {
@@ -42,14 +51,20 @@ class NumberTextFieldFactory extends AbstractFactory {
                     decimalFormat = DecimalFormat.getNumberInstance()
             }
         }
+        decimalFormat.setParseBigDecimal(returnBigDecimal)
 
-        NumberFormat editFormat = NumberFormat.getInstance()
+        DecimalFormat editFormat = DecimalFormat.getNumberInstance()
+
         attributes.keySet().findAll { it.startsWith("nf") }.each { String key ->
             String propertyName = GriffonNameUtils.getPropertyName(key[2..-1])
             def v = attributes.remove(key)
             decimalFormat."$propertyName" = v
             editFormat."$propertyName" = v
         }
+
+        editFormat.setDecimalSeparatorAlwaysShown(false)
+        editFormat.setGroupingUsed(false)
+        editFormat.setParseBigDecimal(returnBigDecimal)
 
         NumberFormatter displayFormatter = new NumberFormatter(new NumberFormatExt(decimalFormat))
         NumberFormatter editFormatter = new NumberFormatter(new NumberFormatExt(editFormat))
