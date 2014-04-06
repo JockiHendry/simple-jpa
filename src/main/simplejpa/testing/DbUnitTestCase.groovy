@@ -3,8 +3,11 @@ package simplejpa.testing
 import griffon.core.*
 import griffon.test.GriffonUnitTestCase
 import org.dbunit.database.DatabaseConnection
+import org.dbunit.database.DatabaseSequenceFilter
 import org.dbunit.database.IDatabaseConnection
+import org.dbunit.dataset.FilteredDataSet
 import org.dbunit.dataset.IDataSet
+import org.dbunit.dataset.filter.ITableFilter
 import org.dbunit.operation.DatabaseOperation
 import org.dbunit.util.fileloader.CsvDataFileLoader
 import org.dbunit.util.fileloader.FlatXmlDataFileLoader
@@ -25,7 +28,7 @@ abstract class DbUnitTestCase extends GriffonUnitTestCase {
     IDatabaseConnection connection
     IDataSet dataSet
 
-    void setUpDatabase(String mvcGroup, String dataFile, String persistenceUnit = "default", boolean refresh = false) {
+    void setUpDatabase(String mvcGroup, String dataFile, DatabaseOperation preOperation = null) {
 
         String dbUrl, dbUser, dbPassword
         boolean dbAutoCommit = true
@@ -68,6 +71,9 @@ abstract class DbUnitTestCase extends GriffonUnitTestCase {
                 dataSet = new CsvDataFileLoader().load(dataFile)
             }
 
+            ITableFilter filter = new DatabaseSequenceFilter(connection)
+            dataSet = new FilteredDataSet(filter, dataSet)
+            if (preOperation) preOperation.execute(connection, dataSet)
             cleanInsert()
 
         } finally {
@@ -80,6 +86,10 @@ abstract class DbUnitTestCase extends GriffonUnitTestCase {
         if (!connection.connection.autoCommit) {
             connection.connection.commit()
         }
+    }
+
+    void truncateTable() {
+        DatabaseOperation.TRUNCATE_TABLE.execute(connection, dataSet)
     }
 
     void deleteAll() {
