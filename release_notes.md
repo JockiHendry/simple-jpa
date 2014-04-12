@@ -138,3 +138,4 @@ First release into griffon artifacts portal.
 1. Change `notSoftDeleted` config to `excludeDeleted`.
 1. `showMVCGroup()` will return value of `onFinish` closure or `null` if not defined.
 1. Add `decimalTextField()` node which is a synonym for `numberTextField()` that bind to a `BigDecimal`.
+1. Remove obsoletes methods in `SimpleJpaUtil`.

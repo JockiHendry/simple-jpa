@@ -29,34 +29,10 @@ class SimpleJpaUtil {
     public static SimpleJpaUtil instance = new SimpleJpaUtil()
     private static final Logger LOG = LoggerFactory.getLogger(SimpleJpaUtil)
 
-    private List<SimpleJpaHandler> handlerLists = []
+    SimpleJpaHandler handler
     EntityManagerFactory entityManagerFactory
 
     private SimpleJpaUtil() {}
-
-    public void registerHandler(SimpleJpaHandler handler) {
-        LOG.debug "Registering $handler"
-        handlerLists << handler
-    }
-
-    public List getHandlers() {
-        handlerLists.asImmutable()
-    }
-
-    public Thread getThreadForEntity(Object object) {
-        Thread result = null
-        handlerLists.find { SimpleJpaHandler handler ->
-            handler.mapTransactionHolder.any {  Thread thread, TransactionHolder th ->
-                if (th.em.contains(object)) {
-                    result = thread
-                    true
-                }
-                false
-            }
-        }
-        if (LOG.isWarnEnabled()) LOG.warn "Can't find thread for object [$object]!"
-        result
-    }
 
     public Map getEMFProperties() {
         entityManagerFactory.properties
@@ -66,6 +42,7 @@ class SimpleJpaUtil {
         getEMFProperties()['javax.persistence.jdbc.user']
     }
 
+    @Deprecated
     public String getDbPassword() {
         getEMFProperties()['javax.persistence.jdbc.password']
     }

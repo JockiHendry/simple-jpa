@@ -92,7 +92,7 @@ class SimpleJpaGriffonAddon {
         }
 
         SimpleJpaHandler simpleJpaHandler = new SimpleJpaHandler(emf, validator)
-        util.registerHandler(simpleJpaHandler)
+        util.handler = simpleJpaHandler
 
         for (def target: targets) {
             LOG.debug "Add SimpleJpaHandler to ${target.class}"
