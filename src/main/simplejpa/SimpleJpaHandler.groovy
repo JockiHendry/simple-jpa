@@ -334,6 +334,12 @@ final class SimpleJpaHandler {
         }
     }
 
+    def withTransaction = { Closure action ->
+        action.delegate = this
+        action.setResolveStrategy(Closure.DELEGATE_FIRST)
+        executeInsideTransaction(action)
+    }
+
     def executeInsideTransaction(Closure action) {
         boolean insideTransaction = true
         boolean isError = false
