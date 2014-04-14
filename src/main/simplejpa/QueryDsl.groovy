@@ -26,9 +26,9 @@ class QueryDsl {
         criteria
     }
 
-    def methodMissing(String methodName, args) {
-        def operation = args['operation'][0]
-        def arguments = args['args'][0]
+    def methodMissing(String methodName, methodMissingArgs) {
+        String operation = methodMissingArgs['operation'][0]
+        def arguments = methodMissingArgs['args'][0]
         LOG.debug "Creating predicate method for attribute $methodName, operation $operation and arguments $arguments..."
         Path attribute = null
         if (methodName.contains(PROPERTY_SEPARATOR)) {
@@ -42,29 +42,46 @@ class QueryDsl {
         } else {
             attribute = rootModel.get(methodName)
         }
-        Predicate predicate
-        if (arguments==null) {
-            predicate = cb."$operation"(rootModel.get(methodName))
+        Predicate predicate = getPredicate(operation, attribute, arguments)
+
+        if (criteria==null) {
+            criteria = cb.and(cb.conjunction(), predicate)
         } else {
-            List paramArgs = []
+            criteria = cb."$lastJoin"(criteria, predicate)
+        }
+    }
+
+    private Predicate getPredicate(String operation, Path attribute, def arguments) {
+        List paramArgs = []
+
+        // Process arguments
+        if (arguments!=null) {
             if (arguments.class.isArray() || arguments instanceof List) {
-                arguments.each {
-                    Parameter p = cb.parameter(attribute.javaType)
-                    parameters[p] = it
-                    paramArgs << p
+                if (operation != 'in') {
+                    arguments.each {
+                        Parameter p = cb.parameter(attribute.javaType)
+                        parameters[p] = it
+                        paramArgs << p
+                    }
                 }
             } else {
                 Parameter p = cb.parameter(attribute.javaType)
                 parameters[p] = arguments
                 paramArgs << p
             }
-            predicate = cb."$operation"(attribute, *paramArgs)
         }
-        if (criteria==null) {
-            criteria = cb.and(cb.conjunction(), predicate)
+
+        // Create operations
+        if (arguments == null) {
+            return cb."$operation"(attribute)
         } else {
-            criteria = cb."$lastJoin"(criteria, predicate)
+            if (operation == 'in') {
+                return attribute.in(arguments)
+            } else {
+                return cb."$operation"(attribute, *paramArgs)
+            }
         }
+        throw new UnsupportedOperationException("Not supported: $operation, $attribute, $arguments")
     }
 
     def or() {
@@ -99,6 +116,7 @@ class QueryDsl {
         'gt': [operation: 'greaterThan', argsCount: 1],
         'ne': [operation: 'notEqual', argsCount: 1],
         'eq': [operation: 'equal', argsCount: 1],
+        //'isIn': [operation: 'in', argsCount: 1]
     ]
 
     def eq(arg) {
@@ -179,6 +197,10 @@ class QueryDsl {
 
     def notLike(arg) {
         [operation: "notLike", args: arg]
+    }
+
+    def isIn(arg) {
+        [operation: "in", args: arg]
     }
 
 }
