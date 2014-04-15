@@ -23,20 +23,25 @@ import ca.odell.glazedlists.swing.AdvancedTableModel
 import ca.odell.glazedlists.swing.GlazedListsSwing
 import ca.odell.glazedlists.swing.TableComparatorChooser
 import groovy.beans.Bindable
+import org.codehaus.groovy.binding.SourceBinding
 import simplejpa.swing.glazed.renderer.DefaultTableHeaderRenderer
 import javax.swing.*
 import javax.swing.table.JTableHeader
 import javax.swing.table.TableColumnModel
 import java.awt.Color
+import java.beans.PropertyChangeEvent
+import java.beans.PropertyChangeListener
 
-class GlazedTable extends JTable {
+class GlazedTable extends JTable implements PropertyChangeListener {
 
     EventList eventList
     List<GlazedColumn> eventColumns = []
+    List<GlazedColumn> visibleColumns = []
     SortingStrategy sortingStrategy
     TableComparatorChooser tableComparatorChooser
     Closure onValueChanged
     @Bindable Boolean isRowSelected
+    GlazedTableFormat tableFormat
 
     public GlazedTable() {
         this(null)
@@ -56,6 +61,7 @@ class GlazedTable extends JTable {
             eventColumn.modelIndex = eventColumns.size()
         }
         eventColumn.identifier = eventColumn.modelIndex
+        if (!eventColumn.getPropertyChangeListeners().contains(this)) eventColumn.addPropertyChangeListener(this)
         eventColumns << eventColumn
     }
 
@@ -63,7 +69,9 @@ class GlazedTable extends JTable {
 
         // Build table model
         eventColumns.sort { it.modelIndex }
-        GlazedTableFormat tableFormat = new GlazedTableFormat(eventColumns)
+        visibleColumns = eventColumns.findAll { it.visible }
+
+        tableFormat = new GlazedTableFormat(visibleColumns)
         if (sortingStrategy && !(eventList instanceof SortedList)) {
             eventList = new SortedList(eventList, new Comparator() {
                 @Override
@@ -80,13 +88,15 @@ class GlazedTable extends JTable {
         while (cm.getColumnCount() > 0) {
             cm.removeColumn(cm.getColumn(0))
         }
-        eventColumns.each{ GlazedColumn c ->
+        int modelIndex = 0
+        visibleColumns.findAll{ it.visible }.each{ GlazedColumn c ->
             if (!c.headerRenderer) c.headerRenderer = new DefaultTableHeaderRenderer()
             if (isInstanceOfNumber(c.columnClass)) {
                 c.headerRenderer.addPropertyValue('horizontalAlignment', SwingConstants.RIGHT)
             } else {
                 c.headerRenderer.addPropertyValue('horizontalAlignment', SwingConstants.LEFT)
             }
+            c.modelIndex = modelIndex++
             addColumn(c)
         }
 
@@ -120,5 +130,14 @@ class GlazedTable extends JTable {
             superClass = aClass.superclass
         }
         false
+    }
+
+    @Override
+    void propertyChange(PropertyChangeEvent evt) {
+        if (evt.propertyName == 'visible') {
+            build()
+            super.invalidate()
+            super.repaint()
+        }
     }
 }

@@ -53,8 +53,6 @@ class GlazedTableFactory extends AbstractFactory {
                 throw new IllegalArgumentException("In eventColumn you must define a value for then_property_ or expression")
             }
             table.addEventColumn(child)
-        } else {
-            throw new IllegalArgumentException("Unsupported child: ${child.class} for glazedTable")
         }
     }
 
