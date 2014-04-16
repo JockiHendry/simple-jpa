@@ -14,6 +14,7 @@ class DialogUtils {
     static def showMVCGroup(String mvcGroupName, Map args, GriffonApplication app, GriffonView view,
             Map dialogProperties = null, Closure onFinish = null, Closure contentDecorator = null) {
         def result = null
+        if (args == null) args = [:]
         app.withMVCGroup(mvcGroupName, args) { m, v, c ->
             Window thisWindow = SwingUtilities.getWindowAncestor(view.mainPanel)
             JDialog dialog = new JDialog(thisWindow, Dialog.ModalityType.APPLICATION_MODAL)

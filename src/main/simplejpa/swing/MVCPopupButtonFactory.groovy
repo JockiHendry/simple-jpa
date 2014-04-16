@@ -40,11 +40,11 @@ class MVCPopupButtonFactory extends AbstractFactory {
 
 
         btnResult.actionPerformed = { ActionEvent actionEvent ->
-            def args = arguments
+            def args = arguments?: [:]
             if (arguments instanceof Closure) {
                 args = arguments.call()
             }
-            onBeforeDisplay?.call(btnResult)
+            onBeforeDisplay?.call(btnResult, args)
             DialogUtils.showMVCGroup(mvcGroup, args, builder.getVariable("app"),
                 builder.getVariable("view"), dialogProperties, onFinish, contentDecorator)
         }
