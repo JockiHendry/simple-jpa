@@ -19,6 +19,7 @@ class $className extends DbUnitTestCase {
 
     protected void tearDown() {
         super.tearDown()
+        super.deleteAll()
     }
 
 /*
