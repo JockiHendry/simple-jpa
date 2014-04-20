@@ -410,7 +410,7 @@ final class SimpleJpaHandler {
             LOG.debug "Executing find$model for class $modelClass and id [$id]"
             executeInsideTransaction {
                 Object object = getEntityManager().find(modelClass, idClass.newInstance(id))
-                if (notSoftDeleted) {
+                if (object!=null && notSoftDeleted) {
                     if (object."deleted"=="Y") return null
                 }
                 object
