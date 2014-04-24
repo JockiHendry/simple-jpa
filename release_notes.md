@@ -132,6 +132,7 @@ First release into griffon artifacts portal.
 1. Add `withTransaction`.
 1. Add `@AutoMerge` that will merge current entity when their method is called (inserted as last statement).  This will work only if entity is detached (their id is not null but the entity is not managed by current entity manager).
 1. Add `isIn` operation (to represent query like `status in ('A', 'B', 'C')`) to DSL.
+1. Add `enterKeyAction` and `doubleClickAction` to `glazedTable()`.
 1. Add bindable `visible` property to `glazedColumn()`.
 1. Domain classes now can be in any packages.
 1. Fixes `@Transaction` to restrictive: allow transformation on getter and setter.

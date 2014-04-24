@@ -29,6 +29,10 @@ import javax.swing.*
 import javax.swing.table.JTableHeader
 import javax.swing.table.TableColumnModel
 import java.awt.Color
+import java.awt.event.ActionEvent
+import java.awt.event.KeyEvent
+import java.awt.event.MouseAdapter
+import java.awt.event.MouseEvent
 import java.beans.PropertyChangeEvent
 import java.beans.PropertyChangeListener
 
@@ -42,6 +46,10 @@ class GlazedTable extends JTable implements PropertyChangeListener {
     Closure onValueChanged
     @Bindable Boolean isRowSelected
     GlazedTableFormat tableFormat
+    Action doubleClickAction
+    Action enterKeyAction
+
+    private static final Random random = new Random()
 
     public GlazedTable() {
         this(null)
@@ -117,6 +125,18 @@ class GlazedTable extends JTable implements PropertyChangeListener {
             selectionModel.valueChanged = onValueChanged
         }
 
+        // Key binding
+        if (enterKeyAction) {
+            def actionKey = "Action" + random.nextLong()
+            getInputMap(WHEN_ANCESTOR_OF_FOCUSED_COMPONENT).put(KeyStroke.getKeyStroke(KeyEvent.VK_ENTER, 0), actionKey)
+            actionMap.put(actionKey, enterKeyAction)
+        }
+        if (doubleClickAction) {
+            if (!getMouseListeners().contains(doubleClickHandler)) {
+                addMouseListener(doubleClickHandler)
+            }
+        }
+
         // Refresh
         UIManager.getLookAndFeelDefaults().put("Table.alternateRowColor", new Color(242,242,242))
         updateUI()
@@ -138,6 +158,17 @@ class GlazedTable extends JTable implements PropertyChangeListener {
             build()
             super.invalidate()
             super.repaint()
+        }
+    }
+
+    final def doubleClickHandler = new MouseAdapter() {
+        @Override
+        void mouseClicked(MouseEvent e) {
+            if (doubleClickAction.enabled) {
+                if (e.clickCount==2) {
+                    doubleClickAction.actionPerformed(null)
+                }
+            }
         }
     }
 }
