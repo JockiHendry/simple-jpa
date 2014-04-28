@@ -21,6 +21,8 @@ import org.slf4j.*
 import simplejpa.transaction.EntityManagerLifespan
 import simplejpa.transaction.ReturnFailedSignal
 import simplejpa.transaction.TransactionHolder
+import simplejpa.transaction.WithTransactionHandler
+
 import javax.persistence.*
 import griffon.util.*
 import javax.persistence.criteria.CriteriaBuilder
@@ -67,10 +69,13 @@ final class SimpleJpaHandler {
     private boolean convertEmptyStringToNull
     final ConcurrentReaderHashMap mapTransactionHolder = new ConcurrentReaderHashMap()
 
+    WithTransactionHandler withTransactionHandler
+
     public SimpleJpaHandler(EntityManagerFactory emf, Validator validator) {
 
         this.emf = emf
         this.validator = validator
+        this.withTransactionHandler = new WithTransactionHandler()
 
         //
         // Initialize fields from related configurations
@@ -331,7 +336,7 @@ final class SimpleJpaHandler {
     }
 
     def withTransaction = { Closure action ->
-        action.delegate = this
+        action.delegate = withTransactionHandler
         action.setResolveStrategy(Closure.DELEGATE_FIRST)
         executeInsideTransaction(action)
     }

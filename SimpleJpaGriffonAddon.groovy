@@ -20,6 +20,7 @@ import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 import simplejpa.SimpleJpaHandler
 import simplejpa.SimpleJpaUtil
+import simplejpa.transaction.WithTransactionHandler
 import simplejpa.swing.glazed.ast.Condition
 import simplejpa.swing.glazed.factory.CustomConditionalRenderer
 import simplejpa.swing.glazed.factory.DefaultHeaderRendererFactory
@@ -93,6 +94,8 @@ class SimpleJpaGriffonAddon {
 
         SimpleJpaHandler simpleJpaHandler = new SimpleJpaHandler(emf, validator)
         util.handler = simpleJpaHandler
+
+        targets << WithTransactionHandler
 
         for (def target: targets) {
             LOG.debug "Add SimpleJpaHandler to ${target.class}"
