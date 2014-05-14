@@ -12,12 +12,12 @@ import javax.persistence.criteria.Root
 class QueryDsl {
 
     private static Logger LOG = LoggerFactory.getLogger(QueryDsl)
-    private static String PROPERTY_SEPARATOR = '__'
     CriteriaBuilder cb
     Root rootModel
     Predicate criteria
     private String lastJoin
     Map parameters = [:]
+    NameConverter nameConverter
 
     public Predicate getCriteria() {
         if (criteria == null) {
@@ -30,18 +30,7 @@ class QueryDsl {
         String operation = methodMissingArgs['operation'][0]
         def arguments = methodMissingArgs['args'][0]
         LOG.debug "Creating predicate method for attribute $methodName, operation $operation and arguments $arguments..."
-        Path attribute = null
-        if (methodName.contains(PROPERTY_SEPARATOR)) {
-            methodName.split(PROPERTY_SEPARATOR).each { String node ->
-                if (!attribute) {
-                    attribute = rootModel.get(node)
-                } else {
-                    attribute = attribute.get(node)
-                }
-            }
-        } else {
-            attribute = rootModel.get(methodName)
-        }
+        Path attribute = nameConverter.toPath(rootModel, methodName)
         Predicate predicate = getPredicate(operation, attribute, arguments)
 
         if (criteria==null) {

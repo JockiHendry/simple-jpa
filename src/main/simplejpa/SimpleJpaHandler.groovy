@@ -63,7 +63,7 @@ final class SimpleJpaHandler {
     final boolean alwaysAllowDuplicate
     final EntityManagerLifespan entityManagerLifespan
     final FlushModeType defaultFlushMode
-
+    final NameConverter nameConverter
 
     final ConcurrentReaderHashMap mapEntityList = new ConcurrentReaderHashMap()
     private boolean convertEmptyStringToNull
@@ -76,6 +76,7 @@ final class SimpleJpaHandler {
         this.emf = emf
         this.validator = validator
         this.withTransactionHandler = new WithTransactionHandler()
+        this.nameConverter = new NameConverter()
 
         //
         // Initialize fields from related configurations
@@ -194,7 +195,7 @@ final class SimpleJpaHandler {
 
             orderBy.eachWithIndex { String fieldName, int index ->
                 String direction = orderDirection?.get(index) ?: "asc"
-                orders << cb."$direction"(model.get(fieldName))
+                orders << cb."$direction"(nameConverter.toPath(model, fieldName))
             }
 
             LOG.debug "Applying order by [$orders]..."
@@ -440,7 +441,7 @@ final class SimpleJpaHandler {
             c.select(rootModel)
 
             closure.setResolveStrategy(Closure.DELEGATE_FIRST)
-            closure.delegate = new QueryDsl(cb: cb, rootModel: rootModel)
+            closure.delegate = new QueryDsl(cb: cb, rootModel: rootModel, nameConverter: nameConverter)
             closure.call()
             c.where(closure.delegate.criteria)
 
