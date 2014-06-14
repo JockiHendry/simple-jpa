@@ -19,6 +19,7 @@ package simplejpa
 import griffon.util.*
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
+import simplejpa.obfuscate.Obfuscator
 import simplejpa.transaction.TransactionHolder
 
 import javax.persistence.EntityManagerFactory
@@ -85,6 +86,14 @@ class SimpleJpaUtil {
         }
 
         LOG.debug "Properties overrides: $config"
+
+        // Decrypting value
+        config.each {k,v ->
+            if (v.toString().startsWith('obfuscated:')) {
+                config[k] = Obfuscator.reverse(v)
+            }
+        }
+
         config
     }
 
