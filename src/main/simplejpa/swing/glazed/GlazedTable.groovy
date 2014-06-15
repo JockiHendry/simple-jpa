@@ -45,6 +45,7 @@ class GlazedTable extends JTable implements PropertyChangeListener {
     TableComparatorChooser tableComparatorChooser
     Closure onValueChanged
     @Bindable Boolean isRowSelected
+    @Bindable Boolean isNotRowSelected
     GlazedTableFormat tableFormat
     Action doubleClickAction
     Action enterKeyAction
@@ -116,9 +117,12 @@ class GlazedTable extends JTable implements PropertyChangeListener {
         // Event selection
         selectionModel = GlazedListsSwing.eventSelectionModelWithThreadProxyList(eventList)
         isRowSelected = false
+        isNotRowSelected = true
         selectionModel.valueChanged = {
             isRowSelected = !selectionModel.isSelectionEmpty()
+            isNotRowSelected = !isRowSelected
             firePropertyChange("isRowSelected", !isRowSelected, isRowSelected)
+            firePropertyChange("isNotRowSelected", !isNotRowSelected, isNotRowSelected)
         }
         if (onValueChanged) {
             onValueChanged.delegate = this

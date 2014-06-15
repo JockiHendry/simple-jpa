@@ -145,3 +145,5 @@ First release into griffon artifacts portal.
 1. Add `args` to `onBeforeDisplay` in `mvcPopupButton()` to allow changing args before creating new MVCGroup.
 1. Allow `model__attribute` syntax in `orderBy`.
 1. Remove obsoletes methods in `SimpleJpaUtil`.
+1. Add `obfuscate` command and support `obfucasted:` string in JPA configurations.
+1. Add `isNotRowSelected` to `GlazedTable`.
