@@ -38,7 +38,6 @@ griffon.project.dependency.resolution = {
         compile 'joda-time:joda-time:2.1'
         compile 'net.java.dev.glazedlists:glazedlists_java15:1.9.0'
         compile 'org.dbunit:dbunit:2.4.9'
-        compile 'org.reflections:reflections:0.9.9-RC1'
         runtime 'org.apache.poi:poi:3.2-FINAL'
     }
 }

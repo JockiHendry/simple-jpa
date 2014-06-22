@@ -15,7 +15,6 @@
  */
 
 import groovy.swing.factory.BeanFactory
-import org.reflections.Reflections
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 import simplejpa.SimpleJpaHandler
@@ -46,7 +45,6 @@ import simplejpa.validation.JComboBoxErrorCleaner
 import simplejpa.validation.JTextFieldErrorCleaner
 import simplejpa.validation.JXDatePickerErrorCleaner
 import simplejpa.validation.TagChooserErrorCleaner
-
 import javax.persistence.EntityManagerFactory
 import javax.persistence.Persistence
 import javax.swing.JComboBox
@@ -84,12 +82,15 @@ class SimpleJpaGriffonAddon {
         }
 
         // Also injects simple-jpa methods to domain classes annotated with @Transaction
-        String basePackage = ConfigUtils.getConfigValueAsString(app.config, 'griffon.simplejpa.domain.package', 'domain').replace('.', '/')
-        LOG.debug("Start scanning ${basePackage} for @Transaction")
-        Reflections reflections = new Reflections(basePackage)
-        reflections.getTypesAnnotatedWith(Transaction).each {
-            LOG.debug("Found @Transaction class: ${it.name}")
-            targets << it
+        InputStream input = app.getResourceAsStream(SimpleJpaUtil.FILE_ANNOTATED)
+        if (input) {
+            input.eachLine { String line ->
+                try {
+                    targets << Class.forName(line)
+                } catch (Exception ex) {
+                    LOG.error "Can't load [$line] defined in [${annotated.path}]", ex
+                }
+            }
         }
 
         SimpleJpaHandler simpleJpaHandler = new SimpleJpaHandler(emf, validator)

@@ -15,8 +15,9 @@ import org.codehaus.groovy.syntax.Token
 import org.codehaus.groovy.transform.GroovyASTTransformation
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
-import griffon.util.*
+import simplejpa.SimpleJpaUtil
 import simplejpa.ast.AstUtils
+import griffon.util.*
 
 import javax.persistence.PersistenceException
 
@@ -34,12 +35,13 @@ public class TransactionTransformation extends AbstractASTTransformation {
 
         if (getPolicy(annotation)==Transaction.Policy.SKIP) return
 
+        ClassNode annotationClass = new ClassNode(Transaction.class)
+
         if (node instanceof ClassNode) {
 
-            log.debug "It is a class: ${node.name}"
-            ClassNode annotationClass = new ClassNode(Transaction.class)
+            log.debug "@Transaction AST on class: ${node.name}"
+            log.debug "@Transaction AST on fields: ${node.fields}"
 
-            log.debug "Fields are ${node.fields}"
             node.fields?.each { FieldNode field ->
                 if (field.initialExpression instanceof ClosureExpression &&
                     field.getAnnotations(annotationClass).isEmpty()) {
@@ -79,6 +81,32 @@ public class TransactionTransformation extends AbstractASTTransformation {
             }
 
         }
+
+        // Entry to write
+        List entries = []
+        for (ClassNode c: sourceUnit.AST.classes) {
+            if (!c.getAnnotations(annotationClass).isEmpty()) {
+                entries << c.name
+            }
+        }
+
+        // Check if files already registered in output file
+        File outputFile = new File('griffon-app/resources/' + SimpleJpaUtil.FILE_ANNOTATED)
+        if (outputFile.exists()) {
+            outputFile.eachLine { line ->
+                for (String entry : entries.toArray()) {
+                    if (line.equals(entry)) entries.remove(entry)
+                }
+            }
+        }
+        if (entries.isEmpty()) return
+
+        // Add this class to output file
+        def out = new BufferedOutputStream(new FileOutputStream(outputFile, true))
+        for (String entry: entries) {
+            out.write("${entry}\n".bytes)
+        }
+        out.close()
     }
 
     private static Transaction.Policy getPolicy(AnnotationNode annotation) {

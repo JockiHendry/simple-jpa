@@ -30,6 +30,8 @@ class SimpleJpaUtil {
     public static SimpleJpaUtil instance = new SimpleJpaUtil()
     private static final Logger LOG = LoggerFactory.getLogger(SimpleJpaUtil)
 
+    public static final String FILE_ANNOTATED = 'simple-jpa-annotated.txt'
+
     SimpleJpaHandler handler
     EntityManagerFactory entityManagerFactory
 
