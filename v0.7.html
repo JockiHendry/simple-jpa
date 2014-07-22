@@ -85,6 +85,7 @@
                         <li>7.12. <a href='#rollbackTransaction'>rollbackTransaction()</a></li>
                         <li>7.13. <a href='#softDelete'>softDelete()</a></li>
                         <li>7.14. <a href='#validate'>validate()</a></li>
+                        <li>7.15. <a href="#withTransaction">withTransaction()</a></li>
                     </ul>
                 </li>
                 <li>8. <a href='#finders'>Finders</a>
@@ -1227,6 +1228,21 @@ println "Messages: ${model.errors}"
 To change the error messages returned by Java Validation API, edit the following file: <strong>/griffon-app/i18n/ValidationMessages.properties</strong>.
 </p>
 
+<a id='validate'><h4>7.15. withTransaction()</h4></a>
+
+<p>
+This method will execute a closure as one transaction.	The code inside the closure can call simple-jpa dynamic methods directly.
+</p>
+
+<p>Example:</p>
+
+<pre>
+repository.withTransaction {
+   Student student = findStudentByName("me");
+   if (student) remove(student)
+}
+</pre>
+
 <a id="validation"><h3>8. Finders</h3></a>
 
 <p>
@@ -1463,7 +1479,7 @@ List result = findOrderByDsl {
 }
 </pre>
 
-<a id='#findDomainClassFetchGraph'><h4>8.6. find[DomainClass]Fetch[Graph]()</h4></a>
+<a id='findDomainClassFetchGraph'><h4>8.6. find[DomainClass]Fetch[Graph]()</h4></a>
 
 <p>
 Since simple-jpa 0.7, most finders now accept <code>Fetch[Graph]</code>.  This will allow user to use a defined
