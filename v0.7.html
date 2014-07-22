@@ -657,7 +657,7 @@ If the value for this configuration key is <code>true</code>, simple-jpa finders
 </p>
 
 <p>
-Note that developer can still retrieve soft deleted objects by using <code>executeQuery()</code>, <code>executeNativeQuery()</code>, or passing <code>true</code> to <code>notSoftDeleted</code> query configuration.
+Note that developer can still retrieve soft deleted objects by using <code>executeQuery()</code>, <code>executeNativeQuery()</code>, or passing <code>false</code> to <code>excludeDeleted</code> query configuration.
 </p>
 
 <p>
@@ -1228,7 +1228,7 @@ println "Messages: ${model.errors}"
 To change the error messages returned by Java Validation API, edit the following file: <strong>/griffon-app/i18n/ValidationMessages.properties</strong>.
 </p>
 
-<a id='validate'><h4>7.15. withTransaction()</h4></a>
+<a id='withTransaction'><h4>7.15. withTransaction()</h4></a>
 
 <p>
 This method will execute a closure as one transaction.	The code inside the closure can call simple-jpa dynamic methods directly.
@@ -1258,7 +1258,7 @@ All finders except <code>find[DomainClass]By[Attributes]()</code> have query con
 <ul>
 <li>excludeSubclass</li>
 <li>flushMode</li>
-<li>notSoftDeleted</li>
+<li>excludeDeleted</li>
 <li>orderBy</li>
 <li>orderDirection</li>
 <li>page</li>
@@ -1299,7 +1299,7 @@ findAllEmployee([excludeSubclass: 'Staff'])
 </p>
 
 <p>
-If <code>notSoftDeleted</code> is <code>true</code>, then finder will not return soft deleted entities.  An entity is considered as soft deleted if its <code>deleted</code> attribute is not equals to <code>'N'</code>.
+If <code>excludeDeleted</code> is <code>true</code>, then finder will not return soft deleted entities.  An entity is considered as soft deleted if its <code>deleted</code> attribute is not equals to <code>'N'</code>.
 </p>
 
 <p>
@@ -1308,6 +1308,14 @@ If <code>notSoftDeleted</code> is <code>true</code>, then finder will not return
 
 <pre>
 findAllEmployee([orderBy: 'name,salary'])
+</pre>
+
+<p>
+Since simple-jpa 0.7, <code>orderBy</code> accept <code>model__attribute</code> syntax, for example:
+</p>
+
+<pre>
+findAllEmployee([orderBy: 'department__name'])
 </pre>
 
 <p>
@@ -1476,6 +1484,16 @@ Since version 0.5.2, this method can accept nested path by separating them using
 <pre>
 List result = findOrderByDsl {
     orderItem__category__name eq('CAT1')
+}
+</pre>
+
+<p>
+Since version 0.7, this DSL allow <code>isIn</code> operator.  For example:
+</p>
+
+<pre>
+List result = findOrderByDsl {
+    orderItem__category isIn(['CAT1', 'CAT2', 'CAT3'])
 }
 </pre>
 
