@@ -1565,6 +1565,11 @@ glazedTable(list: model.studentList, sortingStrategy: SINGLE_COLUMN) {
 </p>
 
 <p>
+simple-jpa 0.7 adds <code>enterKeyAction</code> and <code>doubleClickAction</code> to <code>glazedTable()</code>.  Both properties
+requires an <code>javax.swing.Action</code> as value (can be created by using <code>action()</code> node).
+</p>
+
+<p>
 <code>glazedTable()</code> must have one or more <code>glazedColumn()</code> to represent a table column.  For example, the following <code>glazedColumn()</code> will display column value from domain class property:
 </p>
 
@@ -1599,6 +1604,10 @@ glazedColumn(name: 'Total', expression: {it.total()},
 </pre>
 
 <p>
+simple-jpa 0.7 adds a bindable <code>visible</code> property to <code>glazedColumn()</code>.
+</p>
+
+<p>
 <code>glazedColumn()</code> can have their own renderer, for example:
 </p>
 
@@ -1612,7 +1621,7 @@ glazedColumn(name: 'Date', property: 'birthDate') {
 
 <pre>
 glazedColumn(name: 'Date', property: 'birthDate') {
-   templateRenderer(templateExpression: {it.toString('dd-MM-yyyy')})
+   templateRenderer(exp: {it.toString('dd-MM-yyyy')})
 }
 </pre>
 
