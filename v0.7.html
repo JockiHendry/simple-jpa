@@ -43,7 +43,8 @@
                         <li>4.3. <a href='#generate-all'>generate-all</a></li>
                         <li>4.4. <a href='#install-templates'>install-templates</a></li>
                         <li>4.5. <a href='#simple-jpa-console'>simple-jpa-console</a></li>
-                        <li>4.6.  <a href='#generate-schema'>generate-schema</a></li>
+                        <li>4.6. <a href='#generate-schema'>generate-schema</a></li>
+                        <li>4.7. <a href='#obfuscate'>obfuscate</a></li>
             	    </ul>
                 </li>
                 <li>5. <a href='#configurations'>Configuration</a>
@@ -58,6 +59,7 @@
                         <li>5.8. <a href='#griffon.simplejpa.finders.injectInto'>griffon.simplejpa.finders.injectInto</a></li>
                         <li>5.9. <a href='#griffon.simplejpa.finders.prefix'>griffon.simplejpa.finders.prefix</a></li>
                         <li>5.10. <a href='#griffon.simplejpa.validation.convertEmptyStringToNull'>griffon.simplejpa.validation.convertEmptyStringToNull</a></li>
+                        <li>5.11. <a href='#griffon.simpplejpa.finders.alwaysAllowDuplicate'>griffon.simplejpa.finders.alwaysAllowDuplicate</a></li>
                     </ul>
                 </li>
                 <li>6. <a href='#annotations'>Annotations</a>
@@ -455,7 +457,7 @@ griffon generate-schema -target=script -action=drop-and-create
                         -dropTarget=drop.sql -createTarget=target.sql
 </pre>       
 
-<a id='generate-schema'><h4>4.6. obfuscate</h4></a>
+<a id='obfuscate'><h4>4.6. obfuscate</h4></a>
 
 <p>Use this command to generate obfuscated value that can be added to configuration file or <em>simplejpa.properties</em>.  This is useful to hide sensitive information such as database password from novice users.</p>
 
@@ -514,6 +516,10 @@ griffon.simplejpa.domain.package='com.example.domain'
 </pre>
 
 <div class='warning'><strong>Warning:</strong>  Changing this configuration value will not move existing domain classes to the new domain package.  This value merely used as an indicator to find domain classes.  Current version also doesn't support subpackages.  Dynamic finders only work with domain classes that are located exactly in domain package (excluding its subpackages).</div>
+
+<p>
+Since simple-jpa 0.7, domain classes can be located in any subdomain of this package.	
+</p>
 
 <a id="griffon.simplejpa.entityManager.checkThreadSafeLoading"><h4>5.2. griffon.simplejpa.entityManager.checkThreadSafeLoading</h4></a>
 
@@ -710,6 +716,16 @@ In some cases, validation may be failed because the empty <code>JTextField</code
 
 <pre>
 griffon.simplejpa.validation.convertEmptyStringToNull = true
+</pre>
+
+<a id='griffon.simplejpa.finders.alwaysAllowDuplicate'><h4>5.11. griffon.simplejpa.finders.alwaysAllowDuplicate</h4></a>
+
+<p>
+Since simple-jpa 0.7, by default, duplicate entities returned by finders will be ignored.  To allow finders to return duplicate entities, add the following line to <em>Config.groovy</em>:
+</p>
+
+<pre>
+griffon.simplejpa.finders.alwaysAllowDuplicate = true
 </pre>
 
 <a id="annotations"><h3>6. Annotations</h3></a>
@@ -1230,6 +1246,7 @@ All finders except <code>find[DomainClass]By[Attributes]()</code> have query con
 <li>orderDirection</li>
 <li>page</li>
 <li>pageSize</li>
+<li>allowDuplicate</li>
 </ul>
 
 <p>
