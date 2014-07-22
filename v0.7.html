@@ -59,7 +59,7 @@
                         <li>5.8. <a href='#griffon.simplejpa.finders.injectInto'>griffon.simplejpa.finders.injectInto</a></li>
                         <li>5.9. <a href='#griffon.simplejpa.finders.prefix'>griffon.simplejpa.finders.prefix</a></li>
                         <li>5.10. <a href='#griffon.simplejpa.validation.convertEmptyStringToNull'>griffon.simplejpa.validation.convertEmptyStringToNull</a></li>
-                        <li>5.11. <a href='#griffon.simpplejpa.finders.alwaysAllowDuplicate'>griffon.simplejpa.finders.alwaysAllowDuplicate</a></li>
+                        <li>5.11. <a href='#griffon.simplejpa.finders.alwaysAllowDuplicate'>griffon.simplejpa.finders.alwaysAllowDuplicate</a></li>
                     </ul>
                 </li>
                 <li>6. <a href='#annotations'>Annotations</a>
@@ -94,6 +94,7 @@
                         <li>8.3. <a href='#findDomainClassBy'>find[DomainClass]By[And|Or]()</a></li>
                         <li>8.4. <a href='#findDomainClassByAttributes'>find[DomainClass]By[Attributes]()</a></li>
                         <li>8.5. <a href='#findDomainClassByDsl'>find[DomainClass]ByDsl()</a></li>
+                        <li>8.6. <a href='#findDomainClassFetchGraph'>find[DomainClass]Fetch[Graph]()</a></li>
                     </ul>
                 </li>
                 <li>9. <a href='#events'>Events</a></li>                
@@ -1401,7 +1402,7 @@ The following finder will return only one <code>Student</code> whose name contai
 Student s = findStudentByNameLike('%jack%')
 </pre>
 
-<a id='findDomainClassByDsl'><h4>8.4. find[DomainClass]ByDsl()</h4></a>
+<a id='findDomainClassByDsl'><h4>8.5. find[DomainClass]ByDsl()</h4></a>
 
 <p>
 This finder will perform a query based on closure (Dsl).  For example, the following finder will return all <code>Student</code> in class room 'A3' whose score is less than 70:
@@ -1461,6 +1462,25 @@ List result = findOrderByDsl {
     orderItem__category__name eq('CAT1')
 }
 </pre>
+
+<a id='#findDomainClassFetchGraph'><h4>8.6. find[DomainClass]Fetch[Graph]()</h4></a>
+
+<p>
+Since simple-jpa 0.7, most finders now accept <code>Fetch[Graph]</code>.  This will allow user to use a defined
+named entity graph in finders.  To use this feature, JPA 2.1 provider is required.  User can define named entity graphs
+by using <code>@NamedEntityGraph</code> annotation.
+</p>
+
+<p>For example:</p>
+
+<pre>
+List result = findOrderByIdFetchItems('ORDER-1')
+</pre>
+
+<p>
+will find <code>Order</code> with <code>id</code> equals to <code>"ORDER-1"</code> and fecth the result using 
+<code>Items</code> entity graph.  To use the code, a named entity graph called <code>Items</code> must be defined.
+</p>
 
 <a id="events"><h3>9. Events</h3></a>
 
