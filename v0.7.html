@@ -200,7 +200,7 @@ The syntax for this command is:
 	<li><code>hibernate</code> - Use Hibernate JPA</li>
 </ul>
     
-<p><code>databaseType</code> is the name of JDBC driver that will be used.  The default value for this parameter is 'mysql'.  The following is list of Available values:</p>
+<p><code>jdbc</code> is the name of JDBC driver that will be used.  The default value for this parameter is 'mysql'.  The following is list of Available values:</p>
 <ul>
     <li><code>mysql</code> - Use MySQL JDBC</li>
     <li><code>derby-embedded</code> - Use Apache Derby embedded database JDBC</li>
@@ -453,7 +453,43 @@ griffon generate-schema -target=database -action=drop-and-create
 <pre>
 griffon generate-schema -target=script -action=drop-and-create
                         -dropTarget=drop.sql -createTarget=target.sql
-</pre>                        
+</pre>       
+
+<a id='generate-schema'><h4>4.6. obfuscate</h4></a>
+
+<p>Use this command to generate obfuscated value that can be added to configuration file or <em>simplejpa.properties</em>.  This is useful to hide sensitive information such as database password from novice users.</p>
+
+<p>The syntax for this command is:</p>
+
+<pre>
+obfuscate -generate=[value]
+</pre>
+
+<p>or</p>
+
+<pre>
+obfuscate -reverse=[value]	
+</pre>
+
+<p>Examples:</p>
+
+<pre>
+griffon obfuscate -generate=mypassword	
+</pre>
+
+<p>
+The command above will generate <code>obfuscated:AGHJLPazOUvt5ZjzRNnKaA==</code>.  This can be used as a substitution for configurations that accepts string value.  For example, it can be used in <em>Config.groovy</em>:
+</p>
+
+<pre>
+griffon {
+   simplejpa {
+      entityManager {
+         javax.persistence.jdbc.password = "obfuscated:AGHJLPazOUvt5ZjzRNnKaA=="
+      }
+   }
+}
+</pre>
 
 <a id="configurations"><h3>5. Configuration</h3></a>
 
