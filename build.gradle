@@ -1,0 +1,18 @@
+buildscript {
+    repositories {
+        jcenter()
+    }
+    dependencies {
+        classpath 'org.asciidoctor:asciidoctor-gradle-plugin:0.7.3'
+    }
+}
+
+apply plugin: 'java'
+apply plugin: 'org.asciidoctor.gradle.asciidoctor'
+
+asciidoctor {
+    baseDir = file("${projectDir}/src/asciidoc")
+    outputDir = file("$projectDir/html")
+    backends = ['html5','docbook']
+
+}

@@ -1,0 +1,163 @@
+== Finders
+
+Finders are dynamic methods that are used to retrieve entities from database. By following their naming pattern, developer can easily execute query for any domain classes.
+
+=== Query Configuration
+
+All finders except find[DomainClass]By[Attributes]() have query configuration as their parameter. Query configuration is stored in a Map. The possible keys for query configuration are:
+
+    excludeSubclass
+    flushMode
+    excludeDeleted
+    orderBy
+    orderDirection
+    page
+    pageSize
+    allowDuplicate
+
+If excludeSubclass value is '*', it will exclude all subclasses of the domain class. It can also accepts a String that contains comma separated class name to be excluded.
+
+For example, assuming Employee has two subclasses: Teacher and Staff, the following finder will return all instances of Employee including all Teacher and all Staff.
+
+findAllEmployee()
+
+The following finder will return only instance of Employee but not Teacher or Staff:
+
+findAllEmployee([excludeSubclass: '*'])
+
+The following finder will return all instance of Employee and all instance of Teacher but excluding all Staff:
+
+findAllEmployee([excludeSubclass: 'Staff'])
+
+flushMode configuration key accepts FlushModeType.COMMIT or FlushModeType.AUTO. Use this key to override flush mode for specific queries.
+
+If excludeDeleted is true, then finder will not return soft deleted entities. An entity is considered as soft deleted if its deleted attribute is not equals to 'N'.
+
+orderBy will causes finder to sort results based on certains attributes. To sort based on more than one attribute, use comma separated attribute name as shown in the following:
+
+findAllEmployee([orderBy: 'name,salary'])
+
+Since simple-jpa 0.7, orderBy accept model__attribute syntax, for example:
+
+findAllEmployee([orderBy: 'department__name'])
+
+To set order direction, use orderDirection. This key accept 'asc' for ascending order and 'desc' for descending order. For example, the following finder will find all Employee sorted by name and salary in descending order:
+
+findAllEmployee([orderBy: 'name,salary', orderDirection: 'desc,desc'])
+
+To limit the result to certain page, set the value for page (starting from 1) and pageSize. If pageSize is not specified, simple-jpa will assume 1 page consists of 10 rows. For example, the following finder will limit the results to the first 3 entities:
+
+findAllTeacher([orderBy: 'salary', page: 1, pageSize: 3])
+
+=== Basic Finder
+
+This finder will return a List that contains all instances of a domain class. If no instances are found, it will return an empty List.
+
+Example:
+
+def allStudents = findAllStudent()
+def allTeachers = findAllTeacher()
+
+This finder can be used to quickly find instances of domain class based on one or more attributes value using and or or logical operator.
+
+For example, the following finder will return all female Student in class 'A3':
+
+List result = findAllStudentByAnd([classRoom: 'A3', gender: 'F'])
+
+The following finder will return a Student whose name is Steven and class is 'A3' (if it is not found, the finder will return null value):
+
+Student s = findStudentByAnd([name: 'Steven', classRoom: 'A3'])
+
+An alternative syntax for this finder is:
+
+Student s = findByAnd(Student, [name: 'Steven', classRoom: 'A3'])
+
+This is the most flexible finder. It allows complex searching in one method call. For example, this finder will search all female Student in class 'A3':
+
+List result1 = findAllStudentByClassRoomEqAndGenderEq('A3','F')
+List result2 = findAllStudentByClassRoomAndGender('A3', 'F')
+
+The default operator used for comparison is eq (equality) if operator is not specified. The following is list of supported operators:
+
+    greaterThanEqualTo or ge
+    lessThanEqualTo or le
+    greaterThan or gt
+    lessThan or lt
+    isNotMember
+    isNotEmpty
+    isNotNull
+    notEqual or ne
+    isMember
+    isEmpty
+    isNull
+    like
+    notLike
+    between
+    equal or eq
+
+For example, the following finder will return all Student in class room 'A3' whose score is less than 70:
+
+List result = findAllStudentByClassRoomAndScoreLt('A3', 70)
+
+The following finder will return only one Student whose name contains 'jack' or null if not found:
+
+Student s = findStudentByNameLike('%jack%')
+
+=== DSL Finder
+
+This finder will perform a query based on closure (Dsl). For example, the following finder will return all Student in class room 'A3' whose score is less than 70:
+
+List result = findAllStudentByDsl {
+    classRoom eq('A3')
+    and()
+    score lt(70)
+}
+
+Note that it is important to separate these conditions and logical operator by line.
+
+The benefit of using Dsl closure is developer can build the query conditions on the fly. For example, it is typical to perform searching based on one or more user selection in view:
+
+List result = findAllInvoiceByDsl {
+    if (model.txtNumber) {
+       number like("%${txtNumber}%")
+    }
+    if (model.selectedSupplier) {
+       and()
+       supplier eq(selectedSupplier)
+    }
+    if (model.paid) {
+       and()
+       paid eq(true)
+    }
+}
+
+An alternative syntax for this finder is:
+
+List result = findByDsl(Student) {
+    classRoom eq('A3')
+    and()
+    score lt(70)
+}
+
+Since version 0.5.2, this method can accept nested path by separating them using double underscores (__). For example, to find Orders based on their OrderItem's Category, use the following code:
+
+List result = findOrderByDsl {
+    orderItem__category__name eq('CAT1')
+}
+
+Since version 0.7, this DSL allow isIn operator. For example:
+
+List result = findOrderByDsl {
+    orderItem__category isIn(['CAT1', 'CAT2', 'CAT3'])
+}
+
+=== Using Named Entity Graph
+
+Since simple-jpa 0.7, most finders now accept Fetch[Graph]. This will allow user to use a defined named entity graph in finders. To use this feature, JPA 2.1 provider is required. User can define named entity graphs by using @NamedEntityGraph annotation.
+
+For example:
+
+List result = findOrderByIdFetchItems('ORDER-1')
+
+will find Order with id equals to "ORDER-1" and fecth the result using Items entity graph. To use the code, a named entity graph called Items must be defined.
+

@@ -1,0 +1,28 @@
+= Documentation for simple-jpa
+Version 0.7
+:linkcss:
+:scriptsdir: ../javascripts
+:stylesdir: ../stylesheets
+:imagesdir: ../images
+:numbered:
+:icons: font
+:source-highlighter: coderay
+:toc: left
+:homepage: http://jockihendry.github.io/simple-jpa
+
+A complete solution for developing full stack desktop applications in Griffon.
+
+include::001_introduction.adoc[]
+include::002_gettingStarted.adoc[]
+include::003_scaffolding.adoc[]
+include::004_validation.adoc[]
+include::005_swingbuilder.adoc[]
+include::006_persistence.adoc[]
+include::007_auditing.adoc[]
+include::008_finders.adoc[]
+include::009_testing.adoc[]
+include::010_deployment.adoc[]
+include::A1_configuration.adoc[]
+include::A2_script.adoc[]
+include::A3_annotation.adoc[]
+include::A4_methods.adoc[]

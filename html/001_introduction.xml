@@ -1,0 +1,73 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?asciidoc-toc?>
+<?asciidoc-numbered?>
+<article xmlns="http://docbook.org/ns/docbook" xmlns:xlink="http://www.w3.org/1999/xlink" version="5.0" lang="en">
+<info>
+<title>Untitled</title>
+<date>2014-07-29</date>
+</info>
+<section xml:id="_introduction">
+<title>Introduction</title>
+<simpara>simple-jpa is a Griffon plugin for developing JPA and Swing based desktop application. The main goal of simple-jpa is
+to allow developer to concentrate on business logic. simple-jpa provides much functionality that is needed when working
+with JPA, therefore, frees developer from writing high-ceremony code.</simpara>
+<simpara>simple-jpa is very useful for rapidly developing Swing-based database oriented desktop application. It can also be used
+for prototyping.</simpara>
+<simpara>The following is a list of some of simple-jpa’s features:</simpara>
+<variablelist>
+<varlistentry>
+<term>Scaffolding</term>
+<listitem>
+<simpara>simple-jpa can generate an MVCGroup based on a domain class. This will speed up development.</simpara>
+</listitem>
+</varlistentry>
+<varlistentry>
+<term>Dynamic finders</term>
+<listitem>
+<simpara>simple-jpa injects dynamic finders to controllers (or services). With dynamic finders, developer can perform a query on
+JPA entities (or domain objects) quickly and easily. simple-jpa also supports the execution of JPA named query, JPQL and
+native SQL.</simpara>
+</listitem>
+</varlistentry>
+<varlistentry>
+<term>Transaction management</term>
+<listitem>
+<simpara>Unlike web-based applications, desktop applications do not require Java Transaction API (JTA). simple-jpa automatically
+provides and manages transaction for each method in controllers (can be configured by using annotation). By default,
+simple-jpa will share EntityManager across transaction in a way that is suitable for desktop application.</simpara>
+</listitem>
+</varlistentry>
+<varlistentry>
+<term>Bean Validation API (JSR-303) support</term>
+<listitem>
+<simpara>In the case of failed validation, simple-jpa will automatically present error messages in Swing-based view. Developer
+can also configure error notification and its behavior.</simpara>
+</listitem>
+</varlistentry>
+<varlistentry>
+<term>Common database application features</term>
+<listitem>
+<simpara>simple-jpa adds the following to all domain classes: an id (auto generated primary key), fields that store created time
+and last modified time (will be filled automatically), and a soft delete flag (soft delete is marking the object as
+inactive without deleting it from database).</simpara>
+</listitem>
+</varlistentry>
+<varlistentry>
+<term>Swing nodes for database application</term>
+<listitem>
+<simpara>simple-jpa provides template renderer for effortlessly represent domain object in JTable, JList or JComboBox. It also
+provides new nodes that can be used in Griffon’s view such as tagChooser, numberTextField, maskTextField, and
+dateTimePicker.</simpara>
+</listitem>
+</varlistentry>
+<varlistentry>
+<term>Integration testing</term>
+<listitem>
+<simpara>simple-jpa is using dbUnit in integration testing to fill database with predefined data from a Microsoft Excel file
+(or csv file). This way, every test cases will be executed with the same table data.</simpara>
+</listitem>
+</varlistentry>
+</variablelist>
+</section>
+</article>

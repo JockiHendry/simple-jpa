@@ -1,0 +1,294 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?asciidoc-toc?>
+<?asciidoc-numbered?>
+<article xmlns="http://docbook.org/ns/docbook" xmlns:xlink="http://www.w3.org/1999/xlink" version="5.0" lang="en">
+<info>
+<title>Untitled</title>
+<date>2014-07-30</date>
+</info>
+<appendix xml:id="_script">
+<title>Script</title>
+<simpara>simple-jpa scripts can be called just like any Griffon&#8217;s commands:</simpara>
+<screen>griffon [command-name] [argument1] [argument2] ...</screen>
+<simpara>To display more information for a command, call it with <literal>-info</literal> argument:</simpara>
+<screen>griffon [command-name] -info</screen>
+<section xml:id="_create_simple_jpa">
+<title>create-simple-jpa</title>
+<simpara>This command is usually the first command that will be invoked before working with Java Persistence API (JPA).
+It will create persistence.xml and orm.xml in current project. It will also create some resource files that are commonly
+required when working with JPA.</simpara>
+<simpara>The syntax for this command is:</simpara>
+<screen>create-simple-jpa -user=[databaseUser] -password=[databasePassword]
+    -database=[databaseName] -rootPassword=[databaseRootPassword]
+    -provider=[JPAProvider] -jdbc=[databaseType]</screen>
+<simpara>or</simpara>
+<screen>create-simple-jpa -user=[databaseUser] -password=[databasePassword]
+    -database=[databaseName] -provider=[JPAProvider]
+    -jdbc=[databaseType] -skipDatabase</screen>
+<variablelist>
+<varlistentry>
+<term><literal>user</literal></term>
+<listitem>
+<simpara>The name of database user. JPA will establish connection to database by using the specified user name. If user name
+doesn&#8217;t exists, it will be created automatically.</simpara>
+</listitem>
+</varlistentry>
+<varlistentry>
+<term><literal>password</literal></term>
+<listitem>
+<simpara>The password used when establishing connection to the database.</simpara>
+</listitem>
+</varlistentry>
+<varlistentry>
+<term><literal>database</literal></term>
+<listitem>
+<simpara>The database name or schema name. If this database doesn&#8217;t exists, it will be created automatically.
+The specified user will also be granted privilleges to use this database.</simpara>
+</listitem>
+</varlistentry>
+<varlistentry>
+<term><literal>rootPassword</literal></term>
+<listitem>
+<simpara>The password for database root/administrator. To create user and database and grants privilleges, this command requires
+password for root/administrator user. This value will never be stored in project files.</simpara>
+</listitem>
+</varlistentry>
+<varlistentry>
+<term><literal>provider</literal></term>
+<listitem>
+<simpara>The name of JPA provider that will be used. The default value for this parameter is <literal>hibernate</literal>.</simpara>
+</listitem>
+</varlistentry>
+<varlistentry>
+<term><literal>jdbc</literal></term>
+<listitem>
+<simpara>The name of JDBC driver that will be used. The default value for this parameter is <literal>mysql</literal>. The following available
+values are <literal>mysql</literal> for using MySQL JDBC or <literal>derby-embedded</literal> for using Apache Derby embedded database JDBC.</simpara>
+</listitem>
+</varlistentry>
+<varlistentry>
+<term><literal>skipDatabase</literal></term>
+<listitem>
+<simpara>If this argument exists, <literal>create-simple-jpa</literal> will not create user and database automatically. It will only write
+to <literal>persistence.xml</literal> and assume required database schema and user is available.</simpara>
+</listitem>
+</varlistentry>
+</variablelist>
+<simpara>For example, the following command will generate <literal>persistence.xml</literal> with a connection to MySQL database
+(user: steven, password: 12345, database schema: sample), uses Hibernate JPA, and creates user steven and sample schema
+if they are not exists:</simpara>
+<screen>griffon create-simple-jpa -user=steven -password=12345 -database=sample
+    -rootPassword=secret</screen>
+<simpara>The following command will do the same as the previous one:</simpara>
+<screen>griffon create-simple-jpa -user=steven -password=12345 -database=sample
+    -provider=hibernate -databaseType=mysql -rootPassword=secret</screen>
+<simpara>The following command will generate <literal>persistence.xml</literal> with a connection to MySQL database (user: scott, password: tiger,
+database schema: ha), uses Hibernate JPA, and will not check if required user and schema are available:</simpara>
+<screen>griffon create-simple-jpa -user=scott -password=tiger -database=ha
+    -skip-database</screen>
+</section>
+<section xml:id="_create_domain_class">
+<title>create-domain-class</title>
+<simpara>This command will create a new empty domain class and register it in persistence context file. Before creating domain
+class, the project must has <literal>persistence.xml</literal> file in <literal>metainf</literal> directory. To generate required files for working with
+JPA, use <literal>create-simple-jpa</literal> command.</simpara>
+<simpara>Domain class will be generated in the package specified by <literal>griffon.simplejpa.model.package</literal> value. The default package
+is <literal>domain</literal>.</simpara>
+<simpara>To change the default template used for generating domain clasess, execute <literal>install-templates</literal> command and edit
+<literal>SimplaJpaDomainClass.groovy</literal>.</simpara>
+<simpara>The syntax for this command is:</simpara>
+<screen>create-domain-class [domainClassName]</screen>
+<simpara>or</simpara>
+<screen>create-domain-class [domainClassName] [domainClassName] ...</screen>
+<simpara>or</simpara>
+<screen>create-domain-class [domainClassName],[domainClassName], ...</screen>
+<variablelist>
+<varlistentry>
+<term><literal>domainClassName</literal></term>
+<listitem>
+<simpara>The name of domain class that will be generated.</simpara>
+</listitem>
+</varlistentry>
+</variablelist>
+<simpara>Examples:</simpara>
+<screen>griffon create-domain-class Student</screen>
+<screen>griffon create-domain-class Teacher Student</screen>
+<screen>griffon create-domain-class Teacher,Student</screen>
+</section>
+<section xml:id="_generate_all">
+<title>generate-all</title>
+<simpara>This command will create a new <literal>MVCGroup</literal> based on a domain class. The generated MVCGroup (consists of a view, a model
+and a controller) has the ability to perform CRUD operations on a domain class. This command can also generate a startup
+<literal>MVCGroup</literal> that act as container for the others.</simpara>
+<simpara>Domain classes should be located in the package specified by <literal>griffon.simplejpa.model.package</literal> in <literal>Config.groovy</literal>. The
+default value for package is <literal>domain</literal>.</simpara>
+<simpara>When the value of <literal>griffon.simplejpa.finders.alwaysExcludeSoftDeleted</literal> is <literal>true</literal>, the generated controller will call
+<literal>softDelete()</literal> instead of <literal>remove()</literal>.</simpara>
+<simpara>To change the default template used by this command, execute <literal>install-templates</literal> command and edit the generated template
+files.</simpara>
+<simpara>The syntax for this command is:</simpara>
+<screen>generate-all * [-generatedPackage] [-forceOverwrite] [-setStartup]
+    [-skipExcel] [-startupGroup=value]</screen>
+<simpara>or</simpara>
+<screen>griffon generate-all [domainClassName] [-generatedPackage]
+    [-forceOverwrite] [-setStartup] [-skipExcel]
+    [-startupGroup=value]</screen>
+<simpara>or</simpara>
+<screen>generate-all [domainClassName] [domainClassName] ...
+    [-generatedPackage] [-forceOverwrite] [-setStartup] [-skipExcel]
+    [-startupGroup=value]</screen>
+<variablelist>
+<varlistentry>
+<term><literal>domainClassName</literal></term>
+<listitem>
+<simpara>The name of domain class the will be manipulated by the generated <literal>MVCGroup</literal>. Each domain class
+will have their own <literal>MVCGroup</literal> generated. If this value is <literal>*</literal>, then all domain classes will be processed.</simpara>
+</listitem>
+</varlistentry>
+<varlistentry>
+<term><literal>generatedPackage</literal> (optional)</term>
+<listitem>
+<simpara>The target package. By default, the value for this parameter is project.</simpara>
+</listitem>
+</varlistentry>
+<varlistentry>
+<term><literal>forceOverwrite</literal> (optional)</term>
+<listitem>
+<simpara>If exists, this script will replace existing files without any notifications.</simpara>
+</listitem>
+</varlistentry>
+<varlistentry>
+<term><literal>setStartup</literal> (optional)</term>
+<listitem>
+<simpara>If exists, this script will set the generated MVCGroup as startup (the <literal>MVCGroup</literal> will be launched when program starts).
+If this argument is present when generating more than one MVCGroup, then only the last MVCGroup will be set as startup
+group.</simpara>
+</listitem>
+</varlistentry>
+<varlistentry>
+<term><literal>skipExcel</literal> (optional)</term>
+<listitem>
+<simpara>If exists, this script will not create Microsoft Excel file for integration testing (DbUnit).</simpara>
+</listitem>
+</varlistentry>
+<varlistentry>
+<term><literal>startupGroup</literal> (optional)</term>
+<listitem>
+<simpara>The name for MVCGroup that serves as startup group. The generated MVCGroup will not based on any domain class, instead
+it will act as a container for the other domain classes&#8217; based MVCGroups.</simpara>
+</listitem>
+</varlistentry>
+</variablelist>
+<simpara>For example, the following command will generate MVCGroup for all domain classes:</simpara>
+<screen>griffon generate-all *</screen>
+<simpara>The following command will generate MVCGroup for all domain classes, overwriting existing files, and set the last
+MVCGroup as startup:</simpara>
+<screen>griffon generate-all * -forceOverwrite -setStartup</screen>
+<simpara>The following command will generate MVCGroup for domain class <literal>Student</literal>, <literal>Teacher</literal>, and <literal>Classroom</literal>:</simpara>
+<screen>griffon generate-all Student Teacher Classroom</screen>
+<simpara>The following command will generate MVCGroup for domain class <literal>Student</literal> and generate a container MVCGroup which name is
+<literal>MainGroup</literal>:</simpara>
+<screen>griffon generate-all Student -startupGroup=MainGroup</screen>
+<simpara>The following command will generate a container MVCGroup which name is <literal>MainGroup</literal>:</simpara>
+<screen>griffon generate-all -startupGroup=MainGroup</screen>
+</section>
+<section xml:id="_install_templates">
+<title>install-templates</title>
+<simpara>This command will add templates used by simple-jpa to current project in <literal>/src/templates/artifacts</literal>. This command is
+useful for changing templates that is used by simple-jpa generator. Developer can edit the templates and the next
+invocation of simple-jpa generator will based on them.</simpara>
+<simpara>The syntax for this command is:</simpara>
+<screen>install-templates</screen>
+<simpara>Example:</simpara>
+<screen>griffon install-templates</screen>
+</section>
+<section xml:id="_simple_jpa_console">
+<title>simple-jpa-console</title>
+<simpara>This command will launch Groovy Console loaded with Griffon and simple-jpa. Developer can use this command to test or
+execute code interactively.</simpara>
+<simpara>For each loaded MVCGroup, there are three variables to refer to its model, view, and controller. For example, if
+MVCGroup name is <literal>student</literal>, developer can refer to its model, view, or controller by using the following variables:
+<literal>studentModel</literal>, <literal>studentController</literal> and <literal>studentView</literal>. Developer can also use <literal>app</literal> to refer to GriffonApplication.
+To display list of available variables, select <emphasis role="strong">Script</emphasis>, <emphasis role="strong">Inspect Variables</emphasis>.</simpara>
+<simpara>When console is started, it only loads startup MVCGroup. To load the another MVCGroup, select <emphasis role="strong">simple-jpa</emphasis>, <emphasis role="strong">MVCGroups</emphasis>.</simpara>
+<simpara>The syntax for this command is:</simpara>
+<screen>simple-jpa-console</screen>
+<simpara>Examples:</simpara>
+<screen>griffon simple-jpa-console</screen>
+</section>
+<section xml:id="_generate_schema">
+<title>generate-schema</title>
+<simpara>This command will generate database schema based on current domain models mapping to database or scripts. Developer can
+use this command to retrieve SQL scripts that can be used to populate new database schema for current application.</simpara>
+<simpara>The syntax for this command is:</simpara>
+<screen>generate-schema -target=database -action=[action]</screen>
+<simpara>or</simpara>
+<screen>generate-schema -target=database -action=[action] -data=[script.sql]</screen>
+<simpara>or</simpara>
+<screen>generate-schema -target=script -action=[action]
+                -dropTarget=[script.sql]
+                -createTarget=[script.sql]</screen>
+<variablelist>
+<varlistentry>
+<term><literal>target</literal></term>
+<listitem>
+<simpara>One of <literal>database</literal> or <literal>script</literal>. If target is <literal>database</literal>, this script will create database objects in the database
+configured in <literal>persistence.xml</literal>. You shouldn&#8217;t need this target because by default, database objects will be dropped and
+generated when application is launched. If target is <literal>script</literal>, this command will generate SQL scripts that can be
+executed later (perhaps in a new database schema).</simpara>
+</listitem>
+</varlistentry>
+<varlistentry>
+<term><literal>action</literal></term>
+<listitem>
+<simpara>Valid values are <literal>none</literal>, <literal>create</literal>, <literal>drop-and-create</literal>, and <literal>drop</literal>.</simpara>
+</listitem>
+</varlistentry>
+<varlistentry>
+<term><literal>data</literal> (optional)</term>
+<listitem>
+<simpara>Contains SQL script location that will be executed after database objects are created. The purpose of this script is to
+initialize database (for example, populating tables with initial data).</simpara>
+</listitem>
+</varlistentry>
+<varlistentry>
+<term><literal>dropTarget</literal></term>
+<listitem>
+<simpara>Available if <literal>target</literal> is <literal>script</literal>. This is the value of file that will be generated and contains DDL DROP scripts.</simpara>
+</listitem>
+</varlistentry>
+<varlistentry>
+<term><literal>createTarget</literal></term>
+<listitem>
+<simpara>Available if <literal>target</literal> is <literal>script</literal>. This is the value of file that will be generated and contains DDL CREATE scripts.</simpara>
+</listitem>
+</varlistentry>
+</variablelist>
+<simpara>Examples:</simpara>
+<screen>griffon generate-schema -target=database -action=drop-and-create</screen>
+<screen>griffon generate-schema -target=script -action=drop-and-create
+                        -dropTarget=drop.sql -createTarget=target.sql</screen>
+</section>
+<section xml:id="_obfuscate">
+<title>obfuscate</title>
+<simpara>Use this command to generate obfuscated value that can be added to configuration file or simplejpa.properties. This is
+useful to hide sensitive information such as database password from novice users.</simpara>
+<simpara>The syntax for this command is:</simpara>
+<screen>obfuscate -generate=[value]</screen>
+<simpara>or</simpara>
+<screen>obfuscate -reverse=[value]</screen>
+<simpara>Examples:</simpara>
+<screen>griffon obfuscate -generate=mypassword</screen>
+<simpara>The command above will generate <literal>obfuscated:AGHJLPazOUvt5ZjzRNnKaA==</literal>. This can be used as a substitution for
+configurations that accepts string value. For example, it can be used in <literal>Config.groovy</literal>:</simpara>
+<programlisting language="groovy" linenumbering="unnumbered">griffon {
+   simplejpa {
+      entityManager {
+         javax.persistence.jdbc.password = "obfuscated:AGHJLPazOUvt5ZjzRNnKaA=="
+      }
+   }
+}</programlisting>
+</section>
+</appendix>
+</article>
