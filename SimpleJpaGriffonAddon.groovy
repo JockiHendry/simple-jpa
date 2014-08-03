@@ -15,6 +15,7 @@
  */
 
 import groovy.swing.factory.BeanFactory
+import org.codehaus.griffon.runtime.core.AbstractGriffonClass
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 import simplejpa.SimpleJpaHandler
@@ -76,7 +77,7 @@ class SimpleJpaGriffonAddon {
         util.entityManagerFactory = emf
 
         // Classes that will be injected with simple-jpa methods
-        def targets = []
+        def targets = new HashSet()
         for (String type: types) {
             app.artifactManager.getClassesOfType(type).each { targets << it }
         }
@@ -86,9 +87,12 @@ class SimpleJpaGriffonAddon {
         if (input) {
             input.eachLine { String line ->
                 try {
-                    targets << Class.forName(line)
+                    Class c = Class.forName(line)
+                    if (targets.find { (it instanceof AbstractGriffonClass) && (it.clazz == c) } == null) {
+                        targets << Class.forName(line)
+                    }
                 } catch (Exception ex) {
-                    LOG.error "Can't load [$line] defined in [${annotated.path}]", ex
+                    LOG.error "Can't load [$line]", ex
                 }
             }
         }
@@ -99,7 +103,7 @@ class SimpleJpaGriffonAddon {
         targets << WithTransactionHandler
 
         for (def target: targets) {
-            LOG.debug "Add SimpleJpaHandler to ${target.class}"
+            LOG.debug "Add SimpleJpaHandler to ${target instanceof AbstractGriffonClass? target.clazz.name: target.name}"
 
             target.metaClass.methodMissing =  simpleJpaHandler.methodMissingHandler
 
