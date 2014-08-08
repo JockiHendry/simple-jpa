@@ -26,7 +26,9 @@ public abstract class Generator {
         if (str.empty) return ''
         for (int i=0; i<str.size(); i++) {
             if (str[i]==null || str[i].allWhitespace) continue
-            (1..numOfTab).each { result.append('\t') }
+            if (numOfTab > 0) {
+                (1..numOfTab).each { result.append('\t') }
+            }
             result.append(str[i])
             if (i<str.size()-1) {
                 result.append(System.lineSeparator())
@@ -47,9 +49,7 @@ public abstract class Generator {
                 return
             }
         }
-        if (!Paths.get(targetDir).toFile().exists()) {
-            Files.createDirectory(Paths.get(targetDir))
-        }
+        Files.createDirectories(Paths.get(targetDir))
         def template = new SimpleTemplateEngine().createTemplate(templateFile.file)
         def binding = ["g": this]
         String result = template.make(binding)

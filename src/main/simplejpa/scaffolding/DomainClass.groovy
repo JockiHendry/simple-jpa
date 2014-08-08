@@ -29,6 +29,7 @@ class DomainClass extends VisitorAdapter {
 	String nameAsChild
     String nameAsProperty
 	String parentClassName
+    String sourceClass
 	String packageName
 	String targetPackage
 	File file
@@ -109,13 +110,12 @@ class DomainClass extends VisitorAdapter {
 	private List fields = []
 	private Annotation currentAnnotation
 
-	void visitClassDef(GroovySourceAST node, int visitType) {
+    void visitClassDef(GroovySourceAST node, int visitType) {
 		if (visitType==Visitor.OPENING_VISIT && inClass) {
 			name = node.childOfType(IDENT).text
 			def extendsClass = node.childOfType(EXTENDS_CLAUSE)
 			if (extendsClass != null && extendsClass.numberOfChildren > 0) {
 				parentClassName = extendsClass.childAt(0).text
-
 			}
 		}
 	}

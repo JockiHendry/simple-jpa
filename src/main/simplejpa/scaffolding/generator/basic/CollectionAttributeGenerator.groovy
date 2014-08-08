@@ -68,6 +68,7 @@ class CollectionAttributeGenerator extends BuiltInAttributeGenerator {
         if (attribute.manyToMany) {
             return ["model.${name}.replaceValues($var_findResult)"]
         }
+        []
     }
 
     List<String> constructor() {

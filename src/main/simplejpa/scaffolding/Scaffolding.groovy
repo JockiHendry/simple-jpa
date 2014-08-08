@@ -44,10 +44,11 @@ class Scaffolding {
             throw new RuntimeException("File persistence.xml is not specified!")
         }
         def xml = new XmlSlurper(false, false).parse(persistenceFile)
-        List<String> files = []
+        def files = []
         xml."persistence-unit".'class'.each {
             String domainClass = it.text()
-            files << "${BuildSettingsHolder.settings.baseDir}/src/main/${domainClass.replace('.','/')}.groovy"
+            files << [className: domainClass,
+                      file: "${BuildSettingsHolder.settings.baseDir}/src/main/${domainClass.replace('.','/')}.groovy"]
         }
         populateDomainClasses(files)
     }
@@ -58,12 +59,24 @@ class Scaffolding {
         //
         domainClasses.clear()
         files.each {
-            File file = new File(it)
+            File file = new File(it.'file')
+            String className = it.'className'
             if (!file.exists()) {
                 log.error "Skipped a domain class from persistence file because can't find $file!"
                 return
             }
-            DomainClass domainClass = new DomainClass(file, domainPackageName, generatedPackage)
+            String currentDomainPackageName = domainPackageName
+            String currentGeneratedPackage = generatedPackage
+            if (className.startsWith(domainPackageName)) {
+                def tmp = className.split('\\.')
+                if (tmp.length > 2) {
+                    currentDomainPackageName = tmp[0..tmp.length - 2].join('.')
+                    currentGeneratedPackage = generatedPackage + '.' + (tmp[0] == domainPackageName?
+                        tmp[1..tmp.length - 2].join('.'): tmp[0..tmp.length - 2].join('.'))
+                }
+            }
+            DomainClass domainClass = new DomainClass(file, currentDomainPackageName, currentGeneratedPackage)
+            domainClass.sourceClass = className
             domainClasses[domainClass.name] = domainClass
         }
         domainClasses.each { String name, DomainClass domainClass ->
@@ -109,7 +122,15 @@ class Scaffolding {
     }
 
     public void generate(String domainClassName) {
-        generator.generate(domainClasses[domainClassName])
+        DomainClass domainClass = domainClassName.contains('.')?
+            domainClasses.find { k,v -> v.sourceClass == domainClassName}.value:
+            domainClasses[domainClassName]
+
+        if (domainClass==null) {
+            log.error "Can't find $domainClassName in persistence.xml!  Nothing will be generated for this entry!"
+        } else {
+            generator.generate(domainClass)
+        }
     }
 
     public void generateStartupGroup() {
@@ -120,4 +141,7 @@ class Scaffolding {
         generator.generateStartupGroup(domainClasses)
     }
 
+    public void setStartupGroupName(String startupGroupName) {
+        this.startupGroupName = startupGroupName.capitalize()
+    }
 }

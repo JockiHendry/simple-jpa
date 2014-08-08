@@ -105,17 +105,17 @@ class BasicGenerator extends Generator {
 
         // Generate model
         generateArtifact(modelTemplate,
-            "${BuildSettingsHolder.settings.baseDir}/griffon-app/models/${scaffolding.generatedPackage.replace('.', '/')}",
+            "${BuildSettingsHolder.settings.baseDir}/griffon-app/models/${targetPackageName.replace('.', '/')}",
             customClassName? "${customClassName}Model.groovy": "${domainClassName}Model.groovy")
 
         // generate view
         generateArtifact(viewTemplate,
-            "${BuildSettingsHolder.settings.baseDir}/griffon-app/views/${scaffolding.generatedPackage.replace('.', '/')}",
+            "${BuildSettingsHolder.settings.baseDir}/griffon-app/views/${targetPackageName.replace('.', '/')}",
             customClassName? "${customClassName}View.groovy": "${domainClassName}View.groovy")
 
         // generate controller
         generateArtifact(controllerTemplate,
-            "${BuildSettingsHolder.settings.baseDir}/griffon-app/controllers/${scaffolding.generatedPackage.replace('.', '/')}",
+            "${BuildSettingsHolder.settings.baseDir}/griffon-app/controllers/${targetPackageName.replace('.', '/')}",
             customClassName? "${customClassName}Controller.groovy": "${domainClassName}Controller.groovy")
 
         // generate integration test
@@ -123,11 +123,11 @@ class BasicGenerator extends Generator {
             log.info "Creating integration test..."
 
             generateArtifact('SimpleJpaIntegrationTest',
-                "${BuildSettingsHolder.settings.baseDir}/test/integration/${scaffolding.generatedPackage.replace('.', '/')}",
+                "${BuildSettingsHolder.settings.baseDir}/test/integration/${targetPackageName.replace('.', '/')}",
                 "${domainClassName}Test.groovy")
 
             if (!scaffolding.skipExcel) {
-                File xmlFile = new File("${BuildSettingsHolder.settings.baseDir}/test/integration/${scaffolding.generatedPackage.replace('.', '/')}/data.xls")
+                File xmlFile = new File("${BuildSettingsHolder.settings.baseDir}/test/integration/${targetPackageName.replace('.', '/')}/data.xls")
                 String sheetName = domainClassName.toLowerCase()
                 HSSFWorkbook workbook = xmlFile.exists()? new HSSFWorkbook(new FileInputStream(xmlFile)): new HSSFWorkbook()
                 if (workbook.getSheet(sheetName)) {
@@ -353,6 +353,19 @@ class BasicGenerator extends Generator {
             return addTab(result, tab, true)
         }
         ''
+    }
+
+    public String imports() {
+        List<String> result = []
+        result << "import ${domainPackageName}.*"
+        domainClass.attributes.each {
+            if (it instanceof CollectionAttribute && it.target.packageName != domainPackageName) {
+                result << "import ${it.target.packageName}.*"
+            } else if (it instanceof EntityAttribute && it.target.packageName != domainPackageName) {
+                result << "import ${it.target.packageName}.*"
+            }
+        }
+        return addTab(result, 0)
     }
 
 

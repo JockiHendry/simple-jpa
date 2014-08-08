@@ -1,6 +1,6 @@
 package ${g.targetPackageName}
 
-import ${g.domainPackageName}.*
+${g.imports()}
 import simplejpa.transaction.Transaction
 import javax.swing.*
 

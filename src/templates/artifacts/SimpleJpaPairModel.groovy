@@ -1,6 +1,6 @@
 package ${g.targetPackageName}
 
-import ${g.domainPackageName}.*
+${g.imports()}
 import ca.odell.glazedlists.*
 import ca.odell.glazedlists.swing.*
 import groovy.beans.Bindable
