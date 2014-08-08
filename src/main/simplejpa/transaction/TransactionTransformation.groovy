@@ -91,7 +91,8 @@ public class TransactionTransformation extends AbstractASTTransformation {
         }
 
         // Check if files already registered in output file
-        File outputFile = new File('griffon-app/resources/' + SimpleJpaUtil.FILE_ANNOTATED)
+        File outputFile = BuildSettingsHolder.settings.baseDir.toPath().
+            resolve("griffon-app").resolve("resources").resolve(SimpleJpaUtil.FILE_ANNOTATED).toFile()
         if (outputFile.exists()) {
             outputFile.eachLine { line ->
                 for (String entry : entries.toArray()) {
