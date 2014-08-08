@@ -1,17 +1,17 @@
-package ${packageName}
+package ${g.targetPackageName}
 
-import domain.*
+import ${g.domainPackageName}.*
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 import simplejpa.testing.DbUnitTestCase
 
-class $className extends DbUnitTestCase {
+class ${g.domainClassName}Test extends DbUnitTestCase {
 
-    private static final Logger log = LoggerFactory.getLogger($className)
+    private static final Logger log = LoggerFactory.getLogger(${g.domainClassName}Test)
 
     protected void setUp() {
         super.setUp()
-        setUpDatabase("${domainClassAsProp}", "/${packageName.replace('.','/')}/data.xls")
+        setUpDatabase("${g.domainClassNameAsProperty}", "/${g.targetPackageName.replace('.','/')}/data.xls")
         controller.destroyEntityManager()
         model.errors.clear()
         model.clear()

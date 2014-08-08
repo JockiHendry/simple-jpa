@@ -1,4 +1,4 @@
-package $packageName
+package ${g.targetPackageName}
 
 import org.jdesktop.swingx.JXStatusBar
 import javax.swing.*
@@ -8,8 +8,10 @@ import java.awt.event.*
 
 actions {
 <%
-   domainClassLists.each { String name ->
-        out << "\taction(id: '${prop(name)}', name: '${natural(name)}', actionCommandKey: '${prop(name)}', closure: controller.switchPage)\n"
+   g.domainClasses.each { String name, def domainClass ->
+	   def prop = griffon.util.GriffonNameUtils.getPropertyName(name)
+	   def natural = griffon.util.GriffonNameUtils.getNaturalName(name)
+	   out << "\taction(id: '$prop', name: '$natural', actionCommandKey: '$prop', closure: controller.switchPage)\n"
    }
 %>
 }
@@ -20,22 +22,23 @@ application(id: 'mainFrame',
   pack: true,
   locationByPlatform: true) {
 
-    borderLayout()
+	borderLayout()
 
-    toolBar(constraints: BorderLayout.PAGE_START, floatable: false) {
-        buttonGroup(id: 'buttons')
+	toolBar(constraints: BorderLayout.PAGE_START, floatable: false) {
+		buttonGroup(id: 'buttons')
 <%
-    domainClassLists.each { String name ->
-        out << "\t\ttoggleButton(buttonGroup: buttons, action: ${prop(name)}, verticalTextPosition: SwingConstants.BOTTOM, horizontalTextPosition: SwingConstants.CENTER)\n"
-    }
+	g.domainClasses.each { String name, def domainClass ->
+		def prop = griffon.util.GriffonNameUtils.getPropertyName(name)
+		out << "\t\ttoggleButton(buttonGroup: buttons, action: $prop, verticalTextPosition: SwingConstants.BOTTOM, horizontalTextPosition: SwingConstants.CENTER)\n"
+	}
 %>
-    }
+	}
 
-    panel(id: "mainPanel", constraints: BorderLayout.CENTER) {
-        cardLayout(id: "cardLayout")
-    }
+	panel(id: "mainPanel", constraints: BorderLayout.CENTER) {
+		cardLayout(id: "cardLayout")
+	}
 
-    statusBar(constraints: BorderLayout.PAGE_END, border: BorderFactory.createBevelBorder(BevelBorder.LOWERED)) {
-        busyLabel(id: "busyLabel", busy: true, visible: false)
-    }
+	statusBar(constraints: BorderLayout.PAGE_END, border: BorderFactory.createBevelBorder(BevelBorder.LOWERED)) {
+		busyLabel(id: "busyLabel", busy: true, visible: false)
+	}
 }
