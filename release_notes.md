@@ -148,3 +148,6 @@ First release into griffon artifacts portal.
 1. Add `obfuscate` command and support `obfucasted:` string in JPA configurations.
 1. Add `isNotRowSelected` to `GlazedTable`.
 1. Remove dependency to Reflections and use `simple-jpa-annotated.txt` file to register annotated domain classes.
+
+### 0.8
+1. Allow nested property in finders.

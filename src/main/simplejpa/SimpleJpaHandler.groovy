@@ -502,9 +502,10 @@ final class SimpleJpaHandler {
     public def parseFinder(String finder) {
         LOG.debug "Parsing $finder"
         List results = []
+        int currentIndex = 0
         finder.split('(And|Or)').each { String expr ->
             LOG.debug "Expression: $expr"
-            int start = finder.indexOf(expr)
+            int start = finder.indexOf(expr, currentIndex)
             int operStart
             String operName, fieldName
             int argsCount
@@ -527,12 +528,13 @@ final class SimpleJpaHandler {
 
             def whereExpr = [field: fieldName, oper: operName, argsCount: argsCount, isAnd: null, isOr: null]
             if (start > 0) {
-                if (finder.substring(0, start).endsWith('And')) {
+                if (finder.substring(currentIndex, start).endsWith('And')) {
                     whereExpr.isAnd = true
-                } else if (finder.substring(0, start).endsWith('Or')) {
+                } else if (finder.substring(currentIndex, start).endsWith('Or')) {
                     whereExpr.isOr = true
                 }
             }
+            currentIndex += fieldName.length()
             LOG.debug "Result: $whereExpr"
             results << whereExpr
         }
@@ -557,10 +559,11 @@ final class SimpleJpaHandler {
             int argsIndex = 0
 
             if (whereExprs.size()==1) {
-                def arguments = [rootModel.get(whereExprs[0].field)]
+                def argument = nameConverter.toPath(rootModel, whereExprs[0].field)
+                def arguments = [argument]
                 if (whereExprs[0].argsCount > 0) {
                     (0..whereExprs[0].argsCount-1).each {
-                        Parameter param = cb.parameter(rootModel.get(whereExprs[0].field).javaType)
+                        Parameter param = cb.parameter(argument.javaType)
                         arguments << param
                         params[param] = args[argsIndex++]
                     }
@@ -569,11 +572,12 @@ final class SimpleJpaHandler {
                 c.where(p)
             } else {
                 whereExprs.each { expr ->
-                    def arguments = [rootModel.get(expr.field)]
+                    def argument = nameConverter.toPath(rootModel, expr.field)
+                    def arguments = [argument]
                     if (expr.argsCount > 0) {
                         (0..expr.argsCount-1).each {
-                            Parameter param = cb.parameter(rootModel.get(expr.field).javaType)
-                            arguments << param
+                            Parameter param = cb.parameter(argument.javaType)
+                            arguments.add(param)
                             params[param] = args[argsIndex++]
                         }
                     }

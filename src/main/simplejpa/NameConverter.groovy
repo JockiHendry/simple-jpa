@@ -2,6 +2,7 @@ package simplejpa
 
 import javax.persistence.criteria.Path
 import javax.persistence.criteria.Root
+import griffon.util.*
 
 class NameConverter {
 
@@ -11,6 +12,7 @@ class NameConverter {
         Path result = null
         if (name.contains(PROPERTY_SEPARATOR)) {
             name.split(PROPERTY_SEPARATOR).each { String node ->
+                node = GriffonNameUtils.uncapitalize(node)
                 if (!result) {
                     result = root.get(node)
                 } else {
