@@ -1,5 +1,7 @@
 package scripts
 
+import griffon.util.*
+
 includeTargets << griffonScript('_GriffonCompile')
 includeTargets << griffonScript('_GriffonClasspath')
 
@@ -26,14 +28,25 @@ precompileAST = {
     }
 }
 
-eventCompileStart = { evt ->
+scaffolding = {
+    def config = new ConfigSlurper().parse(configFile.toURL())
+    boolean autoScaffolding = ConfigUtils.getConfigValueAsBoolean(config, 'griffon.simplejpa.scaffolding.auto', false)
+    if (autoScaffolding) {
+        ant.echo "Running auto-scaffolding"
+        def scaffolding = Class.forName('simplejpa.scaffolding.Scaffolding').newInstance([config].toArray())
+        scaffolding.generate()
+    }
+}
 
+eventCompileSourcesStart = { evt ->
     classpath()
 
     if (System.getProperty('simplejpa.precompileAST', 'true')=='true') {
         precompileAST()
     }
 
+    // scaffolding
+    if (!isPluginProject) {
+        scaffolding()
+    }
 }
-
-

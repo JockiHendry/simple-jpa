@@ -27,6 +27,22 @@ class Scaffolding {
     List domainClassesToGenerate = []
     Map<String, DomainClass> domainClasses = [:]
 
+    public Scaffolding(def config = null) {
+        if (config) {
+            domainPackageName = ConfigUtils.getConfigValueAsString(config, 'griffon.simplejpa.model.package', 'domain')
+            alwaysExcludeSoftDeleted = ConfigUtils.getConfigValueAsBoolean(config, 'griffon.simplejpa.finders.alwaysExcludeSoftDeleted', false)
+            generatorClass = ConfigUtils.getConfigValueAsString(config, 'griffon.simplejpa.scaffolding.generator', null)
+            generatedPackage = ConfigUtils.getConfigValueAsString(config, 'griffon.simplejpa.scaffolding.generatedPackage', 'project')
+            startupGroupName = ConfigUtils.getConfigValueAsString(config, 'griffon.simplejpa.scaffolding.startupGroup', null)
+            ignoreLazy = ConfigUtils.getConfigValueAsBoolean(config, 'griffon.simplejpa.scaffolding.ignoreLazy', false)
+            forceOverwrite = ConfigUtils.getConfigValueAsBoolean(config, 'griffon.simplejpa.scaffolding.forceOverwrite', false)
+            skipExcel = ConfigUtils.getConfigValueAsBoolean(config, 'griffon.simplejpa.scaffolding.skipExcel', false)
+            String target = ConfigUtils.getConfigValueAsString(config, 'griffon.simplejpa.scaffolding.target', '*')
+            domainClassesToGenerate = target.split(',')
+        }
+        persistenceFile = new File("${BuildSettingsHolder.settings.baseDir}/griffon-app/conf/metainf/persistence.xml")
+    }
+
     public boolean isAlwaysExcludeSoftDeleted() {
         (alwaysExcludeSoftDeleted == 'Y' || alwaysExcludeSoftDeleted == true)? true: false
     }
@@ -74,7 +90,7 @@ class Scaffolding {
             try {
                 domainClass.sourceClass = Class.forName(className)
             } catch (Exception ex) {
-                log.error "Can't load class [$className]", ex
+                log.error "Can't load class [$className]"
             }
             domainClasses[domainClass.name] = domainClass
         }
@@ -141,6 +157,9 @@ class Scaffolding {
     }
 
     public void setStartupGroupName(String startupGroupName) {
+        if (startupGroupName == null || startupGroupName.isAllWhitespace()) {
+            startupGroupName = 'MainGroup'
+        }
         this.startupGroupName = startupGroupName.capitalize()
     }
 

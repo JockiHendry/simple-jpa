@@ -132,20 +132,31 @@ description for more information.
         return
     }
 
-    Scaffolding scaffoldingGenerator = new Scaffolding()
-    scaffoldingGenerator.domainPackageName = domainPackageName
-    scaffoldingGenerator.alwaysExcludeSoftDeleted = alwaysExcludeSoftDeleted
-    scaffoldingGenerator.generatorClass = argsMap['generator']
-    scaffoldingGenerator.generatedPackage = argsMap['generated-package'] ?: (argsMap['generatedPackage'] ?: 'project')
-    scaffoldingGenerator.startupGroupName = argsMap['startup-group'] ?: argsMap['startupGroup']
-    scaffoldingGenerator.ignoreLazy = argsMap.containsKey('ignore-lazy') || argsMap.containsKey('ignoreLazy')
-    scaffoldingGenerator.forceOverwrite = argsMap.containsKey('force-overwrite') || argsMap.containsKey('forceOverwrite')
-    scaffoldingGenerator.skipExcel = argsMap.containsKey('skip-excel') || argsMap.containsKey('skipExcel')
-    scaffoldingGenerator.setStartup = argsMap['set-startup'] || argsMap['setStartup']
-    scaffoldingGenerator.domainClassesToGenerate = argsMap.params
-    scaffoldingGenerator.persistenceFile = new File("${basedir}/griffon-app/conf/metainf/persistence.xml")
+    Scaffolding scaffolding = new Scaffolding(config)
+    if (argsMap['generator']) {
+        scaffolding.generatorClass = argsMap['generator']
+    }
+    if (argsMap['generatedPackage']) {
+        scaffolding.generatedPackage = argsMap['generatedPackage']
+    }
+    if (argsMap['startupGroup']) {
+        scaffolding.startupGroupName = argsMap['startupGroup']
+    }
+    if (argsMap['ignoreLazy']) {
+        scaffolding.ignoreLazy = argsMap.containsKey('ignoreLazy')
+    }
+    if (argsMap['forceOverwrite']) {
+        scaffolding.forceOverwrite = argsMap.containsKey('forceOverwrite')
+    }
+    if (argsMap['skipExcel']) {
+        scaffolding.skipExcel = argsMap.containsKey('skipExcel')
+    }
+    if (argsMap['setStartup']) {
+        scaffolding.setStartup = argsMap['setStartup']
+    }
+    scaffolding.domainClassesToGenerate = argsMap.params
 
-    scaffoldingGenerator.generate()
+    scaffolding.generate()
 
     println "\nConfiguring additional files...\n"
 
@@ -171,7 +182,7 @@ description for more information.
     }
 
     File eventsFile = new File("${basedir}/griffon-app/conf/Events.groovy")
-    if (eventsFile.exists() && !scaffoldingGenerator.forceOverwrite) {
+    if (eventsFile.exists() && !scaffolding.forceOverwrite) {
         println "Didn't change $eventsFile."
     } else {
         if (!eventsFile.exists()) {
