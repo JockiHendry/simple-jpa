@@ -21,6 +21,10 @@ public abstract class Generator {
 
     public Scaffolding scaffolding
 
+    public Generator(Scaffolding scaffolding) {
+        this.scaffolding = scaffolding
+    }
+
     public String addTab(List<String> str, int numOfTab, boolean appendNewLineToEnd = false) {
         StringBuilder result = new StringBuilder()
         if (str.empty) return ''

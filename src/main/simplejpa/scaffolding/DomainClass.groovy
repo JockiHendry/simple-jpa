@@ -29,7 +29,7 @@ class DomainClass extends VisitorAdapter {
 	String nameAsChild
     String nameAsProperty
 	String parentClassName
-    String sourceClass
+    Class sourceClass
 	String packageName
 	String targetPackage
 	File file
@@ -54,7 +54,6 @@ class DomainClass extends VisitorAdapter {
 		GroovySourceAST ast = parser.getAST()
 		AntlrASTProcessor traverser = new SourceCodeTraversal(this)
 		traverser.process(ast)
-
 
 		//
 		// Convert the parsed information into DOM attributes

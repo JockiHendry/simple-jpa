@@ -27,11 +27,6 @@ class Scaffolding {
     List domainClassesToGenerate = []
     Map<String, DomainClass> domainClasses = [:]
 
-    public void setGeneratorClass(String generatorClass) {
-        this.generatorClass = generatorClass
-        generator = Class.forName(generatorClass).newInstance([this].toArray())
-    }
-
     public boolean isAlwaysExcludeSoftDeleted() {
         (alwaysExcludeSoftDeleted == 'Y' || alwaysExcludeSoftDeleted == true)? true: false
     }
@@ -76,7 +71,11 @@ class Scaffolding {
                 }
             }
             DomainClass domainClass = new DomainClass(file, currentDomainPackageName, currentGeneratedPackage)
-            domainClass.sourceClass = className
+            try {
+                domainClass.sourceClass = Class.forName(className)
+            } catch (Exception ex) {
+                log.error "Can't load class [$className]", ex
+            }
             domainClasses[domainClass.name] = domainClass
         }
         domainClasses.each { String name, DomainClass domainClass ->
@@ -123,7 +122,7 @@ class Scaffolding {
 
     public void generate(String domainClassName) {
         DomainClass domainClass = domainClassName.contains('.')?
-            domainClasses.find { k,v -> v.sourceClass == domainClassName}.value:
+            domainClasses.find { k,v -> v.sourceClass.name == domainClassName}.value:
             domainClasses[domainClassName]
 
         if (domainClass==null) {
@@ -144,4 +143,12 @@ class Scaffolding {
     public void setStartupGroupName(String startupGroupName) {
         this.startupGroupName = startupGroupName.capitalize()
     }
+
+    public void setGeneratorClass(String generatorClass) {
+        this.generatorClass = (generatorClass==null || generatorClass.isAllWhitespace())?
+            'simplejpa.scaffolding.generator.basic.BasicGenerator': generatorClass
+        Class c = ApplicationClassLoader.get().loadClass(this.generatorClass)
+        generator = c.newInstance([this].toArray())
+    }
+
 }

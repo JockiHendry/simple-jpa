@@ -32,7 +32,7 @@ class BasicGenerator extends Generator {
     private List<String> generatedMVCGroups = []
 
     public BasicGenerator(Scaffolding scaffolding) {
-        this.scaffolding = scaffolding
+        super(scaffolding)
     }
 
     @Override

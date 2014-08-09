@@ -24,9 +24,10 @@ import griffon.util.*
  */
 
 includeTargets << griffonScript("_GriffonCreateArtifacts")
+includeTargets << griffonScript('_GriffonBootstrap')
 
 target(name: 'generateAll', description: "Create CRUD scaffolding for specified domain class", prehook: null, posthook: null) {
-
+    depends(setupApp)
     def config = new ConfigSlurper().parse(configFile.toURL())
     String domainPackageName = ConfigUtils.getConfigValueAsString(config, 'griffon.simplejpa.model.package', 'domain')
     boolean alwaysExcludeSoftDeleted = ConfigUtils.getConfigValueAsBoolean(config, 'griffon.simplejpa.finders.alwaysExcludeSoftDeleted', false)
@@ -39,12 +40,13 @@ DESCRIPTION
 
 SYNTAX
     griffon generate-all * [-generatedPackage=value] [-forceOverwrite]
-        [-setStartup] [-skipExcel] [-startupGroup=value]
+        [-setStartup] [-skipExcel] [-startupGroup=value] [-generator=generator]
     griffon generate-all [domainClassName] [-generatedPackage=value]
         [-forceOverwrite] [-setStartup] [-skipExcel] [-startupGroup=value]
+        [-generator=generator]
     griffon generate-all [domainClassName] [domainClassName] ...
         [-generatedPackage=value] [-forceOverwrite] [-setStartup]
-        [-skipExcel] [-startupGroup=value]
+        [-skipExcel] [-startupGroup=value] [-generator=generator]
 
 ARGUMENTS
     *
@@ -79,6 +81,11 @@ ARGUMENTS
         If this argument is present together with setStartup argument, then
         the setStartup argument will have no effect.
 
+    generator (optional)
+        The generator class that will be used to generate files.  Default
+        generator is simplejpa.scaffolding.generator.basic.BasicGenerator.
+
+
 DETAILS
     This command will generate scaffolding MVC based on a domain class. It
     will also generate a startup MVCGroup that act as container for the
@@ -100,6 +107,7 @@ DETAILS
 EXAMPLES
     griffon generate-all *
     griffon generate-all * -forceOverwrite -setStartup
+    griffon generate-all * -forceOverwrite -generator=com.my.CustomGenerator
     griffon generate-all Student Teacher Classroom
     griffon generate-all Student -startupGroup=MainGroup
     griffon generate-all -startupGroup=MainGroup
@@ -127,6 +135,7 @@ description for more information.
     Scaffolding scaffoldingGenerator = new Scaffolding()
     scaffoldingGenerator.domainPackageName = domainPackageName
     scaffoldingGenerator.alwaysExcludeSoftDeleted = alwaysExcludeSoftDeleted
+    scaffoldingGenerator.generatorClass = argsMap['generator']
     scaffoldingGenerator.generatedPackage = argsMap['generated-package'] ?: (argsMap['generatedPackage'] ?: 'project')
     scaffoldingGenerator.startupGroupName = argsMap['startup-group'] ?: argsMap['startupGroup']
     scaffoldingGenerator.ignoreLazy = argsMap.containsKey('ignore-lazy') || argsMap.containsKey('ignoreLazy')
