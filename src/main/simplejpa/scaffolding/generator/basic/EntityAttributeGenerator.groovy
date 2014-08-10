@@ -63,10 +63,10 @@ class EntityAttributeGenerator extends BuiltInAttributeGenerator {
 
     @Override
     List<String> asDataEntry() {
-        if (attribute.isInverse()) {
-            return ["label(id: '$name', text: bind {model.$name}, errorPath: '$name')"]
-        }
         if (attribute.oneToOne) {
+            if (attribute.isInverse()) {
+                return ["label(id: '$name', text: bind {model.$name}, errorPath: '$name')"]
+            }
             return [
                 "mvcPopupButton(id: '${name}', text: '$buttonName', errorPath: '$name', mvcGroup: '${attribute.target.nameAsProperty}AsPair',",
                 "\targs: {[pair: model.${name}]}, dialogProperties: [title: '$buttonName'], onFinish: { m, v, c -> ",
@@ -75,6 +75,9 @@ class EntityAttributeGenerator extends BuiltInAttributeGenerator {
                 ")"
             ]
         } else if (attribute.manyToOne) {
+            if (attribute.isInverse()) {
+                return ["label(id: '$name', text: '// TODO: $name is an inverse.', errorPath: '$name')"]
+            }
             return ["comboBox(id: '$name', model: model.$name, errorPath: '$name')"]
         }
     }
