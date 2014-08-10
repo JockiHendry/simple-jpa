@@ -244,6 +244,7 @@ class BasicGenerator extends Generator {
         String lhs = customLhs?: currentDomainClass.nameAsProperty
         String tabs = "\t" * tab
         currentDomainClass.getOneToManyInverse().each { CollectionAttribute attr ->
+            if (!attr.eager && !scaffolding.ignoreLazy) return;
             result << "${tabs}${lhs}.${attr.name}.each { ${attr.targetType} ${GriffonNameUtils.getPropertyName(attr.targetType)} ->"
             result << "${tabs}\t${GriffonNameUtils.getPropertyName(attr.targetType)}.${currentDomainClass.nameAsProperty} = $lhs"
             result.addAll(processSaveOneToManyInverse(attr.target, tab+1, null))
@@ -261,6 +262,7 @@ class BasicGenerator extends Generator {
         String lhs = customLhs?: currentDomainClass.nameAsProperty
         String tabs = "\t" * tab
         currentDomainClass.getManyToManyInverse().each { CollectionAttribute attr ->
+            if (!attr.eager && !scaffolding.ignoreLazy) return;
             String targetName = GriffonNameUtils.getPropertyName(attr.target.name)
             result << "${tabs}${lhs}.${attr.name}.each { ${attr.target.name} $targetName ->"
             result << "${tabs}\tif (!${targetName}.${attr.mappedBy}.contains(${currentDomainClass.nameAsProperty})) {"
