@@ -61,4 +61,14 @@ class UnknownAttributeGenerator extends BuiltInAttributeGenerator {
         ]
     }
 
+    @Override
+    List<String> action() {
+        []
+    }
+
+    @Override
+    List<String> popup() {
+        []
+    }
+
 }

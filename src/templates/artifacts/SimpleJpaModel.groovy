@@ -17,6 +17,7 @@ ${g.modelAttrs(1)}
 	BasicEventList<${g.domainClassName}> ${g.domainClassGlazedListVariable} = new BasicEventList<>()
 
 	@Bindable String ${g.firstAttrSearch}
-	@Bindable String searchMessage
+	@Bindable String created
+    @Bindable String modified
 
 }

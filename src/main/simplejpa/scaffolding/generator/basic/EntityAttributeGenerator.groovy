@@ -67,13 +67,7 @@ class EntityAttributeGenerator extends BuiltInAttributeGenerator {
             if (attribute.isInverse()) {
                 return ["label(id: '$name', text: bind {model.$name}, errorPath: '$name')"]
             }
-            return [
-                "mvcPopupButton(id: '${name}', text: '$buttonName', errorPath: '$name', mvcGroup: '${attribute.target.nameAsProperty}AsPair',",
-                "\targs: {[pair: model.${name}]}, dialogProperties: [title: '$buttonName'], onFinish: { m, v, c -> ",
-                "\t\tmodel.${name} = m.${name}",
-                "\t}",
-                ")"
-            ]
+            return ["button(action: ${attribute.actionName}, errorPath: '$name')"]
         } else if (attribute.manyToOne) {
             if (attribute.isInverse()) {
                 return ["label(id: '$name', text: '// TODO: $name is an inverse.', errorPath: '$name')"]
@@ -124,6 +118,33 @@ class EntityAttributeGenerator extends BuiltInAttributeGenerator {
         } else if (attribute.manyToOne) {
             return ["model.${name}.selectedItem = ${var}.$name"]
         }
+    }
+
+    @Override
+    List<String> action() {
+        if (attribute.oneToOne && !attribute.inverse) {
+            return ["action(id: '${attribute.actionName}', name: '$buttonName', closure: controller.${attribute.actionName})"]
+        }
+        []
+    }
+
+    @Override
+    List<String> popup() {
+        if (attribute.oneToOne && !attribute.inverse) {
+            return [
+                "@Transaction(Transaction.Policy.SKIP)",
+                "def ${attribute.actionName} = {",
+                "\texecInsideUISync {",
+                "\t\tdef args = [pair: model.${name}]",
+                "\t\tdef props = [title: '$buttonName']",
+                "\t\tDialogUtils.showMVCGroup('${attribute.target.nameAsProperty}AsPair', args, app, view, props) { m, v, c ->",
+                "\t\t\tmodel.${name} = m.${name}",
+                "\t\t}",
+                "\t}",
+                "}"
+            ]
+        }
+        []
     }
 
 }

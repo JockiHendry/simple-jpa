@@ -38,4 +38,8 @@ abstract class BuiltInAttributeGenerator implements AttributeGenerator {
 
     abstract public List<String> pair_init(String var)
 
+    abstract public List<String> action()
+
+    abstract public List<String> popup()
+
 }

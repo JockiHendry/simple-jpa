@@ -1,6 +1,7 @@
 package ${g.targetPackageName}
 
 ${g.imports()}
+import simplejpa.swing.DialogUtils
 import simplejpa.transaction.Transaction
 import javax.swing.*
 
@@ -33,11 +34,13 @@ ${g.pair_init(3)}
 	out << g.sub_listAll_set(2)
 %>    }
 
-	def close = {
-		execInsideUISync { SwingUtilities.getWindowAncestor(view.mainPanel)?.dispose() }
-	}
-
 	def save = {
+        if (model.${g.domainClassNameAsProperty}!=null) {
+            if (JOptionPane.showConfirmDialog(view.mainPanel, app.getMessage("simplejpa.dialog.update.message"), app.getMessage("simplejpa.dialog.update.title"), JOptionPane.YES_NO_OPTION, JOptionPane.WARNING_MESSAGE) != JOptionPane.YES_OPTION) {
+                return
+            }
+        }
+
 		${g.domainClassName} ${g.domainClassNameAsProperty} = ${g.domainClassConstructor()}
 
 		if (!validate(${g.domainClassNameAsProperty})) return
@@ -60,8 +63,16 @@ ${g.update(3, 'model.' + g.domainClassNameAsProperty)}
 	}
 
 	def delete = {
+        if (JOptionPane.showConfirmDialog(view.mainPanel, app.getMessage("simplejpa.dialog.delete.message"), app.getMessage("simplejpa.dialog.delete.title"), JOptionPane.YES_NO_OPTION, JOptionPane.WARNING_MESSAGE) != JOptionPane.YES_OPTION) {
+            return
+        }
 		model.${g.domainClassNameAsProperty} = null
 		close()
 	}
+${g.popups(1)}
+    @Transaction(Transaction.Policy.SKIP)
+    def close = {
+        execInsideUISync { SwingUtilities.getWindowAncestor(view.mainPanel)?.dispose() }
+    }
 
 }

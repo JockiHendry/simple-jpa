@@ -6,6 +6,14 @@ import static javax.swing.SwingConstants.*
 import net.miginfocom.swing.MigLayout
 import org.joda.time.*
 import java.awt.*
+import org.jdesktop.swingx.prompt.PromptSupport
+
+actions {
+    action(id: 'search', name: app.getMessage('simplejpa.search.label'), closure: controller.search)
+    action(id: 'save', name: app.getMessage('simplejpa.dialog.save.button'), closure: controller.save)
+    action(id: 'cancel', name: app.getMessage("simplejpa.dialog.cancel.button"), closure: controller.clear)
+    action(id: 'delete', name: app.getMessage("simplejpa.dialog.delete.button"), closure: controller.delete)
+${g.actions(1)}}
 
 application(title: '${g.domainClassNameAsNatural}',
 	preferredSize: [520, 340],
@@ -21,46 +29,33 @@ application(title: '${g.domainClassNameAsNatural}',
 
 		panel(constraints: PAGE_START) {
 			flowLayout(alignment: FlowLayout.LEADING)
-			label("${g.firstAttrAsNatural} Search")
-			textField(columns: 4, text: bind('${g.firstAttrSearch}', target: model, mutual: true), actionPerformed: controller.search)
-			button(app.getMessage('simplejpa.search.label'), actionPerformed: controller.search)
-			button(app.getMessage('simplejpa.search.all.label'), actionPerformed: controller.listAll)
+			textField(id: '${g.firstAttrSearch}', columns: 20, text: bind('${g.firstAttrSearch}', target: model, mutual: true), action: search)
+			button(action: search)
 		}
 
-		panel(constraints: CENTER) {
-			borderLayout()
-			panel(constraints: PAGE_START, layout: new FlowLayout(FlowLayout.LEADING)) {
-				label(text: bind('searchMessage', source: model))
-			}
-			scrollPane(constraints: CENTER) {
-				glazedTable(id: 'table', list: model.${g.domainClassGlazedListVariable}, sortingStrategy: SINGLE_COLUMN, onValueChanged: controller.tableSelectionChanged) {
-${g.table(5)}
-				}
-			}
+		scrollPane(constraints: CENTER) {
+            glazedTable(id: 'table', list: model.${g.domainClassGlazedListVariable}, sortingStrategy: SINGLE_COLUMN, onValueChanged: controller.tableSelectionChanged${g.tableActions()}) {
+${g.table(4)}
+            }
 		}
 
-		panel(id: "form", layout: new MigLayout('', '[right][left][left,grow]',''), constraints: PAGE_END, focusCycleRoot: true) {
+		panel(id: "form", layout: new MigLayout('hidemode 2', '[right][left][left,grow]',''), constraints: PAGE_END, focusCycleRoot: true) {
 ${g.dataEntry(3)}
+            panel(visible: bind{table.isRowSelected}, constraints: 'span, growx, wrap') {
+                flowLayout(alignment: FlowLayout.LEADING)
+                label('Created:')
+                label(text: bind{model.created})
+                label('   Modified:')
+                label(text: bind{model.modified})
+            }
 			panel(constraints: 'span, growx, wrap') {
 				flowLayout(alignment: FlowLayout.LEADING)
-				button(app.getMessage("simplejpa.dialog.save.button"), actionPerformed: {
-					if (model.id!=null) {
-						if (JOptionPane.showConfirmDialog(mainPanel, app.getMessage("simplejpa.dialog.update.message"),
-							app.getMessage("simplejpa.dialog.update.title"), JOptionPane.YES_NO_OPTION, JOptionPane.WARNING_MESSAGE) != JOptionPane.YES_OPTION) {
-								return
-						}
-					}
-					controller.save()
-					form.getFocusTraversalPolicy().getFirstComponent(form).requestFocusInWindow()
-				})
-				button(app.getMessage("simplejpa.dialog.cancel.button"), visible: bind{table.isRowSelected}, actionPerformed: controller.clear)
-				button(app.getMessage("simplejpa.dialog.delete.button"), visible: bind{table.isRowSelected}, actionPerformed: {
-					if (JOptionPane.showConfirmDialog(mainPanel, app.getMessage("simplejpa.dialog.delete.message"),
-						app.getMessage("simplejpa.dialog.delete.title"), JOptionPane.YES_NO_OPTION, JOptionPane.WARNING_MESSAGE) == JOptionPane.YES_OPTION) {
-							controller.delete()
-					}
-				})
+				button(action: save)
+				button(visible: bind{table.isRowSelected}, action: cancel)
+				button(visible: bind{table.isRowSelected}, action: delete)
 			}
 		}
 	}
 }
+
+PromptSupport.setPrompt("${g.firstAttrAsNatural} Search", ${g.firstAttrSearch})

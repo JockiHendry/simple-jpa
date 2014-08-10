@@ -1,6 +1,7 @@
 package ${g.targetPackageName}
 
 ${g.imports()}
+import simplejpa.swing.DialogUtils
 import simplejpa.transaction.Transaction
 import javax.swing.*
 import javax.swing.event.ListSelectionEvent
@@ -28,6 +29,12 @@ class ${g.customClassName}Controller {
 %>    }
 
 	def save = {
+        if (!view.table.selectionModel.selectionEmpty) {
+            if (JOptionPane.showConfirmDialog(view.mainPanel, app.getMessage("simplejpa.dialog.update.message"), app.getMessage("simplejpa.dialog.update.title"), JOptionPane.YES_NO_OPTION, JOptionPane.WARNING_MESSAGE) != JOptionPane.YES_OPTION) {
+                return
+            }
+        }
+
 		${g.domainClassName} ${g.domainClassNameAsProperty} = ${g.domainClassConstructor()}
 <%
 out << g.saveOneToManyInverse(g.domainClass,2)
@@ -46,17 +53,23 @@ out << g.saveManyToManyInverse(g.domainClass,2)
 			${g.domainClassName} selected${g.domainClassName} = view.table.selectionModel.selected[0]
 ${g.update(3)}
 		}
-		execInsideUISync { clear() }
+		execInsideUISync {
+            clear()
+            view.form.getFocusTraversalPolicy().getFirstComponent(view.form).requestFocusInWindow()
+        }
 	}
 
 	def delete = {
+        if (JOptionPane.showConfirmDialog(view.mainPanel, app.getMessage("simplejpa.dialog.delete.message"), app.getMessage("simplejpa.dialog.delete.title"), JOptionPane.YES_NO_OPTION, JOptionPane.WARNING_MESSAGE) != JOptionPane.YES_OPTION) {
+            return
+        }
 		${g.domainClassName} ${g.domainClassNameAsProperty} = view.table.selectionModel.selected[0]
 		execInsideUISync {
 			model.${g.domainClassGlazedListVariable}.remove(${g.domainClassNameAsProperty})
 			clear()
 		}
 	}
-
+${g.popups(1)}
 	@Transaction(Transaction.Policy.SKIP)
 	def clear = {
 		execInsideUISync {
@@ -80,5 +93,10 @@ ${g.selected(4)}
 			}
 		}
 	}
+
+    @Transaction(Transaction.Policy.SKIP)
+    def close = {
+        SwingUtilities.getWindowAncestor(view.mainPanel)?.dispose()
+    }
 
 }

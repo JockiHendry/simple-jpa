@@ -38,14 +38,7 @@ class CollectionAttributeGenerator extends BuiltInAttributeGenerator {
             if (attribute.mappedBy && !attribute.hasCascadeAndOrphanRemoval) {
                 return ["label(id: '$name', text: $textForMappedBy, errorPath: '$name')"]
             } else {
-                return [
-                    "mvcPopupButton(id: '$name', text: '$buttonName', errorPath: '$name', mvcGroup: '${attribute.target.nameAsProperty}AsChild',",
-                    "\targs: {[parentList: model.$name]}, dialogProperties: [title: '$buttonName'], onFinish: { m, v, c -> ",
-                    "\t\tmodel.${name}.clear()",
-                    "\t\tmodel.${name}.addAll(m.$var_glazedTable)",
-                    "\t}",
-                    ")"
-                ]
+                return ["button(action: ${attribute.actionName}, errorPath: '$name')"]
             }
         } else if (attribute.manyToMany) {
             if (attribute.mappedBy && !attribute.hasCascadeAndOrphanRemoval) {
@@ -136,5 +129,40 @@ class CollectionAttributeGenerator extends BuiltInAttributeGenerator {
         }
     }
 
+    @Override
+    List<String> action() {
+        if (attribute.oneToMany) {
+            if (attribute.mappedBy && !attribute.hasCascadeAndOrphanRemoval) {
+                return []
+            } else {
+                return ["action(id: '${attribute.actionName}', name: '$buttonName', closure: controller.${attribute.actionName})"]
+            }
+        }
+        []
+    }
+
+    @Override
+    List<String> popup() {
+        if (attribute.oneToMany) {
+            if (attribute.mappedBy && !attribute.hasCascadeAndOrphanRemoval) {
+                return []
+            } else {
+                return [
+                    "@Transaction(Transaction.Policy.SKIP)",
+                    "def ${attribute.actionName} = {",
+                    "\texecInsideUISync {",
+                    "\t\tdef args = [parentList: model.$name]",
+                    "\t\tdef props = [title: '$buttonName']",
+                    "\t\tDialogUtils.showMVCGroup('${attribute.target.nameAsProperty}AsChild', args, app, view, props) { m, v, c ->",
+                    "\t\t\tmodel.${name}.clear()",
+                    "\t\t\tmodel.${name}.addAll(m.$var_glazedTable)",
+                    "\t\t}",
+                    "\t}",
+                    "}"
+                ]
+            }
+        }
+        []
+    }
 
 }

@@ -35,6 +35,10 @@ class EntityAttribute extends Attribute {
         false
     }
 
+    public String getActionName() {
+        "show${type}"
+    }
+
     public static boolean isInstanceOf(Map information) {
         information['annotations']?.find { ANNOTATIONS.contains(it.name) }
     }

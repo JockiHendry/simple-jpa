@@ -33,6 +33,10 @@ class CollectionAttribute extends Attribute {
         eager = (annotation.getMember("fetch") == FetchType.EAGER)
     }
 
+    public String getActionName() {
+        "show${targetType}"
+    }
+
     public static boolean isInstanceOf(Map information) {
         if (information['type'] == 'List' || information['type'] == 'Set') {
             return information['annotations']?.find { ANNOTATIONS.contains(it.name) }

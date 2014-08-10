@@ -59,4 +59,14 @@ class BasicAttributeGenerator extends BuiltInAttributeGenerator {
         return ["model.$name = ${var}.$name"]
     }
 
+    @Override
+    List<String> action() {
+        []
+    }
+
+    @Override
+    List<String> popup() {
+        []
+    }
+
 }

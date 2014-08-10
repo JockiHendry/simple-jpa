@@ -4,6 +4,12 @@ import net.miginfocom.swing.MigLayout
 import org.joda.time.*
 import java.awt.*
 
+actions {
+    action(id: 'save', name: app.getMessage('simplejpa.dialog.update.button'), closure: controller.save)
+    action(id: 'delete', name: app.getMessage("simplejpa.dialog.delete.button"), closure: controller.delete)
+    action(id: 'close', name: app.getMessage("simplejpa.dialog.close.button"), closure: controller.close)
+${g.actions(1)}}
+
 application(title: '${g.domainClassNameAsNatural}',
 	preferredSize: [520, 340],
 	pack: true,
@@ -20,23 +26,9 @@ application(title: '${g.domainClassNameAsNatural}',
 ${g.dataEntry(3)}
 			panel(constraints: 'span, growx, wrap') {
 				flowLayout(alignment: FlowLayout.LEADING)
-				button(app.getMessage("simplejpa.dialog.update.button"), actionPerformed: {
-					if (model.${g.domainClassNameAsProperty}!=null) {
-						if (JOptionPane.showConfirmDialog(mainPanel, app.getMessage("simplejpa.dialog.update.message"),
-							app.getMessage("simplejpa.dialog.update.title"), JOptionPane.YES_NO_OPTION, JOptionPane.WARNING_MESSAGE) != JOptionPane.YES_OPTION) {
-								return
-						}
-					}
-					controller.save()
-				})
-				button(app.getMessage("simplejpa.dialog.delete.button"), visible: bind {model.${g.domainClassNameAsProperty}!=null},
-					actionPerformed: {
-						if (JOptionPane.showConfirmDialog(mainPanel, app.getMessage("simplejpa.dialog.delete.message"),
-							app.getMessage("simplejpa.dialog.delete.title"), JOptionPane.YES_NO_OPTION, JOptionPane.WARNING_MESSAGE) == JOptionPane.YES_OPTION) {
-								controller.delete()
-						}
-				})
-				button(app.getMessage("simplejpa.dialog.close.button"), actionPerformed: { controller.close() })
+				button(action: save)
+				button(visible: bind {model.${g.domainClassNameAsProperty}!=null}, action: delete)
+				button(action: close)
 			}
 		}
 	}

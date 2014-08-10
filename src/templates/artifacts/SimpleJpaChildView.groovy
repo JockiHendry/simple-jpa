@@ -6,6 +6,13 @@ import net.miginfocom.swing.MigLayout
 import org.joda.time.*
 import java.awt.*
 
+actions {
+    action(id: 'save', name: app.getMessage('simplejpa.dialog.update.button'), closure: controller.save)
+    action(id: 'cancel', name: app.getMessage("simplejpa.dialog.cancel.button"), closure: controller.clear)
+    action(id: 'delete', name: app.getMessage("simplejpa.dialog.delete.button"), closure: controller.delete)
+    action(id: 'close', name: app.getMessage("simplejpa.dialog.close.button"), closure: controller.close)
+${g.actions(1)}}
+
 application(title: '${g.domainClassNameAsNatural}',
 		preferredSize: [520, 340],
 		pack: true,
@@ -24,7 +31,7 @@ application(title: '${g.domainClassNameAsNatural}',
 				label(text: bind('searchMessage', source: model))
 			}
 			scrollPane(constraints: CENTER) {
-				glazedTable(id: 'table', list: model.${g.domainClassGlazedListVariable}, sortingStrategy: SINGLE_COLUMN, onValueChanged: controller.tableSelectionChanged) {
+				glazedTable(id: 'table', list: model.${g.domainClassGlazedListVariable}, sortingStrategy: SINGLE_COLUMN, onValueChanged: controller.tableSelectionChanged${g.tableActions()}) {
 ${g.table(5)}
 				}
 			}
@@ -35,26 +42,10 @@ ${g.dataEntry(3)}
 
 			panel(constraints: 'span, growx, wrap') {
 				flowLayout(alignment: FlowLayout.LEADING)
-				button(app.getMessage("simplejpa.dialog.update.button"), actionPerformed: {
-					if (!view.table.selectionModel.selectionEmpty) {
-						if (JOptionPane.showConfirmDialog(mainPanel, app.getMessage("simplejpa.dialog.update.message"),
-							app.getMessage("simplejpa.dialog.update.title"), JOptionPane.YES_NO_OPTION, JOptionPane.WARNING_MESSAGE) != JOptionPane.YES_OPTION) {
-								return
-						}
-					}
-					controller.save()
-					form.getFocusTraversalPolicy().getFirstComponent(form).requestFocusInWindow()
-				})
-				button(app.getMessage("simplejpa.dialog.cancel.button"), visible: bind{table.isRowSelected}, actionPerformed: controller.clear)
-				button(app.getMessage("simplejpa.dialog.delete.button"), visible: bind{table.isRowSelected}, actionPerformed: {
-					if (JOptionPane.showConfirmDialog(mainPanel, app.getMessage("simplejpa.dialog.delete.message"),
-						app.getMessage("simplejpa.dialog.delete.title"), JOptionPane.YES_NO_OPTION, JOptionPane.WARNING_MESSAGE) == JOptionPane.YES_OPTION) {
-							controller.delete()
-					}
-				})
-				button(app.getMessage("simplejpa.dialog.close.button"), actionPerformed: {
-					SwingUtilities.getWindowAncestor(mainPanel)?.dispose()
-				})
+				button(action: save)
+				button(visible: bind{table.isRowSelected}, action: cancel)
+				button(visible: bind{table.isRowSelected}, action: delete)
+				button(action: close)
 			}
 		}
 	}

@@ -21,6 +21,8 @@ class BasicGenerator extends Generator {
     String firstAttrAsNatural
     String firstAttrAsCapitalized
     String firstAttrSearch
+    Attribute firstPair
+    Attribute firstChild
     String domainClassName
     String domainClassGlazedListVariable
     String domainClassNameAsNatural
@@ -86,6 +88,8 @@ class BasicGenerator extends Generator {
         domainClassNameAsProperty = GriffonNameUtils.getPropertyName(domainClassName)
         domainPackageName = domainClass.packageName
         targetPackageName = domainClass.targetPackage
+        firstPair = domainClass.attributes.find { it instanceof EntityAttribute && it.oneToOne && !it.inverse }
+        firstChild = domainClass.attributes.find { it instanceof CollectionAttribute && it.oneToMany && !(it.mappedBy && !it.hasCascadeAndOrphanRemoval) }
 
         // Add attribute generator to attributes
         Set<EntityAttribute> pairs = new HashSet<>()
@@ -170,6 +174,34 @@ class BasicGenerator extends Generator {
         return addTab(result, tab)
     }
 
+    public String actions(int tab) {
+        List<String> result = []
+        domainClass.attributes.each {
+            result.addAll(it.generator.action())
+        }
+        return addTab(result, tab, true)
+    }
+
+    public String popups(int tab) {
+        List<String> result = []
+        domainClass.attributes.each {
+            List<String> popups = it.generator.popup()
+            if (!popups.empty) {
+                result.add('\n')
+                result.addAll(popups)
+            }
+        }
+        return addTab(result, tab, true)
+    }
+
+    public String tableActions() {
+        def attribute = firstChild?: firstPair
+        if (attribute) {
+            return ", doubleClickAction: ${attribute.actionName}, enterKeyAction: ${attribute.actionName}"
+        }
+        ""
+    }
+
     public String table(int tab) {
         List<String> result = []
         domainClass.attributes.each {
@@ -218,7 +250,6 @@ class BasicGenerator extends Generator {
         List<String> result = []
         result << "model.${domainClassGlazedListVariable}.addAll(${domainClassNameAsProperty}Result)"
         result << "model.${firstAttrSearch} = null"
-        result << "model.searchMessage = app.getMessage('simplejpa.search.all.message')"
         domainClass.attributes.each {
             if (it.generator.respondsTo("setList")) {
                 result.addAll(it.generator.setList())

@@ -25,10 +25,15 @@ public abstract class Generator {
         this.scaffolding = scaffolding
     }
 
-    public String addTab(List<String> str, int numOfTab, boolean appendNewLineToEnd = false) {
+    public String addTab(List<String> str, int numOfTab, boolean appendNewLineToEnd = false, boolean appendNewLineToStart = false) {
         StringBuilder result = new StringBuilder()
         if (str.empty) return ''
+        if (appendNewLineToStart) result.append(System.lineSeparator())
         for (int i=0; i<str.size(); i++) {
+            if (str[i]=='\n') {
+                result.append(System.lineSeparator())
+                continue
+            }
             if (str[i]==null || str[i].allWhitespace) continue
             if (numOfTab > 0) {
                 (1..numOfTab).each { result.append('\t') }

@@ -150,6 +150,7 @@ First release into griffon artifacts portal.
 1. Remove dependency to Reflections and use `simple-jpa-annotated.txt` file to register annotated domain classes.
 
 ### 0.8
+1. Improvements in default scaffolding's templates.
 1. Allow nested property in finders.
 1. Allow user to specify custom generator for scaffolding by using `generate-all -generator=package.custom.generator`.
 1. Allow user to add scaffolding configurations in `Config.groovy`.

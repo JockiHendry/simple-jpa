@@ -48,4 +48,14 @@ class EnumeratedAttributeGenerator extends BuiltInAttributeGenerator {
         return ["model.${name}.selectedItem = ${var}.$name"]
     }
 
+    @Override
+    List<String> action() {
+        []
+    }
+
+    @Override
+    List<String> popup() {
+        []
+    }
+
 }

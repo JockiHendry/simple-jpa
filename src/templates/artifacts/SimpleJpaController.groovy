@@ -1,6 +1,7 @@
 package ${g.targetPackageName}
 
 ${g.imports()}
+import simplejpa.swing.DialogUtils
 import simplejpa.transaction.Transaction
 import javax.swing.*
 import javax.swing.event.ListSelectionEvent
@@ -34,17 +35,23 @@ ${g.listAll_set(3)}
 
 	@Transaction(newSession = true)
 	def search = {
-		if (model.${g.firstAttrSearch}?.length() > 0) {
-			execInsideUISync { model.${g.domainClassGlazedListVariable}.clear() }
-			List result = findAll${g.domainClassName}By${g.firstAttrAsCapitalized}Like("%\${model.${g.firstAttrSearch}}%")
-			execInsideUISync {
-				model.${g.domainClassGlazedListVariable}.addAll(result)
-				model.searchMessage = app.getMessage("simplejpa.search.result.message", ['${g.firstAttrAsNatural}', model.${g.firstAttrSearch}])
-			}
-		}
+        List result = findAll${g.domainClassName}ByDsl {
+            if (model.${g.firstAttrSearch}?.length() > 0) {
+                ${g.firstAttr} like("%\${model.${g.firstAttrSearch}}%")
+            }
+        }
+        execInsideUISync {
+            model.${g.domainClassGlazedListVariable}.clear()
+            model.${g.domainClassGlazedListVariable}.addAll(result)
+        }
 	}
 
 	def save = {
+        if (model.id!=null) {
+            if (JOptionPane.showConfirmDialog(view.mainPanel, app.getMessage("simplejpa.dialog.update.message"), app.getMessage("simplejpa.dialog.update.title"), JOptionPane.YES_NO_OPTION, JOptionPane.WARNING_MESSAGE) != JOptionPane.YES_OPTION) {
+                return
+            }
+        }
 		${g.domainClassName} ${g.domainClassNameAsProperty} = ${g.domainClassConstructor()}
 
 		if (!validate(${g.domainClassNameAsProperty})) return
@@ -75,10 +82,16 @@ ${g.update(3)}
 			selected${g.domainClassName} = merge(selected${g.domainClassName})
 			execInsideUISync { view.table.selectionModel.selected[0] = selected${g.domainClassName} }
 		}
-		execInsideUISync { clear() }
+		execInsideUISync {
+            clear()
+            view.form.getFocusTraversalPolicy().getFirstComponent(view.form).requestFocusInWindow()
+        }
 	}
 
 	def delete = {
+        if (JOptionPane.showConfirmDialog(view.mainPanel, app.getMessage("simplejpa.dialog.delete.message"), app.getMessage("simplejpa.dialog.delete.title"), JOptionPane.YES_NO_OPTION, JOptionPane.WARNING_MESSAGE) != JOptionPane.YES_OPTION) {
+            return
+        }
 		${g.domainClassName} ${g.domainClassNameAsProperty} = view.table.selectionModel.selected[0]
 ${g.delete(2)}
 		execInsideUISync {
@@ -86,13 +99,15 @@ ${g.delete(2)}
 			clear()
 		}
 	}
-
+${g.popups(1)}
 	@Transaction(Transaction.Policy.SKIP)
 	def clear = {
 		execInsideUISync {
 			model.id = null
 ${g.clear(3)}
-			model.errors.clear()
+			model.created = null
+            model.modified = null
+            model.errors.clear()
 			view.table.selectionModel.clearSelection()
 		}
 	}
@@ -107,6 +122,8 @@ ${g.clear(3)}
 				model.errors.clear()
 				model.id = selected.id
 ${g.selected(4)}
+                model.created = selected.createdDate
+                model.modified = selected.modifiedDate
 			}
 		}
 	}
