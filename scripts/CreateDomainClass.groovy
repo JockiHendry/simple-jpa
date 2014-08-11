@@ -105,8 +105,6 @@ $helpDescription
 
     def persistenceRoot = new XmlSlurper(false, false).parse(persistenceFile)
 
-
-
     def templateFile = resolveTemplate("SimpleJpaDomainClass", ".groovy")
     if (!templateFile?.exists()) {
         println "Can't find SimpleJpaDomainClass template."
@@ -119,6 +117,7 @@ $helpDescription
         if (param.contains('.')) {
             String[] packages = param.split('\\.')
             for (int i=0; i<packages.length-1; i++) {
+                if (i==0 && packages[i]==packageName) continue
                 currentPackage = "${currentPackage}.${packages[i]}"
             }
             currentClass = packages.last()
