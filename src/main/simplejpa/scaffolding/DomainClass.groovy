@@ -119,10 +119,6 @@ class DomainClass extends VisitorAdapter {
 		}
 	}
 
-	void visitExtendsClause(GroovySourceAST t, int visit) {
-		super.visitExtendsClause(t, visit)
-	}
-
 	public void visitVariableDef(GroovySourceAST node, int visitType) {
 		inClass = false
 		if (visitType==Visitor.OPENING_VISIT && !ignoreMode)  {

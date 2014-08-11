@@ -95,8 +95,11 @@ class Scaffolding {
             domainClasses[domainClass.name] = domainClass
         }
         domainClasses.each { String name, DomainClass domainClass ->
-            if (domainClass.parentClassName && domainClasses[domainClass.parentClassName]) {
-                domainClass.attributes.addAll(0, domainClasses[domainClass.parentClassName].attributes)
+            // Add inherited attributes
+            DomainClass parent = domainClasses[domainClass.parentClassName]
+            while (parent) {
+                domainClass.attributes.addAll(0, parent.attributes)
+                parent = parent.parentClassName? domainClasses[parent.parentClassName]: null
             }
         }
 
