@@ -75,7 +75,7 @@ class BasicGenerator extends Generator {
 
         // Initialize variables
         if (domainClass.attributes.isEmpty()) {
-            firstAttr = "ReplaceThis"
+            firstAttr = "replaceThis"
         } else {
             firstAttr = domainClass.attributes[0].name
         }
