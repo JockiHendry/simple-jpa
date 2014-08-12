@@ -27,10 +27,11 @@ import javax.persistence.PersistenceUnitUtil
 
 class SimpleJpaUtil {
 
-    public static SimpleJpaUtil instance = new SimpleJpaUtil()
     private static final Logger LOG = LoggerFactory.getLogger(SimpleJpaUtil)
 
+    public static SimpleJpaUtil instance = new SimpleJpaUtil()
     public static final String FILE_ANNOTATED = 'simple-jpa-annotated.txt'
+    public static Map container = [:]
 
     SimpleJpaHandler handler
     EntityManagerFactory entityManagerFactory

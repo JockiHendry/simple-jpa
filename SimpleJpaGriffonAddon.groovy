@@ -89,7 +89,10 @@ class SimpleJpaGriffonAddon {
                 try {
                     Class c = Class.forName(line)
                     if (targets.find { (it instanceof AbstractGriffonClass) && (it.clazz == c) } == null) {
-                        targets << Class.forName(line)
+                        if (!GriffonArtifact.isAssignableFrom(c)) {
+                            targets << c
+                            SimpleJpaUtil.container[GriffonNameUtils.getPropertyName(c)] = c.newInstance()
+                        }
                     }
                 } catch (Exception ex) {
                     LOG.error "Can't load [$line]", ex
