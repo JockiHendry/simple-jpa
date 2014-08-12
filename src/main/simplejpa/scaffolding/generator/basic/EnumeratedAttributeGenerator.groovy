@@ -1,12 +1,12 @@
 package simplejpa.scaffolding.generator.basic
 
-import simplejpa.scaffolding.attribute.Attribute
+import simplejpa.scaffolding.Scaffolding
 import simplejpa.scaffolding.attribute.EnumeratedAttribute
 
 class EnumeratedAttributeGenerator extends BuiltInAttributeGenerator {
 
-    EnumeratedAttributeGenerator(EnumeratedAttribute attribute) {
-        super(attribute)
+    EnumeratedAttributeGenerator(EnumeratedAttribute attribute, Scaffolding scaffolding) {
+        super(attribute, scaffolding)
     }
 
     @Override

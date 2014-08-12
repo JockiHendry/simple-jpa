@@ -1,11 +1,12 @@
 package simplejpa.scaffolding.generator.basic
 
+import simplejpa.scaffolding.Scaffolding
 import simplejpa.scaffolding.attribute.BasicAttribute
 
 class BasicAttributeGenerator extends BuiltInAttributeGenerator {
 
-    BasicAttributeGenerator(BasicAttribute attribute) {
-        super(attribute)
+    BasicAttributeGenerator(BasicAttribute attribute, Scaffolding scaffolding) {
+        super(attribute, scaffolding)
     }
 
     @Override

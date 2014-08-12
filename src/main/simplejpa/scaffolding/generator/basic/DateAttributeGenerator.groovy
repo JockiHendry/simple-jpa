@@ -1,12 +1,13 @@
 package simplejpa.scaffolding.generator.basic
 
+import simplejpa.scaffolding.Scaffolding
 import simplejpa.scaffolding.attribute.DateAttribute
 import griffon.util.*
 
 class DateAttributeGenerator extends BuiltInAttributeGenerator {
 
-    DateAttributeGenerator(DateAttribute attribute) {
-        super(attribute)
+    DateAttributeGenerator(DateAttribute attribute, Scaffolding scaffolding) {
+        super(attribute, scaffolding)
     }
 
     @Override

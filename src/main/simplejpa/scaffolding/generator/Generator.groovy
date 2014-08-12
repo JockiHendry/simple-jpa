@@ -9,6 +9,8 @@ import org.springframework.core.io.Resource
 import org.springframework.core.io.support.PathMatchingResourcePatternResolver
 import simplejpa.scaffolding.DomainClass
 import simplejpa.scaffolding.Scaffolding
+import simplejpa.scaffolding.attribute.Attribute
+
 import java.nio.file.Files
 import java.nio.file.Paths
 import griffon.util.*
@@ -18,11 +20,15 @@ public abstract class Generator {
     private static Logger log = LoggerFactory.getLogger(Generator)
 
     public static final PathMatchingResourcePatternResolver RESOLVER = new PathMatchingResourcePatternResolver()
-
     public Scaffolding scaffolding
+    public Map<String,Class> attributeGenerators = [:]
 
     public Generator(Scaffolding scaffolding) {
         this.scaffolding = scaffolding
+    }
+
+    public addAttributeGeneratorTo(Attribute attribute) {
+        attribute.generator = attributeGenerators[attribute.class.simpleName].newInstance([attribute, scaffolding].toArray())
     }
 
     public String addTab(List<String> str, int numOfTab, boolean appendNewLineToEnd = false, boolean appendNewLineToStart = false) {
@@ -165,5 +171,7 @@ ${parts.join('\n')}
     public abstract void generate(DomainClass domainClass);
 
     public abstract void generateStartupGroup(Map<String,DomainClass> domainClasses);
+
+    public void generateExtra(Map<String,DomainClass> domainClasses) {}
 
 }

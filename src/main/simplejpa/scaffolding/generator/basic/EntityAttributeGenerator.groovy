@@ -1,6 +1,6 @@
 package simplejpa.scaffolding.generator.basic
 
-import simplejpa.scaffolding.attribute.Attribute
+import simplejpa.scaffolding.Scaffolding
 import simplejpa.scaffolding.attribute.EntityAttribute
 
 class EntityAttributeGenerator extends BuiltInAttributeGenerator {
@@ -8,8 +8,8 @@ class EntityAttributeGenerator extends BuiltInAttributeGenerator {
     String var_table
     String var_findResult
 
-    EntityAttributeGenerator(EntityAttribute attribute) {
-        super(attribute)
+    EntityAttributeGenerator(EntityAttribute attribute, Scaffolding scaffolding) {
+        super(attribute, scaffolding)
         var_table = "${name}List"
         var_findResult = "${name}Result"
     }

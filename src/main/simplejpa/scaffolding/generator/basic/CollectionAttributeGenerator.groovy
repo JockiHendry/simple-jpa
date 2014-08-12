@@ -1,5 +1,6 @@
 package simplejpa.scaffolding.generator.basic
 
+import simplejpa.scaffolding.Scaffolding
 import simplejpa.scaffolding.attribute.CollectionAttribute
 import griffon.util.*
 
@@ -8,10 +9,11 @@ class CollectionAttributeGenerator extends BuiltInAttributeGenerator {
     String targetType
     String var_findResult
     String var_glazedTable
-    boolean ignoreLazy = true
+    boolean ignoreLazy
 
-    CollectionAttributeGenerator(CollectionAttribute attribute) {
-        super(attribute)
+    CollectionAttributeGenerator(CollectionAttribute attribute, Scaffolding scaffolding) {
+        super(attribute, scaffolding)
+        ignoreLazy = scaffolding.ignoreLazy
         targetType = attribute.targetType
         var_findResult = "${name}Result"
         var_glazedTable = GriffonNameUtils.getPropertyName(targetType) + "List"

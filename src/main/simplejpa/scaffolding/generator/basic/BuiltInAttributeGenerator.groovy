@@ -1,5 +1,6 @@
 package simplejpa.scaffolding.generator.basic
 
+import simplejpa.scaffolding.Scaffolding
 import simplejpa.scaffolding.attribute.Attribute
 import simplejpa.scaffolding.generator.AttributeGenerator
 import griffon.util.*
@@ -12,8 +13,10 @@ abstract class BuiltInAttributeGenerator implements AttributeGenerator {
     String name
     String type
     String typeAsProperty
+    Scaffolding scaffolding
 
-    public BuiltInAttributeGenerator(Attribute attribute) {
+    public BuiltInAttributeGenerator(Attribute attribute, Scaffolding scaffolding) {
+        this.scaffolding = scaffolding
         this.attribute = attribute
         name = attribute.name
         type = attribute.type

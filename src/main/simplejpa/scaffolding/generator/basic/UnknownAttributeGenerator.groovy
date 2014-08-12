@@ -1,12 +1,12 @@
 package simplejpa.scaffolding.generator.basic
 
-import simplejpa.scaffolding.attribute.Attribute
+import simplejpa.scaffolding.Scaffolding
 import simplejpa.scaffolding.attribute.UnknownAttribute
 
 class UnknownAttributeGenerator extends BuiltInAttributeGenerator {
 
-    UnknownAttributeGenerator(UnknownAttribute attribute) {
-        super(attribute)
+    UnknownAttributeGenerator(UnknownAttribute attribute, Scaffolding scaffolding) {
+        super(attribute, scaffolding)
     }
 
     @Override
