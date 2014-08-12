@@ -78,6 +78,13 @@ class CollectionAttributeGenerator extends BuiltInAttributeGenerator {
             return ["// TODO: $name will not be updated because it is an inverse that doesn't have CascadeType.ALL"]
         }
         def result = []
+        if (!attribute.eager) {
+            if (!ignoreLazy) {
+                return ["// TODO: $name is not fetched (lazy).  To manipulate it, you must fetch it manually or change the mapping for this collection."]
+            } else {
+                result << "// TODO: $name is not fetched (lazy).  The following code will not work if you didn't fetch it manually or change the mapping for this collection."
+            }
+        }
         result << "${var}.${name}.clear()"
         if (attribute.oneToMany) {
             result << "${var}.${name}.addAll(model.$name)"
@@ -113,20 +120,29 @@ class CollectionAttributeGenerator extends BuiltInAttributeGenerator {
 
     @Override
     List<String> pair_init(String var) {
+        List<String> result = []
+        if (!attribute.eager) {
+            if (!ignoreLazy) {
+                return ["// TODO: $name is not fetched (lazy).  To manipulate it, you must fetch it manually or change the mapping for this collection."]
+            } else {
+                result << "// TODO: $name is not fetched (lazy).  The following code will not work if you didn't fetch it manually or change the mapping for this collection."
+            }
+        }
         if (attribute.oneToMany) {
-            return [
+            result.addAll([
                 "if (${var}.$name) {",
                 "\tmodel.${name}.clear()",
                 "\tmodel.${name}.addAll(${var}.$name)",
                 "}"
-            ]
+            ])
         } else if (attribute.manyToMany) {
-            return [
+            result.addAll([
                 "if (${var}.$name) {",
                 "\tmodel.${name}.replaceSelectedValues(${var}.$name)",
                 "}"
-            ]
+            ])
         }
+        return result
     }
 
     @Override
