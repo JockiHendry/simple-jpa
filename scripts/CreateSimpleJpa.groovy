@@ -151,8 +151,7 @@ description for more information.
     if (database instanceof UnknownDatabase) {
         println "Database type ${argsMap.jdbc} is not supported! You'll need to configure generated files manually."
     }
-    boolean skipDatabase = argsMap['skip-database']==true || argsMap['skipDatabase']=="true" ? true:
-        (argsMap['skip-database']==true || argsMap['skipDatabase']=="true" ? true : false)
+    boolean skipDatabase = argsMap.containsKey('skipDatabase') || argsMap.containsKey('skip-database')
 
     String persistenceXml = "${basedir}/griffon-app/conf/metainf/persistence.xml"
     File file = new File(persistenceXml)
