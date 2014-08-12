@@ -16,7 +16,7 @@ class EntityAttributeGenerator extends BuiltInAttributeGenerator {
 
     @Override
     List<String> modelAttr() {
-        if (attribute.oneToOne) {
+        if (attribute.oneToOne || attribute.embedded) {
             return ["@Bindable $type $name"]
         } else if (attribute.manyToOne) {
             return [
@@ -68,6 +68,8 @@ class EntityAttributeGenerator extends BuiltInAttributeGenerator {
                 return ["label(id: '$name', text: bind {model.$name}, errorPath: '$name')"]
             }
             return ["button(action: ${attribute.actionName}, errorPath: '$name')"]
+        } else if (attribute.embedded) {
+            return ["button(action: ${attribute.actionName}, errorPath: '$name')"]
         } else if (attribute.manyToOne) {
             if (attribute.isInverse()) {
                 return ["label(id: '$name', text: '// TODO: $name is an inverse.', errorPath: '$name')"]
@@ -87,6 +89,8 @@ class EntityAttributeGenerator extends BuiltInAttributeGenerator {
                 result << "// TODO: You may need to add code here because it seems that you haven't included cascade=CascadeType.ALL and orphanRemoval=true for $name"
             }
             result << "${var}.$name = model.${name}"
+        } else if (attribute.embedded) {
+            result << "${var}.$name = model.${name}"
         } else if (attribute.manyToOne) {
             result << "${var}.$name = model.${name}.selectedItem"
         }
@@ -95,7 +99,7 @@ class EntityAttributeGenerator extends BuiltInAttributeGenerator {
 
     @Override
     List<String> clear() {
-        if (attribute.oneToOne) {
+        if (attribute.oneToOne || attribute.embedded) {
             return ["model.$name = null"]
         } else if (attribute.manyToOne) {
             return ["model.${name}.selectedItem = null"]
@@ -104,7 +108,7 @@ class EntityAttributeGenerator extends BuiltInAttributeGenerator {
 
     @Override
     List<String> selected() {
-        if (attribute.oneToOne) {
+        if (attribute.oneToOne || attribute.embedded) {
             return ["model.$name = selected.$name"]
         } else {
             return ["model.${name}.selectedItem = selected.$name"]
@@ -113,7 +117,7 @@ class EntityAttributeGenerator extends BuiltInAttributeGenerator {
 
     @Override
     List<String> pair_init(String var) {
-        if (attribute.oneToOne) {
+        if (attribute.oneToOne || attribute.embedded) {
             return ["model.$name = ${var}.$name"]
         } else if (attribute.manyToOne) {
             return ["model.${name}.selectedItem = ${var}.$name"]
@@ -122,7 +126,7 @@ class EntityAttributeGenerator extends BuiltInAttributeGenerator {
 
     @Override
     List<String> action() {
-        if (attribute.oneToOne && !attribute.inverse) {
+        if ((attribute.oneToOne && !attribute.inverse) || attribute.embedded) {
             return ["action(id: '${attribute.actionName}', name: '$buttonName', closure: controller.${attribute.actionName})"]
         }
         []
@@ -130,7 +134,7 @@ class EntityAttributeGenerator extends BuiltInAttributeGenerator {
 
     @Override
     List<String> popup() {
-        if (attribute.oneToOne && !attribute.inverse) {
+        if ((attribute.oneToOne && !attribute.inverse) || attribute.embedded) {
             return [
                 "@Transaction(Transaction.Policy.SKIP)",
                 "def ${attribute.actionName} = {",

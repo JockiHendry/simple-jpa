@@ -15,6 +15,7 @@ class CollectionAttribute extends Attribute {
     boolean bidirectional
     boolean manyToMany
     boolean oneToMany
+    boolean embeddedCollection
     boolean hasCascadeAndOrphanRemoval
     boolean eager
 
@@ -22,10 +23,13 @@ class CollectionAttribute extends Attribute {
         super(information.'name', information.'type')
         targetType = information.'typeArgument'
         Annotation annotation = information['annotations']?.find { ANNOTATIONS.contains(it.name) }
-        if (annotation.name == 'OneToMany' || annotation.name == 'ElementCollection') {
+        if (annotation.name == 'OneToMany') {
             oneToMany = true
         } else if (annotation.name == 'ManyToMany') {
             manyToMany = true
+        } else if (annotation.name == 'ElementCollection') {
+            oneToMany = true
+            embeddedCollection = true
         }
         mappedBy = annotation.getMember('mappedBy')
         if (mappedBy!=null) bidirectional = true

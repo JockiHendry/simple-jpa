@@ -5,11 +5,12 @@ import simplejpa.scaffolding.DomainClass
 
 class EntityAttribute extends Attribute {
 
-    private static final String[] ANNOTATIONS = ['ManyToOne', 'OneToOne']
+    private static final String[] ANNOTATIONS = ['ManyToOne', 'OneToOne', 'Embedded']
 
     DomainClass target
     boolean manyToOne
     boolean oneToOne
+    boolean embedded
     String mappedBy
     boolean hasCascadeAndOrphanRemoval
 
@@ -22,6 +23,8 @@ class EntityAttribute extends Attribute {
             oneToOne = true
             mappedBy = annotation.getMember('mappedBy')
             hasCascadeAndOrphanRemoval = annotation.getMember("cascade")
+        } else if (annotation.name == 'Embedded') {
+            embedded = true
         }
     }
 
@@ -37,6 +40,10 @@ class EntityAttribute extends Attribute {
 
     public String getActionName() {
         "show${type}"
+    }
+
+    public boolean isPair() {
+        (oneToOne && !inverse) || embedded
     }
 
     public static boolean isInstanceOf(Map information) {

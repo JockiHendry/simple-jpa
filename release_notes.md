@@ -155,3 +155,4 @@ First release into griffon artifacts portal.
 1. Allow user to specify custom generator for scaffolding by using `generate-all -generator=package.custom.generator`.
 1. Allow user to add scaffolding configurations in `Config.groovy`.
 1. Add `griffon.simplejpa.scaffolding.auto` to automatically run scaffolding before compiling classes.
+1. Add DDD scaffolding generator that can be selected by using `generate-all -generator=simplejpa.scaffolding.generator.ddd.DDDGenerator`.

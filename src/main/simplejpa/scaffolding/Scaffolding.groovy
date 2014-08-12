@@ -16,7 +16,7 @@ class Scaffolding {
     String generatorClass = 'simplejpa.scaffolding.generator.basic.BasicGenerator'
     Generator generator = new BasicGenerator(this)
     String domainPackageName = 'domain'
-    String alwaysExcludeSoftDeleted = 'N'
+    boolean alwaysExcludeSoftDeleted = false
     String generatedPackage = 'project'
     String startupGroupName = null
     File persistenceFile = null
@@ -29,22 +29,18 @@ class Scaffolding {
 
     public Scaffolding(def config = null) {
         if (config) {
-            domainPackageName = ConfigUtils.getConfigValueAsString(config, 'griffon.simplejpa.model.package', 'domain')
-            alwaysExcludeSoftDeleted = ConfigUtils.getConfigValueAsBoolean(config, 'griffon.simplejpa.finders.alwaysExcludeSoftDeleted', false)
-            generatorClass = ConfigUtils.getConfigValueAsString(config, 'griffon.simplejpa.scaffolding.generator', null)
-            generatedPackage = ConfigUtils.getConfigValueAsString(config, 'griffon.simplejpa.scaffolding.generatedPackage', 'project')
-            startupGroupName = ConfigUtils.getConfigValueAsString(config, 'griffon.simplejpa.scaffolding.startupGroup', null)
-            ignoreLazy = ConfigUtils.getConfigValueAsBoolean(config, 'griffon.simplejpa.scaffolding.ignoreLazy', false)
-            forceOverwrite = ConfigUtils.getConfigValueAsBoolean(config, 'griffon.simplejpa.scaffolding.forceOverwrite', false)
-            skipExcel = ConfigUtils.getConfigValueAsBoolean(config, 'griffon.simplejpa.scaffolding.skipExcel', false)
+            setDomainPackageName(ConfigUtils.getConfigValueAsString(config, 'griffon.simplejpa.model.package', 'domain'))
+            setAlwaysExcludeSoftDeleted(ConfigUtils.getConfigValueAsBoolean(config, 'griffon.simplejpa.finders.alwaysExcludeSoftDeleted', false))
+            setGeneratorClass(ConfigUtils.getConfigValueAsString(config, 'griffon.simplejpa.scaffolding.generator', null))
+            setGeneratedPackage(ConfigUtils.getConfigValueAsString(config, 'griffon.simplejpa.scaffolding.generatedPackage', 'project'))
+            setStartupGroupName(ConfigUtils.getConfigValueAsString(config, 'griffon.simplejpa.scaffolding.startupGroup', null))
+            setIgnoreLazy(ConfigUtils.getConfigValueAsBoolean(config, 'griffon.simplejpa.scaffolding.ignoreLazy', true))
+            setForceOverwrite(ConfigUtils.getConfigValueAsBoolean(config, 'griffon.simplejpa.scaffolding.forceOverwrite', false))
+            setSkipExcel(ConfigUtils.getConfigValueAsBoolean(config, 'griffon.simplejpa.scaffolding.skipExcel', false))
             String target = ConfigUtils.getConfigValueAsString(config, 'griffon.simplejpa.scaffolding.target', '*')
             domainClassesToGenerate = target.split(',')
         }
         persistenceFile = new File("${BuildSettingsHolder.settings.baseDir}/griffon-app/conf/metainf/persistence.xml")
-    }
-
-    public boolean isAlwaysExcludeSoftDeleted() {
-        (alwaysExcludeSoftDeleted == 'Y' || alwaysExcludeSoftDeleted == true)? true: false
     }
 
     public populateDomainClasses() {
@@ -137,18 +133,19 @@ class Scaffolding {
             domainClassesToGenerate.each { generate(it) }
         }
         generateStartupGroup()
+        generateExtra()
     }
 
     public void generate(String domainClassName) {
         DomainClass domainClass = domainClassName.contains('.')?
             domainClasses.find { k,v -> v.sourceClass.name == domainClassName}.value:
             domainClasses[domainClassName]
-
         if (domainClass==null) {
             log.error "Can't find $domainClassName in persistence.xml!  Nothing will be generated for this entry!"
         } else {
             generator.generate(domainClass)
         }
+        generateExtra()
     }
 
     public void generateStartupGroup() {
@@ -157,6 +154,10 @@ class Scaffolding {
             return
         }
         generator.generateStartupGroup(domainClasses)
+    }
+
+    public void generateExtra() {
+        generator.generateExtra(domainClasses)
     }
 
     public void setStartupGroupName(String startupGroupName) {

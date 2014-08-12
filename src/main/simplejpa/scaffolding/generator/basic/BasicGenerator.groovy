@@ -30,11 +30,17 @@ class BasicGenerator extends Generator {
     String domainPackageName
     String targetPackageName
     String customClassName
-
-    private List<String> generatedMVCGroups = []
+    List<String> generatedMVCGroups = []
 
     public BasicGenerator(Scaffolding scaffolding) {
         super(scaffolding)
+
+        attributeGenerators['BasicAttribute'] = BasicAttributeGenerator
+        attributeGenerators['CollectionAttribute'] = CollectionAttributeGenerator
+        attributeGenerators['DateAttribute'] = DateAttributeGenerator
+        attributeGenerators['EntityAttribute'] = EntityAttributeGenerator
+        attributeGenerators['EnumeratedAttribute'] = EnumeratedAttributeGenerator
+        attributeGenerators['UnknownAttribute'] = UnknownAttributeGenerator
     }
 
     @Override
@@ -64,12 +70,7 @@ class BasicGenerator extends Generator {
         setStartupGroup(scaffolding.startupGroupName)
     }
 
-    @Override
-    void generate(DomainClass domainClass, String modelTemplate = 'SimpleJpaModel', String viewTemplate = 'SimpleJpaView',
-              String controllerTemplate = 'SimpleJpaController', String customClassName = null) {
-
-        log.info "Generating ${domainClass.name}..."
-
+    void init(DomainClass domainClass, String customClassName = null) {
         this.domainClass = domainClass
         this.customClassName = customClassName
 
@@ -88,24 +89,30 @@ class BasicGenerator extends Generator {
         domainClassNameAsProperty = GriffonNameUtils.getPropertyName(domainClassName)
         domainPackageName = domainClass.packageName
         targetPackageName = domainClass.targetPackage
-        firstPair = domainClass.attributes.find { it instanceof EntityAttribute && it.oneToOne && !it.inverse }
+        firstPair = domainClass.attributes.find { it instanceof EntityAttribute && it.pair }
         firstChild = domainClass.attributes.find { it instanceof CollectionAttribute && it.oneToMany && !(it.mappedBy && !it.hasCascadeAndOrphanRemoval) }
+    }
 
-        // Add attribute generator to attributes
+    @Override
+    void generate(DomainClass domainClass, String modelTemplate = 'SimpleJpaModel', String viewTemplate = 'SimpleJpaView',
+              String controllerTemplate = 'SimpleJpaController', String customClassName = null) {
+
+        log.info "Generating ${domainClass.name}..."
+
+        init(domainClass, customClassName)
         Set<EntityAttribute> pairs = new HashSet<>()
         Set<CollectionAttribute> childs = new HashSet<>()
         domainClass.attributes.each {
-            it.generator = Class.forName("simplejpa.scaffolding.generator.basic.${it.class.simpleName}Generator")
-                .newInstance([it].toArray())
-            if (it instanceof CollectionAttribute) it.generator.ignoreLazy = scaffolding.ignoreLazy
+            addAttributeGeneratorTo(it)
 
             // Add relations
-            if (it instanceof EntityAttribute && it.oneToOne) {
+            if (it instanceof EntityAttribute && it.pair) {
                 pairs << it
             } else if (it instanceof CollectionAttribute && it.oneToMany) {
                 childs << it
             }
         }
+
 
         // Generate model
         generateArtifact(modelTemplate,
@@ -150,20 +157,24 @@ class BasicGenerator extends Generator {
         createMVCGroup(targetPackageName, customClassName?: domainClassName)
         generatedMVCGroups << customClassName?: domainClassName
 
-        // generate pairs
         pairs.each {
             if (!generatedMVCGroups.contains(it.target.nameAsPair)) {
-                generate(it.target, 'SimpleJpaPairModel', 'SimpleJpaPairView', 'SimpleJpaPairController', it.target.nameAsPair)
+                generatePair(it)
             }
         }
-
-        // generate childs
         childs.each {
             if (!generatedMVCGroups.contains(it.target.nameAsChild)) {
-                generate(it.target, 'SimpleJpaChildModel', 'SimpleJpaChildView', 'SimpleJpaChildController', it.target.nameAsChild)
+                generateChild(it)
             }
         }
+    }
 
+    public void generatePair(EntityAttribute attr) {
+        generate(attr.target, 'SimpleJpaPairModel', 'SimpleJpaPairView', 'SimpleJpaPairController', attr.target.nameAsPair)
+    }
+
+    public void generateChild(CollectionAttribute attr) {
+        generate(attr.target, 'SimpleJpaChildModel', 'SimpleJpaChildView', 'SimpleJpaChildController', attr.target.nameAsChild)
     }
 
     public String modelAttrs(int tab) {
@@ -270,7 +281,7 @@ class BasicGenerator extends Generator {
         return addTab(processSaveOneToManyInverse(currentDomainClass, 0, customLhs), tab, true)
     }
 
-    private List<String> processSaveOneToManyInverse(DomainClass currentDomainClass, int tab, String customLhs = null) {
+    public List<String> processSaveOneToManyInverse(DomainClass currentDomainClass, int tab, String customLhs = null) {
         List<String> result = []
         String lhs = customLhs?: currentDomainClass.nameAsProperty
         String tabs = "\t" * tab
@@ -278,7 +289,7 @@ class BasicGenerator extends Generator {
             if (!attr.eager && !scaffolding.ignoreLazy) return;
             result << "${tabs}${lhs}.${attr.name}.each { ${attr.targetType} ${GriffonNameUtils.getPropertyName(attr.targetType)} ->"
             result << "${tabs}\t${GriffonNameUtils.getPropertyName(attr.targetType)}.${currentDomainClass.nameAsProperty} = $lhs"
-            result.addAll(processSaveOneToManyInverse(attr.target, tab+1, null))
+            result.addAll(processSaveOneToManyInverse(attr.target, tab+1))
             result << "${tabs}}"
         }
         result
@@ -298,7 +309,7 @@ class BasicGenerator extends Generator {
             result << "${tabs}${lhs}.${attr.name}.each { ${attr.target.name} $targetName ->"
             result << "${tabs}\tif (!${targetName}.${attr.mappedBy}.contains(${currentDomainClass.nameAsProperty})) {"
             result << "${tabs}\t\t${targetName}.${attr.mappedBy}.add($lhs)"
-            result.addAll(processSaveManyToManyInverse(attr.target, tab+1, null))
+            result.addAll(processSaveManyToManyInverse(attr.target, tab+1))
             result << "${tabs}\t}"
             result << "${tabs}}"
         }
@@ -331,7 +342,7 @@ class BasicGenerator extends Generator {
     }
 
     public String delete(int tab) {
-        if (scaffolding.isAlwaysExcludeSoftDeleted()) {
+        if (scaffolding.alwaysExcludeSoftDeleted) {
             return addTab(["softDelete(${domainClassNameAsProperty})"], tab)
         } else {
             return addTab(["remove(${domainClassNameAsProperty})"], tab)
