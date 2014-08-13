@@ -11,7 +11,12 @@ class BasicAttributeGenerator extends BuiltInAttributeGenerator {
 
     @Override
     List<String> modelAttr() {
-        ["@Bindable $type $name"]
+        List<String> result = []
+        if (attribute.notSupported) {
+            result << "// TODO: Native ${attribute.type} is not supported by scaffolding generator.  Please convert to object wrapper."
+        }
+        result << "@Bindable $type $name"
+        result
     }
 
     @Override
@@ -21,7 +26,9 @@ class BasicAttributeGenerator extends BuiltInAttributeGenerator {
 
     @Override
     List<String> asDataEntry() {
-        if (attribute.number) {
+        if (attribute.notSupported) {
+            return ["label(text: '// TODO: Native ${attribute.type} is not supported by scaffolding generator.  Please convert to object wrapper.')"]
+        } else if (attribute.number) {
             return ["numberTextField(id: '$name', columns: 20, bindTo: '$name', errorPath: '$name')"]
         } else if (attribute.bigDecimal) {
             return ["decimalTextField(id: '$name', columns: 20, bindTo: '$name', errorPath: '$name')"]
@@ -43,7 +50,9 @@ class BasicAttributeGenerator extends BuiltInAttributeGenerator {
 
     @Override
     List<String> clear() {
-        if (attribute.boolean) {
+        if (attribute.notSupported) {
+            return ["// TODO: Native ${attribute.type} is not supported by scaffolding generator.  Please convert to object wrapper."]
+        } else if (attribute.boolean) {
             return ["model.$name = false"]
         } else {
             return ["model.$name = null"]
