@@ -20,7 +20,7 @@ class Scaffolding {
     String generatedPackage = 'project'
     String startupGroupName = null
     File persistenceFile = null
-    boolean ignoreLazy = false
+    boolean ignoreLazy = true
     boolean forceOverwrite = false
     boolean skipExcel = false
     boolean setStartup = false
