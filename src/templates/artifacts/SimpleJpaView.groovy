@@ -9,10 +9,10 @@ import java.awt.*
 import org.jdesktop.swingx.prompt.PromptSupport
 
 actions {
-    action(id: 'search', name: app.getMessage('simplejpa.search.label'), closure: controller.search)
-    action(id: 'save', name: app.getMessage('simplejpa.dialog.save.button'), closure: controller.save)
-    action(id: 'cancel', name: app.getMessage("simplejpa.dialog.cancel.button"), closure: controller.clear)
-    action(id: 'delete', name: app.getMessage("simplejpa.dialog.delete.button"), closure: controller.delete)
+	action(id: 'search', name: app.getMessage('simplejpa.search.label'), closure: controller.search)
+	action(id: 'save', name: app.getMessage('simplejpa.dialog.save.button'), closure: controller.save)
+	action(id: 'cancel', name: app.getMessage("simplejpa.dialog.cancel.button"), closure: controller.clear)
+	action(id: 'delete', name: app.getMessage("simplejpa.dialog.delete.button"), closure: controller.delete)
 ${g.actions(1)}}
 
 application(title: '${g.domainClassNameAsNatural}',
@@ -34,20 +34,20 @@ application(title: '${g.domainClassNameAsNatural}',
 		}
 
 		scrollPane(constraints: CENTER) {
-            glazedTable(id: 'table', list: model.${g.domainClassGlazedListVariable}, sortingStrategy: SINGLE_COLUMN, onValueChanged: controller.tableSelectionChanged${g.tableActions()}) {
+			glazedTable(id: 'table', list: model.${g.domainClassGlazedListVariable}, sortingStrategy: SINGLE_COLUMN, onValueChanged: controller.tableSelectionChanged${g.tableActions()}) {
 ${g.table(4)}
-            }
+			}
 		}
 
 		panel(id: "form", layout: new MigLayout('hidemode 2', '[right][left][left,grow]',''), constraints: PAGE_END, focusCycleRoot: true) {
 ${g.dataEntry(3)}
-            panel(visible: bind{table.isRowSelected}, constraints: 'span, growx, wrap') {
-                flowLayout(alignment: FlowLayout.LEADING)
-                label('Created:')
-                label(text: bind{model.created})
-                label('   Modified:')
-                label(text: bind{model.modified})
-            }
+			panel(visible: bind{table.isRowSelected}, constraints: 'span, growx, wrap') {
+				flowLayout(alignment: FlowLayout.LEADING)
+				label('Created:')
+				label(text: bind{model.created})
+				label('   Modified:')
+				label(text: bind{model.modified})
+			}
 			panel(constraints: 'span, growx, wrap') {
 				flowLayout(alignment: FlowLayout.LEADING)
 				button(action: save)

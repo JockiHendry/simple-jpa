@@ -29,10 +29,10 @@ class ${g.scaffolding.startupGroupName}Controller {
 		def (m,v,c) = app.mvcGroupManager.createMVCGroup(groupId, groupId)
 
 		execInsideUIAsync {
-            view.mainPanel.removeAll()
-            view.mainPanel.add(v.mainPanel, BorderLayout.CENTER)
-            view.mainPanel.revalidate()
-            view.mainPanel.repaint()
+			view.mainPanel.removeAll()
+			view.mainPanel.add(v.mainPanel, BorderLayout.CENTER)
+			view.mainPanel.revalidate()
+			view.mainPanel.repaint()
 			view.mainFrame.title = "\${app.config.application.title} \${app.metadata.getApplicationVersion()}: \${GriffonNameUtils.getNaturalName(groupId)}"
 			view.busyLabel.visible = false
 		}

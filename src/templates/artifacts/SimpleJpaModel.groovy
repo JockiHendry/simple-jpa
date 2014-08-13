@@ -18,6 +18,6 @@ ${g.modelAttrs(1)}
 
 	@Bindable String ${g.firstAttrSearch}
 	@Bindable String created
-    @Bindable String modified
+	@Bindable String modified
 
 }

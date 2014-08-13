@@ -5,9 +5,9 @@ import org.joda.time.*
 import java.awt.*
 
 actions {
-    action(id: 'save', name: app.getMessage('simplejpa.dialog.update.button'), closure: controller.save)
-    action(id: 'delete', name: app.getMessage("simplejpa.dialog.delete.button"), closure: controller.delete)
-    action(id: 'close', name: app.getMessage("simplejpa.dialog.close.button"), closure: controller.close)
+	action(id: 'save', name: app.getMessage('simplejpa.dialog.update.button'), closure: controller.save)
+	action(id: 'delete', name: app.getMessage("simplejpa.dialog.delete.button"), closure: controller.delete)
+	action(id: 'close', name: app.getMessage("simplejpa.dialog.close.button"), closure: controller.close)
 ${g.actions(1)}}
 
 application(title: '${g.domainClassNameAsNatural}',

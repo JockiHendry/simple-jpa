@@ -35,11 +35,11 @@ ${g.pair_init(3)}
 %>    }
 
 	def save = {
-        if (model.${g.domainClassNameAsProperty}!=null) {
-            if (JOptionPane.showConfirmDialog(view.mainPanel, app.getMessage("simplejpa.dialog.update.message"), app.getMessage("simplejpa.dialog.update.title"), JOptionPane.YES_NO_OPTION, JOptionPane.WARNING_MESSAGE) != JOptionPane.YES_OPTION) {
-                return
-            }
-        }
+		if (model.${g.domainClassNameAsProperty}!=null) {
+			if (JOptionPane.showConfirmDialog(view.mainPanel, app.getMessage("simplejpa.dialog.update.message"), app.getMessage("simplejpa.dialog.update.title"), JOptionPane.YES_NO_OPTION, JOptionPane.WARNING_MESSAGE) != JOptionPane.YES_OPTION) {
+				return
+			}
+		}
 
 		${g.domainClassName} ${g.domainClassNameAsProperty} = ${g.domainClassConstructor()}
 
@@ -55,24 +55,24 @@ out << g.saveManyToManyInverse(g.domainClass, 3)
 			// Update operation
 ${g.update(3, 'model.' + g.domainClassNameAsProperty)}
 <%
-    out << g.saveOneToManyInverse(g.domainClass, 3, "model.${g.domainClassNameAsProperty}")
-    out << g.saveManyToManyInverse(g.domainClass, 3, "model.${g.domainClassNameAsProperty}")
+	out << g.saveOneToManyInverse(g.domainClass, 3, "model.${g.domainClassNameAsProperty}")
+	out << g.saveManyToManyInverse(g.domainClass, 3, "model.${g.domainClassNameAsProperty}")
 %>
 		}
 		close()
 	}
 
 	def delete = {
-        if (JOptionPane.showConfirmDialog(view.mainPanel, app.getMessage("simplejpa.dialog.delete.message"), app.getMessage("simplejpa.dialog.delete.title"), JOptionPane.YES_NO_OPTION, JOptionPane.WARNING_MESSAGE) != JOptionPane.YES_OPTION) {
-            return
-        }
+		if (JOptionPane.showConfirmDialog(view.mainPanel, app.getMessage("simplejpa.dialog.delete.message"), app.getMessage("simplejpa.dialog.delete.title"), JOptionPane.YES_NO_OPTION, JOptionPane.WARNING_MESSAGE) != JOptionPane.YES_OPTION) {
+			return
+		}
 		model.${g.domainClassNameAsProperty} = null
 		close()
 	}
 ${g.popups(1)}
-    @Transaction(Transaction.Policy.SKIP)
-    def close = {
-        execInsideUISync { SwingUtilities.getWindowAncestor(view.mainPanel)?.dispose() }
-    }
+	@Transaction(Transaction.Policy.SKIP)
+	def close = {
+		execInsideUISync { SwingUtilities.getWindowAncestor(view.mainPanel)?.dispose() }
+	}
 
 }
