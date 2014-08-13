@@ -44,9 +44,6 @@ class Scaffolding {
     }
 
     public populateDomainClasses() {
-        if (domainClassesToGenerate == null || domainClassesToGenerate.isEmpty()) {
-            throw new RuntimeException("Domain classes to generate can't be null!")
-        }
         if (persistenceFile == null || !persistenceFile.exists()) {
             throw new RuntimeException("File persistence.xml is not specified!")
         }
@@ -125,8 +122,8 @@ class Scaffolding {
     }
 
     public void generate() {
-        if (!domainClassesToGenerate.empty) {
-            populateDomainClasses()
+        populateDomainClasses()
+        if (!domainClassesToGenerate?.empty) {
             if (domainClassesToGenerate[0] == '*') {
                 domainClassesToGenerate = domainClasses.keySet().toList()
             }
