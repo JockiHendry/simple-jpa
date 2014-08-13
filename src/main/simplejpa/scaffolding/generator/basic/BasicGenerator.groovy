@@ -155,6 +155,9 @@ class BasicGenerator extends Generator {
 
         // create MVCGroup
         createMVCGroup(targetPackageName, customClassName?: domainClassName)
+        if (scaffolding.setStartup && domainClassName) {
+            setStartupGroup(domainClassName)
+        }
         generatedMVCGroups << customClassName?: domainClassName
 
         pairs.each {
