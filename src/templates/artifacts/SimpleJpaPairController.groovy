@@ -21,8 +21,11 @@ class ${g.customClassName}Controller {
 	}
 
 	def init = {
-		model.${g.domainClassNameAsProperty} = model.${g.domainClassNameAsProperty}? merge(model.${g.domainClassNameAsProperty}): null
-		if (model.${g.domainClassNameAsProperty} != null) {
+<%
+    if (g.domainClass.entity) {
+        out << "\t\tmodel.${g.domainClassNameAsProperty} = model.${g.domainClassNameAsProperty}? merge(model.${g.domainClassNameAsProperty}): null\n"
+    }
+%>		if (model.${g.domainClassNameAsProperty} != null) {
 ${g.pair_init(3)}
 		}
 	}
