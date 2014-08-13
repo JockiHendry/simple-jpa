@@ -73,8 +73,11 @@ ${g.popups(1)}
 	@Transaction(Transaction.Policy.SKIP)
 	def clear = {
 		execInsideUISync {
-			model.id = null
-${g.clear(3)}
+<%
+    if (g.domainClass.entity) {
+        out << "\t\t\t\tmodel.id = null\n"
+    }
+%>			${g.clear(3)}
 			model.errors.clear()
 			view.table.selectionModel.clearSelection()
 		}
@@ -88,8 +91,11 @@ ${g.clear(3)}
 			} else {
 				${g.domainClassName} selected = view.table.selectionModel.selected[0]
 				model.errors.clear()
-				model.id = selected.id
-${g.selected(4)}
+<%
+    if (g.domainClass.entity) {
+        out << "\t\t\t\tmodel.id = selected.id\n"
+    }
+%>				${g.selected(4)}
 			}
 		}
 	}
