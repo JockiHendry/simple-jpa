@@ -1,5 +1,9 @@
 = Documentation for simple-jpa
-Version 0.7
+Version 0.8
+:description: This guide is a documentation for simple-jpa plugin for Griffon.
+:keywords: simplejpa
+:idprefix:
+:idseparator: -
 :linkcss:
 :scriptsdir: ../javascripts
 :stylesdir: ../stylesheets
