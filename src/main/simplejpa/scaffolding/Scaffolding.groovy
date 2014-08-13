@@ -161,10 +161,7 @@ class Scaffolding {
     }
 
     public void setStartupGroupName(String startupGroupName) {
-        if (startupGroupName == null || startupGroupName.isAllWhitespace()) {
-            startupGroupName = 'MainGroup'
-        }
-        this.startupGroupName = startupGroupName.capitalize()
+        this.startupGroupName = startupGroupName?.capitalize()
     }
 
     public void setGeneratorClass(String generatorClass) {
