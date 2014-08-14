@@ -5,7 +5,9 @@
 <!--[if IE]><meta http-equiv="X-UA-Compatible" content="IE=edge"><![endif]-->
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <meta name="generator" content="Asciidoctor 1.5.0.preview.7">
-<meta name="author" content="Version 0.7">
+<meta name="description" content="This guide is a documentation for simple-jpa plugin for Griffon.">
+<meta name="keywords" content="simplejpa">
+<meta name="author" content="Version 0.8">
 <title>Documentation for simple-jpa</title>
 <link rel="stylesheet" href="../stylesheets/asciidoctor.css">
 <link rel="stylesheet" href="http://cdnjs.cloudflare.com/ajax/libs/font-awesome/3.2.1/css/font-awesome.min.css">
@@ -14,77 +16,86 @@
 <body class="article toc2 toc-left">
 <div id="header">
 <h1>Documentation for simple-jpa</h1>
-<span id="author" class="author">Version 0.7</span><br>
+<span id="author" class="author">Version 0.8</span><br>
 <div id="toc" class="toc2">
 <div id="toctitle">Table of Contents</div>
 <ul class="sectlevel1">
-<li><a href="#_introduction">1. Introduction</a></li>
-<li><a href="#_getting_started">2. Getting Started</a></li>
-<li><a href="#_scaffolding">3. Scaffolding</a></li>
-<li><a href="#_validation">4. Validation</a></li>
-<li><a href="#_swing_builder">5. Swing Builder</a></li>
-<li><a href="#_persistence">6. Persistence</a></li>
-<li><a href="#_auditing">7. Auditing</a></li>
-<li><a href="#_finders">8. Finders</a></li>
+<li><a href="#introduction">1. Introduction</a></li>
+<li><a href="#getting-started">2. Getting Started</a></li>
+<li><a href="#scaffolding">3. Scaffolding</a></li>
 <li>
 <ul class="sectlevel2">
-<li><a href="#_query_configuration">8.1. Query Configuration</a></li>
-<li><a href="#_basic_finder">8.2. Basic Finder</a></li>
-<li><a href="#_dsl_finder">8.3. DSL Finder</a></li>
-<li><a href="#_using_named_entity_graph">8.4. Using Named Entity Graph</a></li>
+<li><a href="#usage">3.1. Usage</a></li>
+<li><a href="#basic-generator">3.2. Basic Generator</a></li>
+<li><a href="#ddd-generator">3.3. DDD Generator</a></li>
+<li><a href="#customization">3.4. Customization</a></li>
 </ul>
 </li>
-<li><a href="#_testing">9. Testing</a></li>
-<li><a href="#_deployment">10. Deployment</a></li>
-<li><a href="#_configuration">Appendix A: Configuration</a></li>
+<li><a href="#validation">4. Validation</a></li>
+<li><a href="#swing-builder">5. Swing Builder</a></li>
+<li><a href="#persistence">6. Persistence</a></li>
+<li><a href="#auditing">7. Auditing</a></li>
+<li><a href="#finders">8. Finders</a></li>
 <li>
 <ul class="sectlevel2">
-<li><a href="#_domain_package">A.1. Domain Package</a></li>
-<li><a href="#_default_flush_mode">A.2. Default Flush Mode</a></li>
-<li><a href="#_entity_manager_properties">A.3. Entity Manager Properties</a></li>
-<li><a href="#_soft_delete">A.4. Soft Delete</a></li>
-<li><a href="#_finders_2">A.5. Finders</a></li>
-<li><a href="#_validation_2">A.6. Validation</a></li>
+<li><a href="#query-configuration">8.1. Query Configuration</a></li>
+<li><a href="#basic-finder">8.2. Basic Finder</a></li>
+<li><a href="#dsl-finder">8.3. DSL Finder</a></li>
+<li><a href="#using-named-entity-graph">8.4. Using Named Entity Graph</a></li>
 </ul>
 </li>
-<li><a href="#_script">Appendix B: Script</a></li>
+<li><a href="#testing">9. Testing</a></li>
+<li><a href="#deployment">10. Deployment</a></li>
+<li><a href="#configuration">Appendix A: Configuration</a></li>
 <li>
 <ul class="sectlevel2">
-<li><a href="#_create_simple_jpa">B.1. create-simple-jpa</a></li>
-<li><a href="#_create_domain_class">B.2. create-domain-class</a></li>
-<li><a href="#_generate_all">B.3. generate-all</a></li>
-<li><a href="#_install_templates">B.4. install-templates</a></li>
-<li><a href="#_simple_jpa_console">B.5. simple-jpa-console</a></li>
-<li><a href="#_generate_schema">B.6. generate-schema</a></li>
-<li><a href="#_obfuscate">B.7. obfuscate</a></li>
+<li><a href="#domain-package">A.1. Domain Package</a></li>
+<li><a href="#default-flush-mode">A.2. Default Flush Mode</a></li>
+<li><a href="#entity-manager-properties">A.3. Entity Manager Properties</a></li>
+<li><a href="#soft-delete">A.4. Soft Delete</a></li>
+<li><a href="#finders-2">A.5. Finders</a></li>
+<li><a href="#validation-2">A.6. Validation</a></li>
+<li><a href="#scaffolding-2">A.7. Scaffolding</a></li>
 </ul>
 </li>
-<li><a href="#_annotation">Appendix C: Annotation</a></li>
+<li><a href="#script">Appendix B: Script</a></li>
 <li>
 <ul class="sectlevel2">
-<li><a href="#__conditionsupport">C.1. @ConditionSupport</a></li>
-<li><a href="#__domainclass">C.2. @DomainClass</a></li>
-<li><a href="#__transaction">C.3. @Transaction</a></li>
+<li><a href="#create-simple-jpa">B.1. create-simple-jpa</a></li>
+<li><a href="#create-domain-class">B.2. create-domain-class</a></li>
+<li><a href="#generate-all">B.3. generate-all</a></li>
+<li><a href="#install-templates">B.4. install-templates</a></li>
+<li><a href="#simple-jpa-console">B.5. simple-jpa-console</a></li>
+<li><a href="#generate-schema">B.6. generate-schema</a></li>
+<li><a href="#obfuscate">B.7. obfuscate</a></li>
 </ul>
 </li>
-<li><a href="#_methods">Appendix D: Methods</a></li>
+<li><a href="#annotation">Appendix C: Annotation</a></li>
 <li>
 <ul class="sectlevel2">
-<li><a href="#_begintransaction">D.1. beginTransaction()</a></li>
-<li><a href="#_committransaction">D.2. commitTransaction()</a></li>
-<li><a href="#_createentitymanager">D.3. createEntityManager()</a></li>
-<li><a href="#_destroyentitymanager">D.4. destroyEntityManager()</a></li>
-<li><a href="#_executenamedquery">D.5. executeNamedQuery()</a></li>
-<li><a href="#_executenativequery">D.6. executeNativeQuery()</a></li>
-<li><a href="#_executequery">D.7. executeQuery()</a></li>
-<li><a href="#_getentitymanager">D.8. getEntityManager()</a></li>
-<li><a href="#_merge">D.9. merge()</a></li>
-<li><a href="#_persist">D.10. persist()</a></li>
-<li><a href="#_remove">D.11. remove()</a></li>
-<li><a href="#_rollbacktransaction">D.12. rollbackTransaction()</a></li>
-<li><a href="#_softdelete">D.13. softDelete()</a></li>
-<li><a href="#_validate">D.14. validate()</a></li>
-<li><a href="#_withtransaction">D.15. withTransaction()</a></li>
+<li><a href="#conditionsupport">C.1. @ConditionSupport</a></li>
+<li><a href="#domainclass">C.2. @DomainClass</a></li>
+<li><a href="#transaction">C.3. @Transaction</a></li>
+</ul>
+</li>
+<li><a href="#methods">Appendix D: Methods</a></li>
+<li>
+<ul class="sectlevel2">
+<li><a href="#begintransaction">D.1. beginTransaction()</a></li>
+<li><a href="#committransaction">D.2. commitTransaction()</a></li>
+<li><a href="#createentitymanager">D.3. createEntityManager()</a></li>
+<li><a href="#destroyentitymanager">D.4. destroyEntityManager()</a></li>
+<li><a href="#executenamedquery">D.5. executeNamedQuery()</a></li>
+<li><a href="#executenativequery">D.6. executeNativeQuery()</a></li>
+<li><a href="#executequery">D.7. executeQuery()</a></li>
+<li><a href="#getentitymanager">D.8. getEntityManager()</a></li>
+<li><a href="#merge">D.9. merge()</a></li>
+<li><a href="#persist">D.10. persist()</a></li>
+<li><a href="#remove">D.11. remove()</a></li>
+<li><a href="#rollbacktransaction">D.12. rollbackTransaction()</a></li>
+<li><a href="#softdelete">D.13. softDelete()</a></li>
+<li><a href="#validate">D.14. validate()</a></li>
+<li><a href="#withtransaction">D.15. withTransaction()</a></li>
 </ul>
 </li>
 </ul>
@@ -99,7 +110,7 @@
 </div>
 </div>
 <div class="sect1">
-<h2 id="_introduction">1. Introduction</h2>
+<h2 id="introduction">1. Introduction</h2>
 <div class="sectionbody">
 <div class="paragraph">
 <p>simple-jpa is a Griffon plugin for developing JPA and Swing based desktop application. The main goal of simple-jpa is
@@ -158,49 +169,849 @@ dateTimePicker.</p>
 </div>
 </div>
 <div class="sect1">
-<h2 id="_getting_started">2. Getting Started</h2>
+<h2 id="getting-started">2. Getting Started</h2>
 <div class="sectionbody">
 
 </div>
 </div>
 <div class="sect1">
-<h2 id="_scaffolding">3. Scaffolding</h2>
+<h2 id="scaffolding">3. Scaffolding</h2>
+<div class="sectionbody">
+<div class="sect2">
+<h3 id="usage">3.1. Usage</h3>
+<div class="paragraph">
+<p>Scaffolding feature from simple-jpa can be used to generate MVC groups based on existing domain classes.  This is very
+useful in the early phase of application development as it provides guide for further development.
+Scaffolding can be invoked by using <a href="#generate-all">generate-all</a> command or by enabling it in
+<em>Config.groovy</em> (see <a href="#scaffolding-2">Scaffolding</a>).</p>
+</div>
+<div class="paragraph">
+<p>For example, MVC groups for domain class <code>Student</code> can be generated by using the following command:</p>
+</div>
+<div class="literalblock">
+<div class="content">
+<pre>griffon generate-all Student</pre>
+</div>
+</div>
+<div class="paragraph">
+<p>simple-jpa will searching for <code>Student</code> class in <code>griffon-app/conf/metainf/persistence.xml</code>.  There is nothing to worry
+here because all domain classes created by <a href="#create-domain-class">create-domain-class</a> will automatically listed in <code>persistence.xml</code>.</p>
+</div>
+<div class="paragraph">
+<p>Based on <code>Student</code> class, simple-jpa will perform the following actions:</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p>Create a new <code>griffon-app/models/project/StudentModel.groovy</code> if it doesn&#8217;t exists.</p>
+</li>
+<li>
+<p>Create a new <code>griffon-app/views/project/StudentView.groovy</code> if it doesn&#8217;t exists.</p>
+</li>
+<li>
+<p>Create a new <code>griffon-app/controllers/project/StudentController.groovy</code> if it doesn&#8217;t exists.</p>
+</li>
+<li>
+<p>Search for <code>student</code> MVC group.  If it doesn&#8217;t exists, create a new MVC group with the following content:</p>
+<div class="listingblock">
+<div class="title">Application.groovy</div>
+<div class="content">
+<pre class="CodeRay"><code class="groovy language-groovy"><span class="comment">// MVC Group for &quot;student&quot;</span>
+<span class="string"><span class="delimiter">'</span><span class="content">student</span><span class="delimiter">'</span></span> {
+    model      = <span class="string"><span class="delimiter">'</span><span class="content">project.StudentModel</span><span class="delimiter">'</span></span>
+    view       = <span class="string"><span class="delimiter">'</span><span class="content">project.StudentView</span><span class="delimiter">'</span></span>
+    controller = <span class="string"><span class="delimiter">'</span><span class="content">project.StudentController</span><span class="delimiter">'</span></span>
+}</code></pre>
+</div>
+</div>
+</li>
+<li>
+<p>Create a new <code>test/integration/project/StudentTest.groovy</code> if it doesn&#8217;t exists.</p>
+</li>
+<li>
+<p>Create a new <code>data.xls</code> if it doesn&#8217;t exists.  Add a single empty sheet named as <code>student</code> to the Microsoft Excel
+file.  This Excel file will act as data source when invoking <code>StudentTest.groovy</code>.  See <a href="#testing">Testing</a> for more
+information.</p>
+</li>
+<li>
+<p>Add messages to <code>griffon-app/i18n/messages.properties</code> if they don&#8217;t exists.</p>
+</li>
+<li>
+<p>Add a generic exception handler in <code>griffon-app/conf/Events.groovy</code> if it doesn&#8217;t exists.</p>
+</li>
+</ul>
+</div>
+<div class="paragraph">
+<p>By default, simple-jpa will not modify the content of existing files.  To force simple-jpa to overwrite existing
+files, add <code>-forceOverwrite</code> parameter when invoking <code>generate-all</code>.  For example:</p>
+</div>
+<div class="literalblock">
+<div class="content">
+<pre>griffon generate-all -forceOverwrite Student</pre>
+</div>
+</div>
+<div class="paragraph">
+<p>The default target package for generated MVC artifacts is <code>project</code>.  To use a different target package,
+<code>-generatedPackage</code> should be passed when invoking <code>generate-all</code>.  For example:</p>
+</div>
+<div class="literalblock">
+<div class="content">
+<pre>griffon generate-all -generatedPackage=com.jocki.exercises Student</pre>
+</div>
+</div>
+<div class="paragraph">
+<p>The command will place generated MVC artifacts in <code>com.jocki.exercises</code> package and register the following MVC group:</p>
+</div>
+<div class="listingblock">
+<div class="title">Application.groovy</div>
+<div class="content">
+<pre class="CodeRay"><code class="groovy language-groovy"><span class="comment">// MVC Group for &quot;student&quot;</span>
+<span class="string"><span class="delimiter">'</span><span class="content">student</span><span class="delimiter">'</span></span> {
+    model      = <span class="string"><span class="delimiter">'</span><span class="content">com.jocki.exercises.StudentModel</span><span class="delimiter">'</span></span>
+    view       = <span class="string"><span class="delimiter">'</span><span class="content">com.jocki.exercises.StudentView</span><span class="delimiter">'</span></span>
+    controller = <span class="string"><span class="delimiter">'</span><span class="content">com.jocki.exercises.StudentController</span><span class="delimiter">'</span></span>
+}</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>simple-jpa is smart enough to recognize package hierarchy in domain classes.  It will try to preserve the
+source package hierarchy in the resulting MVC artifacts.  For example, if <code>Teacher</code> is located in <code>domain.staff</code>,
+then the following command:</p>
+</div>
+<div class="literalblock">
+<div class="content">
+<pre>griffon generate-all -generatedPackage=com.jocki.exercises Teacher</pre>
+</div>
+</div>
+<div class="paragraph">
+<p>will place the generated MVC artifacts in <code>com.jocki.exercises.staff</code> and register the following MVC group:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="CodeRay"><code class="groovy language-groovy"><span class="comment">// MVC Group for &quot;teacher&quot;</span>
+<span class="string"><span class="delimiter">'</span><span class="content">teacher</span><span class="delimiter">'</span></span> {
+    model      = <span class="string"><span class="delimiter">'</span><span class="content">com.jocki.exercises.staff.TeacherModel</span><span class="delimiter">'</span></span>
+    view       = <span class="string"><span class="delimiter">'</span><span class="content">com.jocki.exercises.staff.TeacherView</span><span class="delimiter">'</span></span>
+    controller = <span class="string"><span class="delimiter">'</span><span class="content">com.jocki.exercises.staff.TeacherController</span><span class="delimiter">'</span></span>
+}</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>In Griffon, startup group is the first MVC group to be instantiated and displayed.  By default, <code>generate-all</code> will
+not modify the value of current startup group.  This behaviour can be changed by using <code>-setStartup</code> parameter.  If
+<code>-setStartup</code> is passed to <code>generate-all</code>, the command will set startup group to the generated MVC group.  For
+example, the following command will generate <code>teacher</code> MVC group and set it as startup group:</p>
+</div>
+<div class="literalblock">
+<div class="content">
+<pre>griffon generate-all -setStartup Teacher</pre>
+</div>
+</div>
+<div class="paragraph">
+<p>simple-jpa can also create a dedicated startup group that serves as container for existing domain class
+based MVC groups.  To generate a dedicated startup group, <code>-startupGroup</code> parameter should be used with
+the startup group&#8217;s name as its value.  For example, the following command will generate <code>mainGroup</code> MVC group and set
+ it as startup group:</p>
+</div>
+<div class="literalblock">
+<div class="content">
+<pre>griffon generate-all -startupGroup=MainGroup</pre>
+</div>
+</div>
+<div class="paragraph">
+<p>The generated startup group&#8217;s view has a toolbar to launch domain class based MVC groups as shown in the following
+result:</p>
+</div>
+<div class="imageblock">
+<div class="content">
+<img src="../images/default_startup_group.PNG" alt="default startup group">
+</div>
+</div>
+<div class="paragraph">
+<p>Domain class based MVC group generation and startup group generation can also be combined in a single command execution.
+For example:</p>
+</div>
+<div class="literalblock">
+<div class="content">
+<pre>griffon generate-all Teacher -startupGroup=MainGroup</pre>
+</div>
+</div>
+<div class="admonitionblock tip">
+<table>
+<tr>
+<td class="icon">
+<i class="icon-tip" title="Tip"></i>
+</td>
+<td class="content">
+<div class="paragraph">
+<p>New MVC groups may be generated in the future after startup group has been created.  These new MVC groups will not
+appear in current startup group&#8217;s toolbar.  One of possible solutions is recreate the startup group by including
+<code>-forceOverwrite</code> to overwrite existing startup group:</p>
+</div>
+<div class="literalblock">
+<div class="content">
+<pre>griffon generate-all -startupGroup=MainGroup -forceOverwrite</pre>
+</div>
+</div>
+</td>
+</tr>
+</table>
+</div>
+<div class="paragraph">
+<p><code>generate-all</code> can accept multiple domain classes separated by space.  For example:</p>
+</div>
+<div class="literalblock">
+<div class="content">
+<pre>griffon generate-all Student Teacher Classroom</pre>
+</div>
+</div>
+<div class="paragraph">
+<p>As a shortcut, <code>*</code> can be used as domain class name to generate all registered domain classes. For example:</p>
+</div>
+<div class="literalblock">
+<div class="content">
+<pre>griffon generate-all *</pre>
+</div>
+</div>
+<div class="paragraph">
+<p>Since version 0.8, scaffolding in simple-jpa is performed by an instance of <code>Generator</code>.  The default generator
+that shipped with simple-jpa is <code>simplejpa.scaffolding.generator.basic.BasicGenerator</code>.  To select another generator,
+ add <code>-generator</code> parameter when invoking <code>generate-all</code>.  For example:</p>
+</div>
+<div class="literalblock">
+<div class="content">
+<pre>griffon generate-all -generator=my.custom.Generator *</pre>
+</div>
+</div>
+<div class="paragraph">
+<p>The parameters that have been discussed so far can also be stored in <code>Config.groovy</code>.  See <a href="#scaffolding-2">Scaffolding</a> for
+list of all available configuration keys. For example, running <code>griffon generate-all *</code> with the following
+configurations:</p>
+</div>
+<div class="listingblock">
+<div class="title">Config.groovy</div>
+<div class="content">
+<pre class="CodeRay"><code class="groovy language-groovy">griffon {
+    simplejpa {
+        scaffolding {
+            generatedPackage = <span class="string"><span class="delimiter">'</span><span class="content">com.jocki.exercises</span><span class="delimiter">'</span></span>
+            startupGroup = <span class="string"><span class="delimiter">'</span><span class="content">MainGroup</span><span class="delimiter">'</span></span>
+            forceOverwrite = <span class="predefined-constant">true</span>
+        }
+    }
+}</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>is identical with executing the following command:</p>
+</div>
+<div class="literalblock">
+<div class="content">
+<pre>griffon generate-all -generatedPackage=com.jocki.exercises -startupGroup=MainGroup -forceOverwrite *</pre>
+</div>
+</div>
+<div class="paragraph">
+<p>Another benefit of storing <code>generate-all</code> parameters as configuration keys is automatic scaffolding.  The scaffolding
+process can be automated if <code>griffon.simplejpa.scaffolding.auto</code> is set to <code>true</code>.  For example, this configuration will
+automatically run scaffolding process:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="CodeRay"><code class="groovy language-groovy">griffon {
+    simplejpa {
+        scaffolding {
+            auto = <span class="predefined-constant">true</span>
+            startupGroup = <span class="string"><span class="delimiter">'</span><span class="content">MainGroup</span><span class="delimiter">'</span></span>
+        }
+    }
+}</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>Automatic scaffolding will be performed whenever Griffon is compiling classes, such as when project is launched from
+<code>griffon run-app</code> command.  Automatic scaffolding will not run in production when no class compilations being carried
+out.</p>
+</div>
+</div>
+<div class="sect2">
+<h3 id="basic-generator">3.2. Basic Generator</h3>
+<div class="paragraph">
+<p>Basic generator is the default generator used by simple-jpa.  It supports the following attribute types in
+domain class:</p>
+</div>
+<table class="tableblock frame-all grid-all" style="width: 100%;">
+<caption class="title">Table 1. Supported Attribute Types</caption>
+<colgroup>
+<col style="width: 33%;">
+<col style="width: 33%;">
+<col style="width: 33%;">
+</colgroup>
+<thead>
+<tr>
+<th class="tableblock halign-left valign-top">Attribute Type</th>
+<th class="tableblock halign-left valign-top">SwingBuilder node</th>
+<th class="tableblock halign-left valign-top">Class</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">String, Character</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">textField()</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">JTextField</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Boolean</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">checkBox()</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">JCheckbox</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Byte, Short, Integer, Long, Float, Double, BigInteger</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">numberTextField()</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">JFormattedTextField</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">BigDecimal</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">decimalTextField()</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">JFormattedTextField</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">DateTime, LocalDateTime, LocalDate, LocalTime</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">dateTimePicker()</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">DateTimePicker</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Enum</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">comboBox()</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">JComboBox with EnumComboBoxModel</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">List, Set</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">button() if relation is one-to-many or tagChooser() if relation is many-to-many</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">JButton or TagChooser</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Any Entity Object</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">button() if relation is one-to-one or comboBox() if relation is one-to-many</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">JButton or JComboBox</p></td>
+</tr>
+</tbody>
+</table>
+<div class="admonitionblock warning">
+<table>
+<tr>
+<td class="icon">
+<i class="icon-warning" title="Warning"></i>
+</td>
+<td class="content">
+Basic generator doesn&#8217;t support native data types such as <code>int</code>, <code>float</code>, or <code>double</code> because they
+are not nullable.
+</td>
+</tr>
+</table>
+</div>
+<div class="admonitionblock tip">
+<table>
+<tr>
+<td class="icon">
+<i class="icon-tip" title="Tip"></i>
+</td>
+<td class="content">
+Basic generator will generate TODO comments in the generated code to provide information or warning to
+ user.  It is safe to delete these TODO comments.
+</td>
+</tr>
+</table>
+</div>
+<div class="paragraph">
+<p>For example, the following domain class:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="CodeRay"><code class="groovy language-groovy"><span class="annotation">@DomainClass</span> <span class="annotation">@Entity</span> <span class="annotation">@Canonical</span>
+<span class="type">class</span> <span class="class">Student</span> {
+
+    <span class="predefined-type">String</span> name
+
+    <span class="predefined-type">Integer</span> age
+
+    <span class="annotation">@Type</span>(type = <span class="string"><span class="delimiter">&quot;</span><span class="content">org.jadira.usertype.dateandtime.joda.PersistentLocalDate</span><span class="delimiter">&quot;</span></span>)
+    LocalDate birthDate
+
+    <span class="predefined-type">Boolean</span> registered
+
+    <span class="annotation">@Enumerated</span>
+    GRADE grade
+
+    <span class="annotation">@ManyToOne</span>
+    Teacher teacher
+
+    <span class="annotation">@ManyToMany</span>(cascade=CascadeType.ALL, fetch=FetchType.EAGER)
+    <span class="predefined-type">List</span>&lt;Classroom&gt; classrooms = <span class="type">[]</span>
+
+}
+
+<span class="type">enum</span> GRADE {
+    GRADE_1, GRADE_2, GRADE_3
+}</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>will be generated as:</p>
+</div>
+<div class="imageblock">
+<div class="content">
+<img src="../images/generated_view_basic_attributes.PNG" alt="generated view basic attributes">
+</div>
+</div>
+<div class="paragraph">
+<p>To create a new record, user should enter required values in the editing area and click the <em>'Save&#8217;</em> button.</p>
+</div>
+<div class="paragraph">
+<p>To update existing record, user must first select a row in table, enter the updated values in the editing area, and
+click the <em>'Save&#8217;</em> button.</p>
+</div>
+<div class="paragraph">
+<p>To remove record from database, user must click the <em>'Delete&#8217;</em> button that will appear if table&#8217;s row is selected.</p>
+</div>
+<div class="paragraph">
+<p>For domain class that have one-to-one association, basic generator generates a dialog to
+create, edit or remove the related entity.  This feature requires cascading to be activated for the attribute.</p>
+</div>
+<div class="paragraph">
+<p>For example, the following attribute declaration:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="CodeRay"><code class="groovy language-groovy"><span class="annotation">@OneToOne</span>(cascade=CascadeType.ALL, orphanRemoval=<span class="predefined-constant">true</span>)
+Teacher teacher</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>is represented by <code>JButton</code> that if clicked will open a dialog that allows user to modify the related
+ <code>Teacher</code>.
+ If this button is clicked in create operation, the dialog can be used to create a new instance of <code>Teacher</code> entity:</p>
+</div>
+<div class="imageblock">
+<div class="content">
+<img src="../images/generated_view_one_to_one.png" alt="generated view one to one">
+</div>
+</div>
+<div class="paragraph">
+<p>If this button is clicked in update operation, the dialog can be used to update or delete existing <code>Teacher</code> entity:</p>
+</div>
+<div class="imageblock">
+<div class="content">
+<img src="../images/generated_view_one_to_one_update.png" alt="generated view one to one update">
+</div>
+</div>
+<div class="paragraph">
+<p>The naming convention for one-to-one MVC group and its artifact&#8217;s name is the target entity name
+with <em>'AsPair&#8217;</em>  as suffix.  For example, if target entity is <code>Teacher</code>, basic generator generates
+<code>TeacherAsPairModel</code>, <code>TeacherAsPairView</code>, and <code>TeacherAsPairController</code>.  They are not to be confused with the
+standalone MVC group for <code>Teacher</code> such as <code>TeacherModel</code>, <code>TeacherView</code>, and <code>TeacherController</code> that may also exists
+in the project (for example they are used for displaying list of <code>Teacher</code> in their own screen and <strong>not</strong> as popup).</p>
+</div>
+<div class="admonitionblock important">
+<table>
+<tr>
+<td class="icon">
+<i class="icon-important" title="Important"></i>
+</td>
+<td class="content">
+If the annotated attribute in the generated code doesn&#8217;t have <code>cascade</code> set to <code>CascadeType.ALL</code>,
+<code>org.hibernate.TransientPropertyValueException</code> will be raised when saving the entity.  To fix this, either add a
+proper cascading to object mapping or change the generated code to make it work without cascading.
+</td>
+</tr>
+</table>
+</div>
+<div class="paragraph">
+<p>Basic generator also treats <code>@Embedded</code> attributes as equivalent of one-to-one attributes.  For example, the
+following mapping generates the same view as the previous one:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="CodeRay"><code class="groovy language-groovy"><span class="annotation">@Embedded</span>
+Teacher teacher</code></pre>
+</div>
+</div>
+<div class="admonitionblock tip">
+<table>
+<tr>
+<td class="icon">
+<i class="icon-tip" title="Tip"></i>
+</td>
+<td class="content">
+User can press ESC button as a shortcut to close popup dialog.
+</td>
+</tr>
+</table>
+</div>
+<div class="admonitionblock tip">
+<table>
+<tr>
+<td class="icon">
+<i class="icon-tip" title="Tip"></i>
+</td>
+<td class="content">
+User can press Enter or double click a selected row in table to display the first one-to-many or one-to-one
+popup dialog in the view.
+</td>
+</tr>
+</table>
+</div>
+<div class="paragraph">
+<p>For one-to-many associations, basic generator also generates a dialog.  For example, the following attribute
+declaration:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="CodeRay"><code class="groovy language-groovy"><span class="annotation">@OneToMany</span>(cascade=CascadeType.ALL, orphanRemoval=<span class="predefined-constant">true</span>, fetch=FetchType.EAGER)
+<span class="predefined-type">Set</span>&lt;Classroom&gt; classrooms = <span class="keyword">new</span> <span class="predefined-type">HashSet</span>&lt;&gt;()</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>is represented by <code>JButton</code> that if clicked will open a dialog that allows user to add or remove the list of
+<code>Classroom</code> entities that are associated with current entity. If this button is clicked in create operation, the
+dialog can be used to populate the collection with one or more <code>Classroom</code>:</p>
+</div>
+<div class="imageblock">
+<div class="content">
+<img src="../images/generated_view_one_to_many.png" alt="generated view one to many">
+</div>
+</div>
+<div class="paragraph">
+<p>If this button is clicked in update operation, the dialog can be used to add new entity to the collection, edit
+the value of entity in the collection, or remove an entity from the collection:</p>
+</div>
+<div class="imageblock">
+<div class="content">
+<img src="../images/generated_view_one_to_many_update.png" alt="generated view one to many update">
+</div>
+</div>
+<div class="paragraph">
+<p>The naming convention for one-to-many attribute is the target entity name with <em>'AsChild&#8217;</em>  as suffix.  For example, if
+target entity is <code>Classroom</code>, basic generator generates <code>ClassroomAsChildModel</code>, <code>ClassroomAsChildView</code>, and
+<code>ClassroomAsChildController</code>.  This is not to be confused with <code>ClassroomModel</code>, <code>ClassroomView</code> or
+<code>ClassroomController</code> that may also exists in the project.</p>
+</div>
+<div class="paragraph">
+<p>Basic generator will also treat <code>@ElementCollection</code> attributes as equivalent of one-to-many attributes. For
+example, the following mapping creates the same view as the previous one:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="CodeRay"><code class="groovy language-groovy"><span class="annotation">@ElementCollection</span>(fetch=FetchType.EAGER)
+<span class="predefined-type">Set</span>&lt;Classroom&gt; classrooms = <span class="keyword">new</span> <span class="predefined-type">HashSet</span>&lt;&gt;()</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>For bidirectional associations, basic generator generates inverse attributes as labels because they are not editable.
+ For example, the following domain classes:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="CodeRay"><code class="groovy language-groovy"><span class="annotation">@DomainClass</span> <span class="annotation">@Entity</span> <span class="annotation">@Canonical</span>
+<span class="type">class</span> <span class="class">Invoice</span> {
+
+    <span class="predefined-type">String</span> number
+
+    <span class="annotation">@OneToOne</span>(cascade=CascadeType.ALL, orphanRemoval=<span class="predefined-constant">true</span>)
+    Delivery delivery
+
+}
+
+<span class="annotation">@DomainClass</span> <span class="annotation">@Entity</span> <span class="annotation">@Canonical</span>(excludes=<span class="string"><span class="delimiter">'</span><span class="content">invoice</span><span class="delimiter">'</span></span>)
+<span class="type">class</span> <span class="class">Delivery</span> {
+
+    <span class="predefined-type">String</span> ticketNumber
+
+    <span class="annotation">@OneToOne</span>(mappedBy=<span class="string"><span class="delimiter">'</span><span class="content">delivery</span><span class="delimiter">'</span></span>)
+    Invoice invoice
+
+}</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>will be generated as:</p>
+</div>
+<div class="imageblock">
+<div class="content">
+<img src="../images/generated_view_one_to_one_bidirectional.png" alt="generated view one to one bidirectional">
+</div>
+</div>
+<div class="admonitionblock tip">
+<table>
+<tr>
+<td class="icon">
+<i class="icon-tip" title="Tip"></i>
+</td>
+<td class="content">
+Don&#8217;t forget to add <code>excludes</code> to <code>@Canonical</code> in bidirectional association to avoid infinitive recursion!
+</td>
+</tr>
+</table>
+</div>
+</div>
+<div class="sect2">
+<h3 id="ddd-generator">3.3. DDD Generator</h3>
+<div class="paragraph">
+<p>simple-jpa also shipped with a DDD generator that can selected by using <code>-generator</code> parameter such as in the following
+execution:</p>
+</div>
+<div class="literalblock">
+<div class="content">
+<pre>griffon generate-all -generator=simplejpa.scaffolding.generator.ddd.DDDGenerator *</pre>
+</div>
+</div>
+<div class="paragraph">
+<p>DDD generator rely on basic generator to perform most of its works.  It generates views that are identical to those
+generated by basic generator.  The only distinction is this generator will move JPA related methods and database
+transactions from controller into a separate repository.  For every <code>@Entity</code> annotated domain classes, DDD generator
+ will create their corresponding repository classes.  For example, it generates <code>StudentRepository</code> in the same
+ package for <code>Student</code> entity.</p>
+</div>
+<div class="paragraph">
+<p>DDD generator disables dynamic methods in controller by adding the following line to <em>Config.groovy</em>:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="CodeRay"><code class="groovy language-groovy">griffon.simplejpa.finders.injectInto = <span class="type">[]</span></code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>DDD generator also adds <code>onInitializeMVCGroup</code> event handler in <em>Events.groovy</em>.  This is required to enable
+injection of singleton instance of repository to controller.</p>
+</div>
+</div>
+<div class="sect2">
+<h3 id="customization">3.4. Customization</h3>
+<div class="paragraph">
+<p>A generator usually has classes and multiple templates.  Reusable logic for view generation is stored in
+classes.  They will be invoked by templates.  For example, the generator class is always available to template as <code>g</code>
+variable.</p>
+</div>
+<div class="paragraph">
+<p>The easiest way to customize a generator is to modify its template. <code>install-templates</code> command can be used to
+install templates for simple-jpa built-in generator to current project:</p>
+</div>
+<div class="literalblock">
+<div class="content">
+<pre>griffon install-templates</pre>
+</div>
+</div>
+<div class="paragraph">
+<p>The command will copy template files to <em>src/templates/artifacts</em>.  The following is list of all template files used by
+simple-jpa built-in generators:</p>
+</div>
+<table class="tableblock frame-all grid-all" style="width: 100%;">
+<caption class="title">Table 2. Template Files</caption>
+<colgroup>
+<col style="width: 33%;">
+<col style="width: 33%;">
+<col style="width: 33%;">
+</colgroup>
+<thead>
+<tr>
+<th class="tableblock halign-left valign-top">Name</th>
+<th class="tableblock halign-left valign-top">Generator</th>
+<th class="tableblock halign-left valign-top">Purpose</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">SimpleJpaDomainClass.groovy</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">create-domain-class</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Domain class generation</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">SimpleJpaRepository.groovy</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">DDD</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Repository for entity</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">StartupModel.groovy</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Basic, DDD</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Startup group&#8217;s model</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">StartupController.groovy</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Basic, DDD</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Startup group&#8217;s controller</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">StartupView.groovy</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Basic, DDD</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Startup group&#8217;s view</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">SimpleJpaModel.groovy</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Basic, DDD</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Domain-class based model</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">SimpleJpaView.groovy</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Basic, DDD</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Domain-class based view</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">SimpleJpaController.groovy</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Basic</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Domain-class based controller</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">SimpleJpaDDDController.groovy</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">DDD</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Domain-class based controller</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">SimpleJpaIntegrationTest.groovy</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Basic, DDD</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Integration test case</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">SimpleJpaPairModel.groovy</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Basic, DDD</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">one-to-one popup model</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">SimpleJpaPairView.groovy</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Basic, DDD</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">one-to-one popup view</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">SimpleJpaPairController.groovy</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Basic</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">one-to-one popup controller</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">SimpleJpaDDDPairController.groovy</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">DDD</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">one-to-one popup controller</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">SimpleJpaChildModel.groovy</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Basic, DDD</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">one-to-many popup model</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">SimpleJpaChildView.groovy</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Basic, DDD</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">one-to-many popup view</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">SimpleJpaChildController.groovy</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Basic</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">one-to-many popup controller</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">SimpleJpaDDDChildController.groovy</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">DDD</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">one-to-many popup controller</p></td>
+</tr>
+</tbody>
+</table>
+<div class="paragraph">
+<p>After these templates have been installed into current project, the next invocation of <code>generate-all</code> will be based on
+them.</p>
+</div>
+<div class="paragraph">
+<p>For a more complex customization, a new generator may be created.  The new generator can be extended from existing
+generator or <code>simplejpa.scaffolding.generator.Generator</code>. All generators have the following important methods:</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p><code>generate(DomainClass domainClass)</code> will be invoked when generating files for individual domain class.</p>
+</li>
+<li>
+<p><code>generateStartupGroup(Map&lt;String,DomainClass&gt; domainClasses)</code> will be invoked when generating startup group.</p>
+</li>
+<li>
+<p><code>generateExtra(Map&lt;String,DomainClass&gt; domainClasses)</code> is an optional method that will be invoked after generating
+files for individual domain class.</p>
+</li>
+</ul>
+</div>
+<div class="paragraph">
+<p>For example, the following is a sample declaration of custom generator that does nothing:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="CodeRay"><code class="groovy language-groovy"><span class="keyword">package</span> generator
+
+<span class="keyword">import</span> <span class="include">simplejpa.scaffolding.DomainClass</span>
+<span class="keyword">import</span> <span class="include">simplejpa.scaffolding.Scaffolding</span>
+<span class="keyword">import</span> <span class="include">simplejpa.scaffolding.generator.basic.BasicGenerator</span>
+
+<span class="type">class</span> <span class="class">MyGenerator</span> <span class="directive">extends</span> BasicGenerator {
+
+    MyGenerator(Scaffolding scaffolding) {
+        <span class="local-variable">super</span>(scaffolding)
+    }
+
+    <span class="annotation">@Override</span>
+    <span class="type">void</span> generate(DomainClass domainClass) {
+        println <span class="string"><span class="delimiter">&quot;</span><span class="content">Generating </span><span class="inline"><span class="inline-delimiter">${</span>domainClass.name<span class="inline-delimiter">}</span></span><span class="delimiter">&quot;</span></span>
+        <span class="comment">// call super.generate(domainClass) for default operation (generating MVC artifacts)</span>
+    }
+
+    <span class="annotation">@Override</span>
+    <span class="type">void</span> generateStartupGroup(<span class="predefined-type">Map</span>&lt;<span class="predefined-type">String</span>, DomainClass&gt; domainClasses) {
+        println <span class="string"><span class="delimiter">&quot;</span><span class="content">Generating startup group...</span><span class="delimiter">&quot;</span></span>
+    }
+
+    <span class="annotation">@Override</span>
+    <span class="type">void</span> generateExtra(<span class="predefined-type">Map</span>&lt;<span class="predefined-type">String</span>, DomainClass&gt; domainClasses) {
+        println <span class="string"><span class="delimiter">&quot;</span><span class="content">Generating extra...</span><span class="delimiter">&quot;</span></span>
+    }
+
+}</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>The following command will use the custom generator:</p>
+</div>
+<div class="literalblock">
+<div class="content">
+<pre>griffon -generator=generator.MyGenerator *</pre>
+</div>
+</div>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="validation">4. Validation</h2>
 <div class="sectionbody">
 
 </div>
 </div>
 <div class="sect1">
-<h2 id="_validation">4. Validation</h2>
+<h2 id="swing-builder">5. Swing Builder</h2>
 <div class="sectionbody">
 
 </div>
 </div>
 <div class="sect1">
-<h2 id="_swing_builder">5. Swing Builder</h2>
+<h2 id="persistence">6. Persistence</h2>
 <div class="sectionbody">
 
 </div>
 </div>
 <div class="sect1">
-<h2 id="_persistence">6. Persistence</h2>
+<h2 id="auditing">7. Auditing</h2>
 <div class="sectionbody">
 
 </div>
 </div>
 <div class="sect1">
-<h2 id="_auditing">7. Auditing</h2>
-<div class="sectionbody">
-
-</div>
-</div>
-<div class="sect1">
-<h2 id="_finders">8. Finders</h2>
+<h2 id="finders">8. Finders</h2>
 <div class="sectionbody">
 <div class="paragraph">
 <p>Finders are dynamic methods that are used to retrieve entities from database. By following their naming pattern, developer can easily execute query for any domain classes.</p>
 </div>
 <div class="sect2">
-<h3 id="_query_configuration">8.1. Query Configuration</h3>
+<h3 id="query-configuration">8.1. Query Configuration</h3>
 <div class="paragraph">
 <p>All finders except find[DomainClass]By[Attributes]() have query configuration as their parameter. Query configuration is stored in a Map. The possible keys for query configuration are:</p>
 </div>
@@ -269,7 +1080,7 @@ allowDuplicate</pre>
 </div>
 </div>
 <div class="sect2">
-<h3 id="_basic_finder">8.2. Basic Finder</h3>
+<h3 id="basic-finder">8.2. Basic Finder</h3>
 <div class="paragraph">
 <p>This finder will return a List that contains all instances of a domain class. If no instances are found, it will return an empty List.</p>
 </div>
@@ -344,7 +1155,7 @@ equal or eq</pre>
 </div>
 </div>
 <div class="sect2">
-<h3 id="_dsl_finder">8.3. DSL Finder</h3>
+<h3 id="dsl-finder">8.3. DSL Finder</h3>
 <div class="paragraph">
 <p>This finder will perform a query based on closure (Dsl). For example, the following finder will return all Student in class room <em>A3</em> whose score is less than 70:</p>
 </div>
@@ -404,7 +1215,7 @@ equal or eq</pre>
 </div>
 </div>
 <div class="sect2">
-<h3 id="_using_named_entity_graph">8.4. Using Named Entity Graph</h3>
+<h3 id="using-named-entity-graph">8.4. Using Named Entity Graph</h3>
 <div class="paragraph">
 <p>Since simple-jpa 0.7, most finders now accept Fetch[Graph]. This will allow user to use a defined named entity graph in finders. To use this feature, JPA 2.1 provider is required. User can define named entity graphs by using @NamedEntityGraph annotation.</p>
 </div>
@@ -421,19 +1232,19 @@ equal or eq</pre>
 </div>
 </div>
 <div class="sect1">
-<h2 id="_testing">9. Testing</h2>
+<h2 id="testing">9. Testing</h2>
 <div class="sectionbody">
 
 </div>
 </div>
 <div class="sect1">
-<h2 id="_deployment">10. Deployment</h2>
+<h2 id="deployment">10. Deployment</h2>
 <div class="sectionbody">
 
 </div>
 </div>
 <div class="sect1">
-<h2 id="_configuration">Appendix A: Configuration</h2>
+<h2 id="configuration">Appendix A: Configuration</h2>
 <div class="sectionbody">
 <div class="paragraph">
 <p>simple-jpa can be configured by adding configuration lines in <code>griffon-app/conf/Config.groovy</code>. Adding JPA provider
@@ -441,7 +1252,7 @@ properties can also be done directly by editing <code>griffon-app/conf/metainf/p
 properties.</p>
 </div>
 <div class="sect2">
-<h3 id="_domain_package">A.1. Domain Package</h3>
+<h3 id="domain-package">A.1. Domain Package</h3>
 <div class="paragraph">
 <p>simple-jpa doesn&#8217;t use any metadata to manage domain classes. The only way for simple-jpa to find or to write domain
 classes is by inspecting the content of domain package. All domain classes should be located in this domain package.
@@ -471,7 +1282,7 @@ merely used as an indicator to find domain classes.
 </div>
 </div>
 <div class="sect2">
-<h3 id="_default_flush_mode">A.2. Default Flush Mode</h3>
+<h3 id="default-flush-mode">A.2. Default Flush Mode</h3>
 <div class="paragraph">
 <p>Use this configuration key to change the default <code>flushMode</code> for all EntityManager in application. The possible values
 for flushMode is <code><em>COMMIT</em></code> and <code><em>AUTO</em></code>. The default value for <code>flushMode</code> is depends on JPA provider.</p>
@@ -489,7 +1300,7 @@ for flushMode is <code><em>COMMIT</em></code> and <code><em>AUTO</em></code>. Th
 </div>
 </div>
 <div class="sect2">
-<h3 id="_entity_manager_properties">A.3. Entity Manager Properties</h3>
+<h3 id="entity-manager-properties">A.3. Entity Manager Properties</h3>
 <div class="paragraph">
 <p>In most cases, JPA properties can be added directly to <code>griffon-app/conf/metainf/persistence.xml</code>. The following is
 content of a typical <code>persistence.xml</code> file for desktop application:</p>
@@ -586,7 +1397,7 @@ in root directory of drive C:</p>
 </div>
 </div>
 <div class="sect2">
-<h3 id="_soft_delete">A.4. Soft Delete</h3>
+<h3 id="soft-delete">A.4. Soft Delete</h3>
 <div class="paragraph">
 <p>If the value for this configuration key is <code>true</code>, simple-jpa finders will not return soft deleted objects. A soft
 deleted object is an object whose deleted attribute is not equals to <code><em>N</em></code>. The deleted attribute is available on all
@@ -606,7 +1417,7 @@ passing <code>false</code> to <code>excludeDeleted</code> query configuration.</
 </div>
 </div>
 <div class="sect2">
-<h3 id="_finders_2">A.5. Finders</h3>
+<h3 id="finders-2">A.5. Finders</h3>
 <div class="paragraph">
 <p>By default, simple-jpa will inject JPA related methods such as finders to all Griffon&#8217;s controllers. This causes all
 controllers to act as public repositories with the abilities to retrieve arbitary domain objects. While this pattern
@@ -676,7 +1487,7 @@ duplicate entities, add the following line:</p>
 </div>
 </div>
 <div class="sect2">
-<h3 id="_validation_2">A.6. Validation</h3>
+<h3 id="validation-2">A.6. Validation</h3>
 <div class="paragraph">
 <p>In some cases, validation may be failed because the empty JTextField value in model is an empty String and not a null
 value. To create a consistent behaviour, simple-jpa can translate all empty String into a null value before performing
@@ -688,10 +1499,77 @@ validation. This feature is disabled by default. To enable it, add the following
 </div>
 </div>
 </div>
+<div class="sect2">
+<h3 id="scaffolding-2">A.7. Scaffolding</h3>
+<div class="paragraph">
+<p>To enable automatic scaffolding when compiling classes, add the following configuration line:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="CodeRay"><code class="groovy language-groovy">griffon.simplejpa.scaffolding.auto = <span class="predefined-constant">true</span></code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>Another scaffolding related configurations are:</p>
+</div>
+<table class="tableblock frame-all grid-all" style="width: 100%;">
+<caption class="title">Table 3. Scaffolding Configuration</caption>
+<colgroup>
+<col style="width: 33%;">
+<col style="width: 33%;">
+<col style="width: 33%;">
+</colgroup>
+<thead>
+<tr>
+<th class="tableblock halign-left valign-top">Key</th>
+<th class="tableblock halign-left valign-top">Expected Value</th>
+<th class="tableblock halign-left valign-top">Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>griffon.simplejpa.scaffolding.generator</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">A string.</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">The full class name that is instance of <code>Generator</code>.  Default value is <code>simplejpa.scaffolding.generator.basic
+.BasicGenerator</code>.</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>griffon.simplejpa.scaffolding.generatedPackage</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">A string.</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">The location of target package for MVC artifacts.  Default value is <code>project</code>.</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>griffon.simplejpa.scaffolding.startupGroup</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">A string.</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">The name of startup group.  If it is not defined, no startup group will be generated.</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>griffon.simplejpa.scaffolding.ignoreLazy</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>true</code> or <code>false</code>.</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">If <code>true</code>, lazy attributes will be included in generated code.  Default value is <code>true</code>.</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>griffon.simplejpa.scaffolding.forceOverwrite</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>true or `false</code>.</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">If <code>true</code>, existing files will be overwritten.  Default value is <code>false</code>.</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>griffon.simplejpa.scaffolding.skipExcel</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>true</code> or <code>false</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">If <code>true</code>, not Excel file (for integration testing) will be created.  Default value is <code>false</code>.</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>griffon.simplejpa.scaffolding.target</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">A string that consists of domain class names or <code>'*'</code>.</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">List of domain classes to generate.  If <code>'*'</code>, all domain classes will be generated.  Default value is <code>'*'</code>.</p></td>
+</tr>
+</tbody>
+</table>
+</div>
 </div>
 </div>
 <div class="sect1">
-<h2 id="_script">Appendix B: Script</h2>
+<h2 id="script">Appendix B: Script</h2>
 <div class="sectionbody">
 <div class="paragraph">
 <p>simple-jpa scripts can be called just like any Griffon&#8217;s commands:</p>
@@ -710,7 +1588,7 @@ validation. This feature is disabled by default. To enable it, add the following
 </div>
 </div>
 <div class="sect2">
-<h3 id="_create_simple_jpa">B.1. create-simple-jpa</h3>
+<h3 id="create-simple-jpa">B.1. create-simple-jpa</h3>
 <div class="paragraph">
 <p>This command is usually the first command that will be invoked before working with Java Persistence API (JPA).
 It will create persistence.xml and orm.xml in current project. It will also create some resource files that are commonly
@@ -805,7 +1683,7 @@ database schema: ha), uses Hibernate JPA, and will not check if required user an
 </div>
 </div>
 <div class="sect2">
-<h3 id="_create_domain_class">B.2. create-domain-class</h3>
+<h3 id="create-domain-class">B.2. create-domain-class</h3>
 <div class="paragraph">
 <p>This command will create a new empty domain class and register it in persistence context file. Before creating domain
 class, the project must has <code>persistence.xml</code> file in <code>metainf</code> directory. To generate required files for working with
@@ -871,7 +1749,7 @@ is <code>domain</code>.</p>
 </div>
 </div>
 <div class="sect2">
-<h3 id="_generate_all">B.3. generate-all</h3>
+<h3 id="generate-all">B.3. generate-all</h3>
 <div class="paragraph">
 <p>This command will create a new <code>MVCGroup</code> based on a domain class. The generated MVCGroup (consists of a view, a model
 and a controller) has the ability to perform CRUD operations on a domain class. This command can also generate a startup
@@ -994,7 +1872,7 @@ MVCGroup as startup:</p>
 </div>
 </div>
 <div class="sect2">
-<h3 id="_install_templates">B.4. install-templates</h3>
+<h3 id="install-templates">B.4. install-templates</h3>
 <div class="paragraph">
 <p>This command will add templates used by simple-jpa to current project in <code>/src/templates/artifacts</code>. This command is
 useful for changing templates that is used by simple-jpa generator. Developer can edit the templates and the next
@@ -1018,7 +1896,7 @@ invocation of simple-jpa generator will based on them.</p>
 </div>
 </div>
 <div class="sect2">
-<h3 id="_simple_jpa_console">B.5. simple-jpa-console</h3>
+<h3 id="simple-jpa-console">B.5. simple-jpa-console</h3>
 <div class="paragraph">
 <p>This command will launch Groovy Console loaded with Griffon and simple-jpa. Developer can use this command to test or
 execute code interactively.</p>
@@ -1050,7 +1928,7 @@ To display list of available variables, select <strong>Script</strong>, <strong>
 </div>
 </div>
 <div class="sect2">
-<h3 id="_generate_schema">B.6. generate-schema</h3>
+<h3 id="generate-schema">B.6. generate-schema</h3>
 <div class="paragraph">
 <p>This command will generate database schema based on current domain models mapping to database or scripts. Developer can
 use this command to retrieve SQL scripts that can be used to populate new database schema for current application.</p>
@@ -1125,7 +2003,7 @@ initialize database (for example, populating tables with initial data).</p>
 </div>
 </div>
 <div class="sect2">
-<h3 id="_obfuscate">B.7. obfuscate</h3>
+<h3 id="obfuscate">B.7. obfuscate</h3>
 <div class="paragraph">
 <p>Use this command to generate obfuscated value that can be added to configuration file or simplejpa.properties. This is
 useful to hide sensitive information such as database password from novice users.</p>
@@ -1173,13 +2051,13 @@ configurations that accepts string value. For example, it can be used in <code>C
 </div>
 </div>
 <div class="sect1">
-<h2 id="_annotation">Appendix C: Annotation</h2>
+<h2 id="annotation">Appendix C: Annotation</h2>
 <div class="sectionbody">
 <div class="paragraph">
 <p>These annotations are using Groovy AST transformation feature to change the content of a class dynamically on compile.</p>
 </div>
 <div class="sect2">
-<h3 id="__conditionsupport">C.1. @ConditionSupport</h3>
+<h3 id="conditionsupport">C.1. @ConditionSupport</h3>
 <div class="paragraph">
 <p>Adding <code>@ConditionSupport</code> annotation to a Swing <code>TableCellRenderer</code> will make the renderer ready to use with
 <code>condition()</code> node.</p>
@@ -1197,7 +2075,7 @@ configurations that accepts string value. For example, it can be used in <code>C
 </div>
 </div>
 <div class="sect2">
-<h3 id="__domainclass">C.2. @DomainClass</h3>
+<h3 id="domainclass">C.2. @DomainClass</h3>
 <div class="paragraph">
 <p>This annotation is supposed to be used on domain class, for example:</p>
 </div>
@@ -1266,7 +2144,7 @@ located in domain package, finders will not recognize it.</p>
 </div>
 </div>
 <div class="sect2">
-<h3 id="__transaction">C.3. @Transaction</h3>
+<h3 id="transaction">C.3. @Transaction</h3>
 <div class="paragraph">
 <p><code>@Transaction</code> annotation can be used to annotate a class, a closure field, or a method. It will cause the method or
 closure to be wrapped in database transaction. Using <code>@Transaction</code> on a class will make all execution of methods or
@@ -1370,14 +2248,14 @@ immediately after persisting <code>a</code>. This is not recommended because it 
 </div>
 </div>
 <div class="sect1">
-<h2 id="_methods">Appendix D: Methods</h2>
+<h2 id="methods">Appendix D: Methods</h2>
 <div class="sectionbody">
 <div class="paragraph">
 <p>simple-jpa will inject JPA related methods to all controllers (or other artifacts configured in
 <code>griffon.simplejpa.finders.injectInto</code>). These methods are always public.</p>
 </div>
 <div class="sect2">
-<h3 id="_begintransaction">D.1. beginTransaction()</h3>
+<h3 id="begintransaction">D.1. beginTransaction()</h3>
 <div class="paragraph">
 <p>It is not recommended to call this method directly. This is a low level method that will be called by <code>@Transaction</code>.</p>
 </div>
@@ -1399,7 +2277,7 @@ commitTransaction()</code></pre>
 </div>
 </div>
 <div class="sect2">
-<h3 id="_committransaction">D.2. commitTransaction()</h3>
+<h3 id="committransaction">D.2. commitTransaction()</h3>
 <div class="paragraph">
 <p>It is not recommended to call this method directly. This is a low level method that will be called by <code>@Transaction</code>.</p>
 </div>
@@ -1420,7 +2298,7 @@ commitTransaction()</code></pre>
 </div>
 </div>
 <div class="sect2">
-<h3 id="_createentitymanager">D.3. createEntityManager()</h3>
+<h3 id="createentitymanager">D.3. createEntityManager()</h3>
 <div class="paragraph">
 <p>It is not recommended to call this method directly. This is a low level method that will be called by <code>@Transaction</code>.</p>
 </div>
@@ -1429,7 +2307,7 @@ commitTransaction()</code></pre>
 </div>
 </div>
 <div class="sect2">
-<h3 id="_destroyentitymanager">D.4. destroyEntityManager()</h3>
+<h3 id="destroyentitymanager">D.4. destroyEntityManager()</h3>
 <div class="paragraph">
 <p>It is not recommended to call this method directly. This is a low level method that will be called by <code>@Transaction</code>.</p>
 </div>
@@ -1438,7 +2316,7 @@ commitTransaction()</code></pre>
 </div>
 </div>
 <div class="sect2">
-<h3 id="_executenamedquery">D.5. executeNamedQuery()</h3>
+<h3 id="executenamedquery">D.5. executeNamedQuery()</h3>
 <div class="paragraph">
 <p>Use this method to execute JPA named query. This method will return a List that contains the result from named query
 execution. The syntax of this method is:</p>
@@ -1478,7 +2356,7 @@ execution. The syntax of this method is:</p>
 </div>
 </div>
 <div class="sect2">
-<h3 id="_executenativequery">D.6. executeNativeQuery()</h3>
+<h3 id="executenativequery">D.6. executeNativeQuery()</h3>
 <div class="paragraph">
 <p>Use this method to execute native SQL. This is a low level query method (from JPA point of view) so it is better to use
 <code>executeQuery()</code> if possible. This method will return a <code>List</code> that contains the result from SQL execution.</p>
@@ -1504,7 +2382,7 @@ execution. The syntax of this method is:</p>
 </div>
 </div>
 <div class="sect2">
-<h3 id="_executequery">D.7. executeQuery()</h3>
+<h3 id="executequery">D.7. executeQuery()</h3>
 <div class="paragraph">
 <p>Use this method to execute JP QL. This method will return a List that contains the result from JP QL execution.
 The syntax of this method is:</p>
@@ -1527,7 +2405,7 @@ The syntax of this method is:</p>
 </div>
 </div>
 <div class="sect2">
-<h3 id="_getentitymanager">D.8. getEntityManager()</h3>
+<h3 id="getentitymanager">D.8. getEntityManager()</h3>
 <div class="paragraph">
 <p>It is not recommended to call this method directly. It is better to use simple-jpa methods rather than calling
 EntityManager methods directly.</p>
@@ -1548,7 +2426,7 @@ destroyEntityManager()</code></pre>
 </div>
 </div>
 <div class="sect2">
-<h3 id="_merge">D.9. merge()</h3>
+<h3 id="merge">D.9. merge()</h3>
 <div class="paragraph">
 <p>This is a shortcut for calling <code>merge()</code> method of current EntityManager. Use this method to put a detached entity into
 current EntityManager.</p>
@@ -1563,7 +2441,7 @@ current EntityManager.</p>
 </div>
 </div>
 <div class="sect2">
-<h3 id="_persist">D.10. persist()</h3>
+<h3 id="persist">D.10. persist()</h3>
 <div class="paragraph">
 <p>This is a shortcut for calling <code>persist()</code> method of current EntityManager. Use this method to save a new entity into
 database.</p>
@@ -1584,7 +2462,7 @@ s.name = <span class="string"><span class="delimiter">'</span><span class="conte
 </div>
 </div>
 <div class="sect2">
-<h3 id="_remove">D.11. remove()</h3>
+<h3 id="remove">D.11. remove()</h3>
 <div class="paragraph">
 <p>This method will call <code>remove()</code> method of current EntityManager. Before executing <code>remove()</code>, simple-jpa will try to
 merge the entity if it is detached. Use this method to delete an entity from database.</p>
@@ -1601,7 +2479,7 @@ merge the entity if it is detached. Use this method to delete an entity from dat
 </div>
 </div>
 <div class="sect2">
-<h3 id="_rollbacktransaction">D.12. rollbackTransaction()</h3>
+<h3 id="rollbacktransaction">D.12. rollbackTransaction()</h3>
 <div class="paragraph">
 <p>It is not recommended to call this method directly. This is a low level method that will be called by <code>@Transaction</code>.</p>
 </div>
@@ -1622,7 +2500,7 @@ em.close()</code></pre>
 </div>
 </div>
 <div class="sect2">
-<h3 id="_softdelete">D.13. softDelete()</h3>
+<h3 id="softdelete">D.13. softDelete()</h3>
 <div class="paragraph">
 <p>Use this method to set deleted attribute to <code><em>Y</em></code>. In simple-jpa, a soft deleted entity is an entity whose deleted
 attribute is not equals to <em>N</em>. To automatically add deleted attribute to an entity, use <code>@DomainClass</code> annotation.</p>
@@ -1639,7 +2517,7 @@ attribute is not equals to <em>N</em>. To automatically add deleted attribute to
 </div>
 </div>
 <div class="sect2">
-<h3 id="_validate">D.14. validate()</h3>
+<h3 id="validate">D.14. validate()</h3>
 <div class="paragraph">
 <p>Use this method to validate an entity. The syntax for this method is:</p>
 </div>
@@ -1709,7 +2587,7 @@ println <span class="string"><span class="delimiter">&quot;</span><span class="c
 </div>
 </div>
 <div class="sect2">
-<h3 id="_withtransaction">D.15. withTransaction()</h3>
+<h3 id="withtransaction">D.15. withTransaction()</h3>
 <div class="paragraph">
 <p>This method will execute a closure as one transaction. The code inside the closure can call simple-jpa dynamic methods directly.</p>
 </div>
@@ -1730,7 +2608,7 @@ println <span class="string"><span class="delimiter">&quot;</span><span class="c
 </div>
 <div id="footer">
 <div id="footer-text">
-Last updated 2014-07-30 00:57:08 ICT
+Last updated 2014-08-13 16:21:40 ICT
 </div>
 </div>
 </body>

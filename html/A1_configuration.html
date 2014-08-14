@@ -640,12 +640,79 @@ validation. This feature is disabled by default. To enable it, add the following
 </div>
 </div>
 </div>
+<div class="sect2">
+<h3 id="_scaffolding">Scaffolding</h3>
+<div class="paragraph">
+<p>To enable automatic scaffolding when compiling classes, add the following configuration line:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlight"><code class="groovy language-groovy">griffon.simplejpa.scaffolding.auto = true</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>Another scaffolding related configurations are:</p>
+</div>
+<table class="tableblock frame-all grid-all" style="width: 100%;">
+<caption class="title">Table 1. Scaffolding Configuration</caption>
+<colgroup>
+<col style="width: 33%;">
+<col style="width: 33%;">
+<col style="width: 33%;">
+</colgroup>
+<thead>
+<tr>
+<th class="tableblock halign-left valign-top">Key</th>
+<th class="tableblock halign-left valign-top">Expected Value</th>
+<th class="tableblock halign-left valign-top">Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>griffon.simplejpa.scaffolding.generator</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">A string.</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">The full class name that is instance of <code>Generator</code>.  Default value is <code>simplejpa.scaffolding.generator.basic
+.BasicGenerator</code>.</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>griffon.simplejpa.scaffolding.generatedPackage</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">A string.</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">The location of target package for MVC artifacts.  Default value is <code>project</code>.</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>griffon.simplejpa.scaffolding.startupGroup</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">A string.</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">The name of startup group.  If it is not defined, no startup group will be generated.</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>griffon.simplejpa.scaffolding.ignoreLazy</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>true</code> or <code>false</code>.</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">If <code>true</code>, lazy attributes will be included in generated code.  Default value is <code>true</code>.</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>griffon.simplejpa.scaffolding.forceOverwrite</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>true or `false</code>.</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">If <code>true</code>, existing files will be overwritten.  Default value is <code>false</code>.</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>griffon.simplejpa.scaffolding.skipExcel</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>true</code> or <code>false</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">If <code>true</code>, not Excel file (for integration testing) will be created.  Default value is <code>false</code>.</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>griffon.simplejpa.scaffolding.target</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">A string that consists of domain class names or <code>'*'</code>.</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">List of domain classes to generate.  If <code>'*'</code>, all domain classes will be generated.  Default value is <code>'*'</code>.</p></td>
+</tr>
+</tbody>
+</table>
+</div>
 </div>
 </div>
 </div>
 <div id="footer">
 <div id="footer-text">
-Last updated 2014-07-30 00:28:19 ICT
+Last updated 2014-08-14 00:33:57 ICT
 </div>
 </div>
 </body>

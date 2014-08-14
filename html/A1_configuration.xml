@@ -5,7 +5,7 @@
 <article xmlns="http://docbook.org/ns/docbook" xmlns:xlink="http://www.w3.org/1999/xlink" version="5.0" lang="en">
 <info>
 <title>Untitled</title>
-<date>2014-07-30</date>
+<date>2014-08-14</date>
 </info>
 <appendix xml:id="_configuration">
 <title>Configuration</title>
@@ -160,6 +160,65 @@ duplicate entities, add the following line:</simpara>
 value. To create a consistent behaviour, simple-jpa can translate all empty String into a null value before performing
 validation. This feature is disabled by default. To enable it, add the following configuration line:</simpara>
 <programlisting language="groovy" linenumbering="unnumbered">griffon.simplejpa.validation.convertEmptyStringToNull = true</programlisting>
+</section>
+<section xml:id="_scaffolding">
+<title>Scaffolding</title>
+<simpara>To enable automatic scaffolding when compiling classes, add the following configuration line:</simpara>
+<programlisting language="groovy" linenumbering="unnumbered">griffon.simplejpa.scaffolding.auto = true</programlisting>
+<simpara>Another scaffolding related configurations are:</simpara>
+<table frame="all" rowsep="1" colsep="1">
+<title>Scaffolding Configuration</title>
+<tgroup cols="3">
+<colspec colname="col_1" colwidth="33*"/>
+<colspec colname="col_2" colwidth="33*"/>
+<colspec colname="col_3" colwidth="33*"/>
+<thead>
+<row>
+<entry align="left" valign="top">Key</entry>
+<entry align="left" valign="top">Expected Value</entry>
+<entry align="left" valign="top">Description</entry>
+</row>
+</thead>
+<tbody>
+<row>
+<entry align="left" valign="top"><simpara><literal>griffon.simplejpa.scaffolding.generator</literal></simpara></entry>
+<entry align="left" valign="top"><simpara>A string.</simpara></entry>
+<entry align="left" valign="top"><simpara>The full class name that is instance of <literal>Generator</literal>.  Default value is <literal>simplejpa.scaffolding.generator.basic
+.BasicGenerator</literal>.</simpara></entry>
+</row>
+<row>
+<entry align="left" valign="top"><simpara><literal>griffon.simplejpa.scaffolding.generatedPackage</literal></simpara></entry>
+<entry align="left" valign="top"><simpara>A string.</simpara></entry>
+<entry align="left" valign="top"><simpara>The location of target package for MVC artifacts.  Default value is <literal>project</literal>.</simpara></entry>
+</row>
+<row>
+<entry align="left" valign="top"><simpara><literal>griffon.simplejpa.scaffolding.startupGroup</literal></simpara></entry>
+<entry align="left" valign="top"><simpara>A string.</simpara></entry>
+<entry align="left" valign="top"><simpara>The name of startup group.  If it is not defined, no startup group will be generated.</simpara></entry>
+</row>
+<row>
+<entry align="left" valign="top"><simpara><literal>griffon.simplejpa.scaffolding.ignoreLazy</literal></simpara></entry>
+<entry align="left" valign="top"><simpara><literal>true</literal> or <literal>false</literal>.</simpara></entry>
+<entry align="left" valign="top"><simpara>If <literal>true</literal>, lazy attributes will be included in generated code.  Default value is <literal>true</literal>.</simpara></entry>
+</row>
+<row>
+<entry align="left" valign="top"><simpara><literal>griffon.simplejpa.scaffolding.forceOverwrite</literal></simpara></entry>
+<entry align="left" valign="top"><simpara><literal>true or `false</literal>.</simpara></entry>
+<entry align="left" valign="top"><simpara>If <literal>true</literal>, existing files will be overwritten.  Default value is <literal>false</literal>.</simpara></entry>
+</row>
+<row>
+<entry align="left" valign="top"><simpara><literal>griffon.simplejpa.scaffolding.skipExcel</literal></simpara></entry>
+<entry align="left" valign="top"><simpara><literal>true</literal> or <literal>false</literal></simpara></entry>
+<entry align="left" valign="top"><simpara>If <literal>true</literal>, not Excel file (for integration testing) will be created.  Default value is <literal>false</literal>.</simpara></entry>
+</row>
+<row>
+<entry align="left" valign="top"><simpara><literal>griffon.simplejpa.scaffolding.target</literal></simpara></entry>
+<entry align="left" valign="top"><simpara>A string that consists of domain class names or <literal>'*'</literal>.</simpara></entry>
+<entry align="left" valign="top"><simpara>List of domain classes to generate.  If <literal>'*'</literal>, all domain classes will be generated.  Default value is <literal>'*'</literal>.</simpara></entry>
+</row>
+</tbody>
+</tgroup>
+</table>
 </section>
 </appendix>
 </article>
