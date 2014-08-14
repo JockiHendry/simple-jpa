@@ -61,7 +61,7 @@ class DDDGenerator extends BasicGenerator {
             log.info "Creating file $eventFile..."
             eventFile.createNewFile()
         }
-        if (!eventFile.text.contains('onCreateMVCGroup')) {
+        if (!eventFile.text.contains('onInitializeMVCGroup')) {
             eventFile << """\n
 onInitializeMVCGroup = { def configuration, def mvcGroup ->
     mvcGroup.members.each { k, v ->
