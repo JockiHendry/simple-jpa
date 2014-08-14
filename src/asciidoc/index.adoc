@@ -13,6 +13,7 @@ Version 0.8
 :source-highlighter: coderay
 :toc: left
 :homepage: http://jockihendry.github.io/simple-jpa
+:docinfo1:
 
 A complete solution for developing full stack desktop applications in Griffon.
 
