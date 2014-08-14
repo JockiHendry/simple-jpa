@@ -25,7 +25,7 @@ class DDDEntityAttributeGenerator extends EntityAttributeGenerator {
         if (!attribute.hasCascadeAndOrphanRemoval) {
             result << "// TODO: The following code may not work because this attribute mapping doesn't enable cascading."
         }
-        result << "${name} = merge(${scaffolding.generator.domainClassNameAsProperty}.${name})"
+        result << "${name} = ${scaffolding.generator.domainClassNameAsProperty}.${name} == null? null: merge(${scaffolding.generator.domainClassNameAsProperty}.${name})"
         result
     }
 
