@@ -104,7 +104,7 @@ class Scaffolding {
                 if (attribute instanceof CollectionAttribute) {
                     attribute.target = domainClasses[attribute.targetType]
                     if (attribute.target == null) {
-                        log.error "Error: Can't find target of collection relation!"
+                        log.error "Can't find type [$attribute.targetType] for collection relation [${domainClass.name}.${attribute.name}] in persistence.xml!"
                         return
                     }
                     if (attribute.target.attributes.find { it instanceof EntityAttribute && it.type == name } != null) {
@@ -113,7 +113,7 @@ class Scaffolding {
                 } else if (attribute instanceof EntityAttribute) {
                     attribute.target = domainClasses[attribute.type]
                     if (attribute.target == null) {
-                        log.error "Error: Can't find target of entity relation!"
+                        log.error "Can't find type [$attribute.type] for attribute [${domainClass.name}.${attribute.name}] in persistence.xml!"
                         return
                     }
                 }
