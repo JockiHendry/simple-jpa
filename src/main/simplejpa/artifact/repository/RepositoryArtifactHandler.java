@@ -91,7 +91,7 @@ public class RepositoryArtifactHandler extends ArtifactHandlerAdapter {
         if (LOG.isDebugEnabled()) {
             LOG.debug("Registering " + repositoryManager + " to SimpleJpaUtil.");
         }
-        SimpleJpaUtil.repositoryManager = repositoryManager;
+        SimpleJpaUtil.instance.setRepositoryManager(repositoryManager);
     }
 
     @Override

@@ -33,10 +33,10 @@ class SimpleJpaUtil {
     public static SimpleJpaUtil instance = new SimpleJpaUtil()
     public static final String FILE_ANNOTATED = 'simple-jpa-annotated.txt'
     public static Map container = [:]
-    public static RepositoryManager repositoryManager
 
     SimpleJpaHandler handler
     EntityManagerFactory entityManagerFactory
+    RepositoryManager repositoryManager
 
     private SimpleJpaUtil() {}
 
