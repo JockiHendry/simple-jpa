@@ -91,7 +91,6 @@ class SimpleJpaGriffonAddon {
                     if (targets.find { (it instanceof AbstractGriffonClass) && (it.clazz == c) } == null) {
                         if (!GriffonArtifact.isAssignableFrom(c)) {
                             targets << c
-                            SimpleJpaUtil.container[GriffonNameUtils.getPropertyName(c)] = c.newInstance()
                         }
                     }
                 } catch (Exception ex) {
