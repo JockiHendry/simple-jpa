@@ -50,3 +50,9 @@ eventCompileSourcesStart = { evt ->
         scaffolding()
     }
 }
+
+eventCollectArtifacts = { artifactsInfo ->
+    if (!artifactsInfo.find { it.type == 'repository'}) {
+        artifactsInfo << [type: 'repository', path: 'repositories', suffix: 'Repository']
+    }
+}

@@ -19,6 +19,7 @@ package simplejpa
 import griffon.util.*
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
+import simplejpa.artifact.repository.RepositoryArtifactHandler.RepositoryManager
 import simplejpa.obfuscate.Obfuscator
 import simplejpa.transaction.TransactionHolder
 
@@ -32,6 +33,7 @@ class SimpleJpaUtil {
     public static SimpleJpaUtil instance = new SimpleJpaUtil()
     public static final String FILE_ANNOTATED = 'simple-jpa-annotated.txt'
     public static Map container = [:]
+    public static RepositoryManager repositoryManager
 
     SimpleJpaHandler handler
     EntityManagerFactory entityManagerFactory
