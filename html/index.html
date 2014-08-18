@@ -78,6 +78,7 @@ try {
 <li><a href="#simple-jpa-console">B.5. simple-jpa-console</a></li>
 <li><a href="#generate-schema">B.6. generate-schema</a></li>
 <li><a href="#obfuscate">B.7. obfuscate</a></li>
+<li><a href="#create-repository">B.8. create-repository</a></li>
 </ul>
 </li>
 <li><a href="#annotation">Appendix C: Annotation</a></li>
@@ -2055,6 +2056,32 @@ configurations that accepts string value. For example, it can be used in <code>C
       }
    }
 }</code></pre>
+</div>
+</div>
+</div>
+<div class="sect2">
+<h3 id="create-repository">B.8. create-repository</h3>
+<div class="paragraph">
+<p>Use this command to create a new repository.  It is recommended to generate repository automatically by using
+DDD generator rather than create them manually using this command.</p>
+</div>
+<div class="paragraph">
+<p>The syntax for this command is:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="CodeRay"><code>create-repository [name]</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>This command will create new repository class in <code>griffon-app/repositories</code>.</p>
+</div>
+<div class="paragraph">
+<p>Examples:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="CodeRay"><code>create-repository Invoice</code></pre>
 </div>
 </div>
 </div>

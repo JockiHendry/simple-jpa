@@ -390,3 +390,25 @@ griffon {
    }
 }
 ----
+
+=== create-repository
+
+Use this command to create a new repository.  It is recommended to generate repository automatically by using
+DDD generator rather than create them manually using this command.
+
+The syntax for this command is:
+
+[source]
+----
+create-repository [name]
+----
+
+This command will create new repository class in `griffon-app/repositories`.
+
+Examples:
+
+[source]
+----
+create-repository Invoice
+----
+

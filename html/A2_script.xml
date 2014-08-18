@@ -5,7 +5,7 @@
 <article xmlns="http://docbook.org/ns/docbook" xmlns:xlink="http://www.w3.org/1999/xlink" version="5.0" lang="en">
 <info>
 <title>Untitled</title>
-<date>2014-08-13</date>
+<date>2014-08-18</date>
 </info>
 <appendix xml:id="_script">
 <title>Script</title>
@@ -289,6 +289,16 @@ configurations that accepts string value. For example, it can be used in <litera
       }
    }
 }</programlisting>
+</section>
+<section xml:id="_create_repository">
+<title>create-repository</title>
+<simpara>Use this command to create a new repository.  It is recommended to generate repository automatically by using
+DDD generator rather than create them manually using this command.</simpara>
+<simpara>The syntax for this command is:</simpara>
+<screen>create-repository [name]</screen>
+<simpara>This command will create new repository class in <literal>griffon-app/repositories</literal>.</simpara>
+<simpara>Examples:</simpara>
+<screen>create-repository Invoice</screen>
 </section>
 </appendix>
 </article>
