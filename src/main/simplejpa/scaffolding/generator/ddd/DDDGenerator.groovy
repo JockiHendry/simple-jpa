@@ -37,9 +37,11 @@ class DDDGenerator extends BasicGenerator {
             super.generate(domainClass, 'SimpleJpaModel', 'SimpleJpaView', 'SimpleJpaDDDController')
 
             // Generate repository
+            repositoryVar = "${domainClass.nameAsProperty}Repository"
+            repositoryType = "${domainClass.name}Repository"
             init(domainClass, "${domainClass.name}Repository")
             generateArtifact('SimpleJpaRepository',
-                "${BuildSettingsHolder.settings.baseDir}/src/main/${domainClass.packageName.replace('.', '/')}",
+                "${BuildSettingsHolder.settings.baseDir}/griffon-app/repositories/${domainClass.targetPackage.replace('.', '/')}",
                 "${repositoryType}.groovy",
             )
         }
@@ -47,43 +49,26 @@ class DDDGenerator extends BasicGenerator {
 
     @Override
     void generateExtra(Map<String, DomainClass> domainClasses) {
-        // Disable injection to controller
+        // Disable injection to controller and add injection to 'repository'
         File configFile = new File("${BuildSettingsHolder.settings.baseDir}/griffon-app/conf/Config.groovy")
         String configText = configFile.text
         def config = new ConfigSlurper().parse(configText)
         if (config.griffon.simplejpa.finders.injectInto instanceof Map) {
-            configFile.append("${System.lineSeparator()}griffon.simplejpa.finders.injectInto = []")
-        }
-
-        // Add injection event
-        File eventFile = new File("${BuildSettingsHolder.settings.baseDir}/griffon-app/conf/Events.groovy")
-        if (!eventFile.exists()) {
-            log.info "Creating file $eventFile..."
-            eventFile.createNewFile()
-        }
-        if (!eventFile.text.contains('onInitializeMVCGroup')) {
-            eventFile << """\n
-onNewInstance = { Class klass, String t, Object instance ->
-	InvokerHelper.getMetaClass(instance).properties.each {
-		simplejpa.SimpleJpaUtil.container.each { String name, Object value ->
-			if (it.name == name) {
-				InvokerHelper.setProperty(instance, name, value)
-			}
-		}
-	}
-}
-"""
-            log.info "$eventFile has been modified"
+            configFile.append("${System.lineSeparator()}griffon.simplejpa.finders.injectInto = ['repository']")
         }
     }
 
     @Override
     void generatePair(EntityAttribute attr) {
+        repositoryVar = "${attr.target.nameAsProperty}Repository"
+        repositoryType = "${attr.target.name}Repository"
         generate(attr.target, 'SimpleJpaPairModel', 'SimpleJpaPairView', 'SimpleJpaDDDPairController', attr.target.nameAsPair)
     }
 
     @Override
     void generateChild(CollectionAttribute attr) {
+        repositoryVar = "${attr.target.nameAsProperty}Repository"
+        repositoryType = "${attr.target.name}Repository"
         generate(attr.target, 'SimpleJpaChildModel', 'SimpleJpaChildView', 'SimpleJpaDDDChildController', attr.target.nameAsChild)
     }
 

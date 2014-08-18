@@ -102,7 +102,6 @@ public class RepositoryArtifactHandler extends ArtifactHandlerAdapter {
     @Override
     public void initialize(ArtifactInfo[] artifacts) {
         super.initialize(artifacts);
-        if (isBasicInjectionDisabled()) return;
         getApp().addApplicationEventListener(this);
         if (isEagerInstantiationEnabled()) {
             if (LOG.isDebugEnabled()) {
@@ -122,7 +121,6 @@ public class RepositoryArtifactHandler extends ArtifactHandlerAdapter {
      * is not set to true
      */
     public void onNewInstance(Class klass, String t, Object instance) {
-        if (isBasicInjectionDisabled()) return;
         MetaClass metaClass = InvokerHelper.getMetaClass(instance);
         for (MetaProperty property : metaClass.getProperties()) {
             String propertyName = property.getName();
@@ -137,12 +135,8 @@ public class RepositoryArtifactHandler extends ArtifactHandlerAdapter {
         }
     }
 
-    private boolean isBasicInjectionDisabled() {
-        return getConfigValueAsBoolean(ApplicationHolder.getApplication().getConfig(), "griffon.services.basic.disabled", false);
-    }
-
     private boolean isEagerInstantiationEnabled() {
-        return getConfigValueAsBoolean(getApp().getConfig(), "griffon.services.eager.instantiation", false);
+        return getConfigValueAsBoolean(getApp().getConfig(), "griffon.simplejpa.repository.eager_instantiation", false);
     }
 
 }
