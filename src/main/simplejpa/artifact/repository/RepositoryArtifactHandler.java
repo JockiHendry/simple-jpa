@@ -23,10 +23,10 @@ public class RepositoryArtifactHandler extends ArtifactHandlerAdapter {
 
     private static final Logger LOG = LoggerFactory.getLogger(RepositoryArtifactHandler.class);
 
-    public class RepositoryManager {
+    public class AbstractRepositoryManager implements RepositoryManager {
         private final Map<String, Object> instances = new ConcurrentHashMap<>();
 
-        public RepositoryManager() {
+        public AbstractRepositoryManager() {
             getApp().addShutdownHandler(new RepositoryManagerShutdownHandler());
         }
 
@@ -43,24 +43,33 @@ public class RepositoryArtifactHandler extends ArtifactHandlerAdapter {
                 if (LOG.isInfoEnabled()) {
                     LOG.info("Instantiating repository identified by '" + name + "'");
                 }
-                GriffonClass griffonClass = findClassFor(name);
-                if (griffonClass != null) {
-                    try {
-                        repositoryInstance = griffonClass.getClazz().newInstance();
-                    } catch (Exception e) {
-                        Throwable targetException = null;
-                        if (e instanceof InvocationTargetException) {
-                            targetException = ((InvocationTargetException) e).getTargetException();
-                        } else {
-                            targetException = e;
-                        }
-                        throw new NewInstanceCreationException("Could not create a new instance of class " + griffonClass.getClazz().getName(), sanitize(targetException));
-                    }
-                    instances.put(name, repositoryInstance);
-                    getApp().event(GriffonApplication.Event.NEW_INSTANCE.getName(), Arrays.asList(griffonClass.getClazz(), "repository", repositoryInstance));
-                }
+                repositoryInstance = doInstantiate(name, true);
             }
             return repositoryInstance;
+        }
+
+        public Object doInstantiate(String name, boolean triggerEvent) {
+            Object instance = null;
+            GriffonClass griffonClass = findClassFor(name);
+            if (griffonClass != null) {
+                try {
+                    instance = griffonClass.getClazz().newInstance();
+                } catch (Exception e) {
+                    Throwable targetException = null;
+                    if (e instanceof InvocationTargetException) {
+                        targetException = ((InvocationTargetException) e).getTargetException();
+                    } else {
+                        targetException = e;
+                    }
+                    throw new NewInstanceCreationException("Could not create a new instance of class " + griffonClass.getClazz().getName(), sanitize(targetException));
+                }
+                instances.put(name, instance);
+                getApp().addApplicationEventListener(instance);
+                if (triggerEvent) {
+                    getApp().event(GriffonApplication.Event.NEW_INSTANCE.getName(), asList(griffonClass.getClazz(), "repository", instance));
+                }
+            }
+            return instance;
         }
 
         private class RepositoryManagerShutdownHandler implements ShutdownHandler {
@@ -87,7 +96,7 @@ public class RepositoryArtifactHandler extends ArtifactHandlerAdapter {
 
     public RepositoryArtifactHandler(GriffonApplication app) {
         super(app, "repository", "Repository");
-        repositoryManager = new RepositoryManager();
+        repositoryManager = new AbstractRepositoryManager();
         if (LOG.isDebugEnabled()) {
             LOG.debug("Registering " + repositoryManager + " to SimpleJpaUtil.");
         }
@@ -106,6 +115,10 @@ public class RepositoryArtifactHandler extends ArtifactHandlerAdapter {
         if (isEagerInstantiationEnabled()) {
             if (LOG.isDebugEnabled()) {
                 LOG.debug("Instantiating repository instances eagerly");
+            }
+            for (ArtifactInfo artifactInfo : artifacts) {
+                GriffonClass griffonClass = getClassFor(artifactInfo.getClazz());
+                repositoryManager.doInstantiate(griffonClass.getPropertyName(), false);
             }
             for (ArtifactInfo artifactInfo : artifacts) {
                 GriffonClass griffonClass = getClassFor(artifactInfo.getClazz());

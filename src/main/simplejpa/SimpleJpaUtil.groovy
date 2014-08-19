@@ -19,10 +19,8 @@ package simplejpa
 import griffon.util.*
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
-import simplejpa.artifact.repository.RepositoryArtifactHandler.RepositoryManager
+import simplejpa.artifact.repository.RepositoryManager
 import simplejpa.obfuscate.Obfuscator
-import simplejpa.transaction.TransactionHolder
-
 import javax.persistence.EntityManagerFactory
 import javax.persistence.PersistenceUnitUtil
 
