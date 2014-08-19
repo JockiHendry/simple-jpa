@@ -23,7 +23,7 @@ application(title: '${g.domainClassNameAsNatural}',
 		borderLayout()
 
 		panel(id: "form", layout: new MigLayout('', '[right][left][left,grow]',''), constraints: CENTER, focusCycleRoot: true) {
-${g.dataEntry(3)}
+${g.dataEntry(3, false)}
 			panel(constraints: 'span, growx, wrap') {
 				flowLayout(alignment: FlowLayout.LEADING)
 				button(action: save)

@@ -92,8 +92,6 @@ ${g.popups(1)}
 		execInsideUISync {
 			model.id = null
 ${g.clear(3)}
-			model.created = null
-            model.modified = null
             model.errors.clear()
 			view.table.selectionModel.clearSelection()
 		}
@@ -108,8 +106,6 @@ ${g.clear(3)}
 				model.errors.clear()
 				model.id = selected.id
 ${g.selected(4)}
-                model.created = selected.createdDate
-                model.modified = selected.modifiedDate
 			}
 		}
 	}

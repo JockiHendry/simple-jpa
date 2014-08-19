@@ -16,7 +16,6 @@
 
 package simplejpa
 
-import javax.persistence.PostLoad
 import javax.persistence.PrePersist
 import javax.persistence.PreUpdate
 
@@ -24,12 +23,16 @@ class AuditingEntityListener {
 
     @PrePersist
     void createdDate(Object target) {
-        target."createdDate" = Calendar.instance.time
+        try {
+            target.'createdDate' = Calendar.instance.time
+        } catch (MissingPropertyException ex) {}
     }
 
     @PreUpdate
     void modifiedDate(Object target) {
-        target."modifiedDate" = Calendar.instance.time
+        try {
+            target.'modifiedDate' = Calendar.instance.time
+        } catch (MissingPropertyException ex) {}
     }
 
 }

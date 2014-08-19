@@ -224,7 +224,7 @@ class BasicGenerator extends Generator {
         return addTab(result, tab)
     }
 
-    public String dataEntry(int tab) {
+    public String dataEntry(int tab, boolean addAuditing = true) {
         List<String> result = []
         domainClass.attributes.each {
             result << "label('${GriffonNameUtils.getNaturalName(it.name)}:')"
@@ -234,6 +234,15 @@ class BasicGenerator extends Generator {
             } else {
                 result << "errorLabel(path: '${it.name}', constraints: 'wrap')"
             }
+        }
+        if (addAuditing && !domainClass.excludeAuditing) {
+            result << "panel(visible: bind{table.isRowSelected}, constraints: 'span, growx, wrap') {"
+            result << "\tflowLayout(alignment: FlowLayout.LEADING)"
+            result << "\tlabel('Created:')"
+            result << "\tlabel(text: bind{model.created})"
+            result << "\tlabel('   Modified:')"
+            result << "\tlabel(text: bind{model.modified})"
+            result << "}"
         }
         return addTab(result, tab)
     }
@@ -328,18 +337,26 @@ class BasicGenerator extends Generator {
         return addTab(result, tab)
     }
 
-    public String clear(int tab) {
+    public String clear(int tab, boolean addAuditing = true) {
         List<String> result = []
         domainClass.attributes.each {
             result.addAll(it.generator.clear())
         }
+        if (addAuditing && !domainClass.excludeAuditing) {
+            result << "model.created = null"
+            result << "model.modified = null"
+        }
         return addTab(result, tab)
     }
 
-    public String selected(int tab) {
+    public String selected(int tab, boolean addAuditing = true) {
         List<String> result = []
         domainClass.attributes.each {
             result.addAll(it.generator.selected())
+        }
+        if (addAuditing && !domainClass.excludeAuditing) {
+            result << "model.created = selected.createdDate"
+            result << "model.modified = selected.modifiedDate"
         }
         return addTab(result, tab)
     }

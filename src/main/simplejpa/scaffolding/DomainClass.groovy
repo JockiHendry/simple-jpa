@@ -92,6 +92,10 @@ class DomainClass extends VisitorAdapter {
 		annotations.find { it.name == 'Entity' }
 	}
 
+    public boolean isExcludeAuditing() {
+        annotations.find { it.name=='DomainClass' && it.members['excludeAuditing']=='true'}
+    }
+
     public List<Attribute> getOneToManyInverse() {
         attributes.findAll { it instanceof CollectionAttribute && it.oneToMany && it.bidirectional }
     }

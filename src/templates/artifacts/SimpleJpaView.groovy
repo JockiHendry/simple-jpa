@@ -41,13 +41,6 @@ ${g.table(4)}
 
 		panel(id: "form", layout: new MigLayout('hidemode 2', '[right][left][left,grow]',''), constraints: PAGE_END, focusCycleRoot: true) {
 ${g.dataEntry(3)}
-			panel(visible: bind{table.isRowSelected}, constraints: 'span, growx, wrap') {
-				flowLayout(alignment: FlowLayout.LEADING)
-				label('Created:')
-				label(text: bind{model.created})
-				label('   Modified:')
-				label(text: bind{model.modified})
-			}
 			panel(constraints: 'span, growx, wrap') {
 				flowLayout(alignment: FlowLayout.LEADING)
 				button(action: save)

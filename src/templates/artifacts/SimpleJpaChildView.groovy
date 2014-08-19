@@ -38,7 +38,7 @@ ${g.table(5)}
 		}
 
 		panel(id: "form", layout: new MigLayout('', '[right][left][left,grow]',''), constraints: PAGE_END, focusCycleRoot: true) {
-${g.dataEntry(3)}
+${g.dataEntry(3, false)}
 
 			panel(constraints: 'span, growx, wrap') {
 				flowLayout(alignment: FlowLayout.LEADING)

@@ -77,7 +77,7 @@ ${g.popups(1)}
     if (g.domainClass.entity) {
         out << "\t\t\t\tmodel.id = null\n"
     }
-%>			${g.clear(3)}
+%>			${g.clear(3, false)}
 			model.errors.clear()
 			view.table.selectionModel.clearSelection()
 		}
@@ -95,7 +95,7 @@ ${g.popups(1)}
     if (g.domainClass.entity) {
         out << "\t\t\t\tmodel.id = selected.id\n"
     }
-%>				${g.selected(4)}
+%>				${g.selected(4, false)}
 			}
 		}
 	}

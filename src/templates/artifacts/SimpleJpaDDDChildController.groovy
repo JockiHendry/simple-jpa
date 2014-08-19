@@ -73,7 +73,7 @@ ${g.popups(1)}
 	def clear = {
 		execInsideUISync {
 			model.id = null
-${g.clear(3)}
+${g.clear(3, false)}
 			model.errors.clear()
 			view.table.selectionModel.clearSelection()
 		}
@@ -87,7 +87,7 @@ ${g.clear(3)}
 				${g.domainClassName} selected = view.table.selectionModel.selected[0]
 				model.errors.clear()
 				${g.hasId()? "model.id = selected.id": ''}
-${g.selected(4)}
+${g.selected(4, false)}
 			}
 		}
 	}
