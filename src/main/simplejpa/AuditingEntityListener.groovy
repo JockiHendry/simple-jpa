@@ -25,6 +25,7 @@ class AuditingEntityListener {
     void createdDate(Object target) {
         try {
             target.'createdDate' = Calendar.instance.time
+            target.'createdBy' = SimpleJpaUtil.instance.user?.userName
         } catch (MissingPropertyException ex) {}
     }
 
@@ -32,6 +33,7 @@ class AuditingEntityListener {
     void modifiedDate(Object target) {
         try {
             target.'modifiedDate' = Calendar.instance.time
+            target.'modifiedBy' = SimpleJpaUtil.instance.user?.userName
         } catch (MissingPropertyException ex) {}
     }
 

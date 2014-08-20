@@ -34,6 +34,7 @@ class SimpleJpaUtil {
     SimpleJpaHandler handler
     EntityManagerFactory entityManagerFactory
     RepositoryManager repositoryManager
+    AuditableUser user
 
     private SimpleJpaUtil() {}
 

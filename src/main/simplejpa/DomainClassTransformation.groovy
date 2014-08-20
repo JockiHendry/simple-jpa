@@ -90,8 +90,10 @@ class DomainClassTransformation extends AbstractASTTransformation {
                new ClassExpression(ClassHelper.make(TemporalType)), 'TIMESTAMP'))
             classNode.addField("createdDate", ACC_PUBLIC, ClassHelper.make(Date.class), null)
                 .addAnnotation(temporalAnnotation)
+            classNode.addField("createdBy", ACC_PUBLIC, ClassHelper.make(String.class), null)
             classNode.addField("modifiedDate", ACC_PUBLIC, ClassHelper.make(Date.class), null)
                 .addAnnotation(temporalAnnotation)
+            classNode.addField("modifiedBy", ACC_PUBLIC, ClassHelper.make(String.class), null)
         }
     }
 

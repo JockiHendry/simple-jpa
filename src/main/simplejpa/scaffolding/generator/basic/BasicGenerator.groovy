@@ -240,8 +240,10 @@ class BasicGenerator extends Generator {
             result << "\tflowLayout(alignment: FlowLayout.LEADING)"
             result << "\tlabel('Created:')"
             result << "\tlabel(text: bind{model.created})"
+            result << "\tlabel(text: bind{model.createdBy})"
             result << "\tlabel('   Modified:')"
             result << "\tlabel(text: bind{model.modified})"
+            result << "\tlabel(text: bind{model.modifiedBy})"
             result << "}"
         }
         return addTab(result, tab)
@@ -344,7 +346,9 @@ class BasicGenerator extends Generator {
         }
         if (addAuditing && !domainClass.excludeAuditing) {
             result << "model.created = null"
+            result << "model.createdBy = null"
             result << "model.modified = null"
+            result << "model.modifiedBy = null"
         }
         return addTab(result, tab)
     }
@@ -358,7 +362,9 @@ class BasicGenerator extends Generator {
             String style = scaffolding.dateTimeStyle
             String customFunction = style? "DateFormat.getDateTimeInstance(DateFormat.$style, DateFormat.$style).format(": null
             result << "model.created = ${customFunction?'selected.createdDate?' + customFunction:''}selected.createdDate${customFunction?'):null':''}"
+            result << "model.createdBy = selected.createdBy?'('+selected.createdBy+')':null"
             result << "model.modified = ${customFunction?'selected.modifiedDate?' + customFunction:''}selected.modifiedDate${customFunction?'):null':''}"
+            result << "model.modifiedBy = selected.modifiedBy?'('+selected.modifiedBy+')':null"
         }
         return addTab(result, tab)
     }
