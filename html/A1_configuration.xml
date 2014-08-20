@@ -5,7 +5,7 @@
 <article xmlns="http://docbook.org/ns/docbook" xmlns:xlink="http://www.w3.org/1999/xlink" version="5.0" lang="en">
 <info>
 <title>Untitled</title>
-<date>2014-08-14</date>
+<date>2014-08-20</date>
 </info>
 <appendix xml:id="_configuration">
 <title>Configuration</title>
@@ -212,6 +212,11 @@ validation. This feature is disabled by default. To enable it, add the following
 <entry align="left" valign="top"><simpara>If <literal>true</literal>, not Excel file (for integration testing) will be created.  Default value is <literal>false</literal>.</simpara></entry>
 </row>
 <row>
+<entry align="left" valign="top"><simpara><literal>griffon.simplejpa.scaffolding.dateTimeStyle</literal></simpara></entry>
+<entry align="left" valign="top"><simpara><literal>'DEFAULT'</literal>, <literal>'SHORT'</literal>, <literal>'MEDIUM'</literal>, <literal>'LONG'</literal>, or <literal>'FULL'</literal>.</simpara></entry>
+<entry align="left" valign="top"><simpara>Represent formatting styles for auditing properties that are instances of <literal>java.util.Date</literal>.</simpara></entry>
+</row>
+<row>
 <entry align="left" valign="top"><simpara><literal>griffon.simplejpa.scaffolding.target</literal></simpara></entry>
 <entry align="left" valign="top"><simpara>A string that consists of domain class names or <literal>'*'</literal>.</simpara></entry>
 <entry align="left" valign="top"><simpara>List of domain classes to generate.  If <literal>'*'</literal>, all domain classes will be generated.  Default value is <literal>'*'</literal>.</simpara></entry>
@@ -219,6 +224,17 @@ validation. This feature is disabled by default. To enable it, add the following
 </tbody>
 </tgroup>
 </table>
+</section>
+<section xml:id="_auditing">
+<title>Auditing</title>
+<simpara>To display a login dialog at startup time, set a service name for <literal>griffon.simplejpa.auditing.loginService</literal>.  This service must be an
+instance of <literal>org.jdesktop.swingx.auth.LoginService</literal>.</simpara>
+<formalpara>
+<title>Config.groovy</title>
+<para>
+<programlisting language="groovy" linenumbering="unnumbered">griffon.simplejpa.auditing.loginService = 'DatabaseLoginService'</programlisting>
+</para>
+</formalpara>
 </section>
 </appendix>
 </article>

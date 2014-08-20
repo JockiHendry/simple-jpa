@@ -700,6 +700,11 @@ validation. This feature is disabled by default. To enable it, add the following
 <td class="tableblock halign-left valign-top"><p class="tableblock">If <code>true</code>, not Excel file (for integration testing) will be created.  Default value is <code>false</code>.</p></td>
 </tr>
 <tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>griffon.simplejpa.scaffolding.dateTimeStyle</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>'DEFAULT'</code>, <code>'SHORT'</code>, <code>'MEDIUM'</code>, <code>'LONG'</code>, or <code>'FULL'</code>.</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Represent formatting styles for auditing properties that are instances of <code>java.util.Date</code>.</p></td>
+</tr>
+<tr>
 <td class="tableblock halign-left valign-top"><p class="tableblock"><code>griffon.simplejpa.scaffolding.target</code></p></td>
 <td class="tableblock halign-left valign-top"><p class="tableblock">A string that consists of domain class names or <code>'*'</code>.</p></td>
 <td class="tableblock halign-left valign-top"><p class="tableblock">List of domain classes to generate.  If <code>'*'</code>, all domain classes will be generated.  Default value is <code>'*'</code>.</p></td>
@@ -707,12 +712,25 @@ validation. This feature is disabled by default. To enable it, add the following
 </tbody>
 </table>
 </div>
+<div class="sect2">
+<h3 id="_auditing">Auditing</h3>
+<div class="paragraph">
+<p>To display a login dialog at startup time, set a service name for <code>griffon.simplejpa.auditing.loginService</code>.  This service must be an
+instance of <code>org.jdesktop.swingx.auth.LoginService</code>.</p>
+</div>
+<div class="listingblock">
+<div class="title">Config.groovy</div>
+<div class="content">
+<pre class="highlight"><code class="groovy language-groovy">griffon.simplejpa.auditing.loginService = 'DatabaseLoginService'</code></pre>
+</div>
+</div>
+</div>
 </div>
 </div>
 </div>
 <div id="footer">
 <div id="footer-text">
-Last updated 2014-08-14 00:33:57 ICT
+Last updated 2014-08-20 16:42:38 ICT
 </div>
 </div>
 </body>

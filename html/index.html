@@ -45,6 +45,13 @@ try {
 <li><a href="#swing-builder">5. Swing Builder</a></li>
 <li><a href="#persistence">6. Persistence</a></li>
 <li><a href="#auditing">7. Auditing</a></li>
+<li>
+<ul class="sectlevel2">
+<li><a href="#auditable-domain-class">7.1. Auditable Domain Class</a></li>
+<li><a href="#logged-user">7.2. Logged User</a></li>
+<li><a href="#login-dialog">7.3. Login Dialog</a></li>
+</ul>
+</li>
 <li><a href="#finders">8. Finders</a></li>
 <li>
 <ul class="sectlevel2">
@@ -66,6 +73,7 @@ try {
 <li><a href="#finders-2">A.5. Finders</a></li>
 <li><a href="#validation-2">A.6. Validation</a></li>
 <li><a href="#scaffolding-2">A.7. Scaffolding</a></li>
+<li><a href="#auditing-2">A.8. Auditing</a></li>
 </ul>
 </li>
 <li><a href="#script">Appendix B: Script</a></li>
@@ -1032,7 +1040,327 @@ files for individual domain class.</p>
 <div class="sect1">
 <h2 id="auditing">7. Auditing</h2>
 <div class="sectionbody">
+<div class="sect2">
+<h3 id="auditable-domain-class">7.1. Auditable Domain Class</h3>
+<div class="paragraph">
+<p>Classes annotated by <code>@DomainClass</code> will automatically have the following auditing properties:</p>
+</div>
+<table class="tableblock frame-all grid-all" style="width: 100%;">
+<caption class="title">Table 3. Auditing Properties In Domain Class</caption>
+<colgroup>
+<col style="width: 50%;">
+<col style="width: 50%;">
+</colgroup>
+<thead>
+<tr>
+<th class="tableblock halign-left valign-top">Name</th>
+<th class="tableblock halign-left valign-top">Type</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">createdDate</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">java.util.Date</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">createdBy</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">String</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">modifiedDate</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">java.util.Date</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">modifiedBy</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">String</p></td>
+</tr>
+</tbody>
+</table>
+<div class="paragraph">
+<p>To disable automatic creation of auditing properties for a domain class, use <code>excludeAuditing</code> property.  For example:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="CodeRay"><code class="groovy language-groovy"><span class="annotation">@Entity</span> <span class="annotation">@DomainClass</span>(excludeAuditing=<span class="predefined-constant">true</span>) <span class="annotation">@Canonical</span>
+<span class="type">class</span> <span class="class">Customer</span> {
 
+}</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>The value for auditing properties are set by JPA entity listener <code>simplejpa.AuditingEntityListener</code>.  <a href="#create-simple-jpa">create-simple-jpa</a>
+command by default will create <code>griffon-app/conf/metainf/orm.xml</code> to register <code>simplejpa.AuditingEntityListener</code> as default entity listener.
+The default content of generated <code>orm.xml</code> is:</p>
+</div>
+<div class="listingblock">
+<div class="title">griffon-app/conf/metainf/orm.xml</div>
+<div class="content">
+<pre class="CodeRay"><code class="xml language-xml"><span class="preprocessor">&lt;?xml version=&quot;1.0&quot; encoding=&quot;UTF-8&quot;?&gt;</span>
+<span class="tag">&lt;entity-mappings</span> <span class="attribute-name">version</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">2.0</span><span class="delimiter">&quot;</span></span> <span class="attribute-name">xmlns</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">http://java.sun.com/xml/ns/persistence/orm</span><span class="delimiter">&quot;</span></span>
+                 <span class="attribute-name">xmlns:xsi</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">http://www.w3.org/2001/XMLSchema-instance</span><span class="delimiter">&quot;</span></span>
+                 <span class="attribute-name">xsi:schemaLocation</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">http://java.sun.com/xml/ns/persistence/orm orm_2_0.xsd</span><span class="delimiter">&quot;</span></span><span class="tag">&gt;</span>
+
+<span class="tag">&lt;persistence-unit-metadata&gt;</span>
+    <span class="tag">&lt;persistence-unit-defaults&gt;</span>
+        <span class="tag">&lt;entity-listeners&gt;</span>
+            <span class="tag">&lt;entity-listener</span> <span class="attribute-name">class</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">simplejpa.AuditingEntityListener</span><span class="delimiter">&quot;</span></span> <span class="tag">/&gt;</span>
+        <span class="tag">&lt;/entity-listeners&gt;</span>
+    <span class="tag">&lt;/persistence-unit-defaults&gt;</span>
+<span class="tag">&lt;/persistence-unit-metadata&gt;</span>
+
+<span class="tag">&lt;/entity-mappings&gt;</span></code></pre>
+</div>
+</div>
+<div class="admonitionblock tip">
+<table>
+<tr>
+<td class="icon">
+<i class="icon-tip" title="Tip"></i>
+</td>
+<td class="content">
+You can completely disable auditing by removing the line that register <code>simplejpa.AuditingEntityListener</code> in <code>orm.xml</code>.
+</td>
+</tr>
+</table>
+</div>
+<div class="admonitionblock tip">
+<table>
+<tr>
+<td class="icon">
+<i class="icon-tip" title="Tip"></i>
+</td>
+<td class="content">
+You can also register your own custom JPA Entity Listener in <code>orm.xml</code>.
+</td>
+</tr>
+</table>
+</div>
+<div class="paragraph">
+<p>Built-in scaffolding&#8217;s generator will generate views that has auditing properties in them.  By default, generated views display
+<code>java.util.Date</code> by its string representation such as <code>Wed Aug 20 13:09:11 ICT 2014</code>.  To display <code>java.util.Date</code> by using
+a custom formatter, style for both date and time can be specified in <code>Config.groovy</code>:</p>
+</div>
+<div class="listingblock">
+<div class="title">Config.groovy</div>
+<div class="content">
+<pre class="CodeRay"><code class="groovy language-groovy">griffon.simplejpa.scaffolding.dateTimeStyle = <span class="string"><span class="delimiter">'</span><span class="content">MEDIUM</span><span class="delimiter">'</span></span></code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>The configuration above will generate the following code in controller:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="CodeRay"><code class="groovy language-groovy"><span class="keyword">def</span> selectionChanged = {
+   ...
+   model.created = selected.createdDate?<span class="predefined-type">DateFormat</span>.getDateTimeInstance(<span class="predefined-type">DateFormat</span>.MEDIUM, <span class="predefined-type">DateFormat</span>.MEDIUM).format(selected.createdDate):<span class="predefined-constant">null</span>
+   model.modified = selected.modifiedDate?<span class="predefined-type">DateFormat</span>.getDateTimeInstance(<span class="predefined-type">DateFormat</span>.MEDIUM, <span class="predefined-type">DateFormat</span>.MEDIUM).format(selected.modifiedDate):<span class="predefined-constant">null</span>
+   ...
+}</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>The following is list of available styles (see <a href="http://docs.oracle.com/javase/tutorial/i18n/format/dateFormat.html">http://docs.oracle.com/javase/tutorial/i18n/format/dateFormat.html</a> for more information):</p>
+</div>
+<table class="tableblock frame-all grid-all" style="width: 100%;">
+<caption class="title">Table 4. Possible Values for Date Time Style Configuration</caption>
+<colgroup>
+<col style="width: 33%;">
+<col style="width: 33%;">
+<col style="width: 33%;">
+</colgroup>
+<thead>
+<tr>
+<th class="tableblock halign-left valign-top">Style</th>
+<th class="tableblock halign-left valign-top">Sample Value in U.S. Locale</th>
+<th class="tableblock halign-left valign-top">Sample Value in French Locale</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">DEFAULT</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Jun 30, 2009 7:03:47 AM</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">30 juin 2009 07:03:47</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">SHORT</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">6/30/09 7:03 AM</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">30/06/09 07:03</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">MEDIUM</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Jun 30, 2009 7:03:47 AM</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">30 juin 2009 07:03:47</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">LONG</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">June 30, 2009 7:03:47 AM PDT</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">30 juin 2009 07:03:47 PDT</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">FULL</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Tuesday, June 30, 2009 7:03:47 AM PDT</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">mardi 30 juin 2009 07 h 03 PDT</p></td>
+</tr>
+</tbody>
+</table>
+<div class="admonitionblock tip">
+<table>
+<tr>
+<td class="icon">
+<i class="icon-tip" title="Tip"></i>
+</td>
+<td class="content">
+You can always change the generated code to use any custom formatter.
+</td>
+</tr>
+</table>
+</div>
+</div>
+<div class="sect2">
+<h3 id="logged-user">7.2. Logged User</h3>
+<div class="paragraph">
+<p>simple-jpa expects the value of current user is stored in <code>SimpleJpaUtil.user</code>.  Value for this property must be an
+an implementation of <code>AuditableUser</code>.  For example, developer can create a domain class that implement <code>AuditableUser</code> such as:</p>
+</div>
+<div class="listingblock">
+<div class="title">User.groovy</div>
+<div class="content">
+<pre class="CodeRay"><code class="groovy language-groovy"><span class="keyword">package</span> domain
+
+<span class="keyword">import</span> ...
+
+<span class="annotation">@DomainClass</span> <span class="annotation">@Entity</span> <span class="annotation">@Canonical</span>
+<span class="type">class</span> <span class="class">User</span> <span class="directive">implements</span> AuditableUser {
+
+    <span class="annotation">@NotEmpty</span> <span class="annotation">@Size</span>(min=<span class="integer">2</span>, max=<span class="integer">50</span>)
+    <span class="predefined-type">String</span> name
+
+    <span class="annotation">@Override</span>
+    <span class="predefined-type">String</span> getUserName() {
+        <span class="keyword">return</span> name
+    }
+
+}</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>The following code can be used to set current (logged) user:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="CodeRay"><code class="groovy language-groovy">User user = <span class="keyword">new</span> User(<span class="string"><span class="delimiter">'</span><span class="content">guest</span><span class="delimiter">'</span></span>)
+SimpleJpaUtil.instance.user = user</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>The code above will set <code>createdBy</code> and <code>modifiedBy</code> of new entity or updated entity to <code>'guest'</code>.</p>
+</div>
+<div class="admonitionblock tip">
+<table>
+<tr>
+<td class="icon">
+<i class="icon-tip" title="Tip"></i>
+</td>
+<td class="content">
+You&#8217;re not required to set current user.  If <code>SimpleJpaUtil.user</code> is null, value for <code>createdBy</code> and <code>modifiedBy</code>
+ will be ignored.  Regardless whether <code>SimpleJpaUtil.user</code> is available or not, <code>createdTime</code> and <code>modifiedTime</code> are always updated.
+</td>
+</tr>
+</table>
+</div>
+</div>
+<div class="sect2">
+<h3 id="login-dialog">7.3. Login Dialog</h3>
+<div class="paragraph">
+<p>simple-jpa can display a login dialog by using SwingX <code>JXLoginPane</code> at startup time.  To enable this feature, a service
+that is derived from <code>org.jdesktop.swingx.auth.LoginService</code> is required.  The following is typical steps to create
+ such service:</p>
+</div>
+<div class="olist arabic">
+<ol class="arabic">
+<li>
+<p>Create a new service by using Griffon&#8217;s <code>create-service</code> command.  For example:</p>
+<div class="literalblock">
+<div class="content">
+<pre>griffon create-service DatabaseLoginService</pre>
+</div>
+</div>
+</li>
+<li>
+<p>Change the generated service (in <code>griffon-app/services</code> folder) and extends it from <code>org.jdesktop.swingx.auth.LoginService</code>.  For example:</p>
+<div class="listingblock">
+<div class="title">DatabaseLoginService.groovy</div>
+<div class="content">
+<pre class="CodeRay"><code class="groovy language-groovy"><span class="keyword">package</span> sample
+
+<span class="keyword">import</span> <span class="include">domain.User</span>
+<span class="keyword">import</span> <span class="include">org.jdesktop.swingx.auth.LoginService</span>
+<span class="keyword">import</span> <span class="include">simplejpa.SimpleJpaUtil</span>
+
+<span class="type">class</span> <span class="class">DatabaseLoginService</span> <span class="directive">extends</span> LoginService {
+
+    <span class="annotation">@Override</span>
+    <span class="type">boolean</span> authenticate(<span class="predefined-type">String</span> name, <span class="type">char</span><span class="type">[]</span> password, <span class="predefined-type">String</span> server) <span class="directive">throws</span> <span class="exception">Exception</span> {
+        <span class="keyword">if</span> (name == <span class="string"><span class="delimiter">'</span><span class="content">jocki</span><span class="delimiter">'</span></span> &amp;&amp; <span class="keyword">new</span> <span class="predefined-type">String</span>(password) == <span class="string"><span class="delimiter">'</span><span class="content">toor</span><span class="delimiter">'</span></span>) {
+            SimpleJpaUtil.instance.user = <span class="keyword">new</span> User(<span class="string"><span class="delimiter">'</span><span class="content">jocki</span><span class="delimiter">'</span></span>)
+            <span class="keyword">return</span> <span class="predefined-constant">true</span>
+        }
+        <span class="predefined-constant">false</span>
+    }
+
+}</code></pre>
+</div>
+</div>
+<div class="admonitionblock tip">
+<table>
+<tr>
+<td class="icon">
+<i class="icon-tip" title="Tip"></i>
+</td>
+<td class="content">
+<div class="paragraph">
+<p>If you add <code>@Transaction</code> to <code>DatabaseLoginService</code> and add the following line to <code>Config.groovy</code> (See <a href="#finders-2">Finders</a> for more information):</p>
+</div>
+<div class="listingblock">
+<div class="title">Config.groovy</div>
+<div class="content">
+<pre class="CodeRay"><code class="groovy language-groovy">griffon.simplejpa.finders.injectInto = [<span class="string"><span class="delimiter">'</span><span class="content">controller</span><span class="delimiter">'</span></span>, <span class="string"><span class="delimiter">'</span><span class="content">service</span><span class="delimiter">'</span></span>]</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>You will have access to simple-jpa dynamic finders in <code>authenticate()</code> method.  Typically, you will query the requested user
+from database and check if user&#8217;s password is correct.</p>
+</div>
+</td>
+</tr>
+</table>
+</div>
+</li>
+<li>
+<p>Add the service name as value for <code>griffon.simplejpa.auditing.loginService</code> in <code>Config.groovy</code>.  For example:</p>
+<div class="listingblock">
+<div class="title">Config.groovy</div>
+<div class="content">
+<pre class="CodeRay"><code class="groovy language-groovy">griffon.simplejpa.auditing.loginService = <span class="string"><span class="delimiter">'</span><span class="content">DatabaseLoginService</span><span class="delimiter">'</span></span></code></pre>
+</div>
+</div>
+</li>
+</ol>
+</div>
+<div class="paragraph">
+<p>When application is started, the following login dialog will be displayed:</p>
+</div>
+<div class="imageblock">
+<div class="content">
+<img src="../images/login_dialog.png" alt="login dialog">
+</div>
+</div>
+<div class="paragraph">
+<p>If user cancels the dialog, simple-jpa will terminate the application.  If user enters the correct credentials (which means
+<code>LoginService.authenticate()</code> return <code>true</code>), simple-jpa will display startup group as usual.</p>
+</div>
+</div>
 </div>
 </div>
 <div class="sect1">
@@ -1544,7 +1872,7 @@ validation. This feature is disabled by default. To enable it, add the following
 <p>Another scaffolding related configurations are:</p>
 </div>
 <table class="tableblock frame-all grid-all" style="width: 100%;">
-<caption class="title">Table 3. Scaffolding Configuration</caption>
+<caption class="title">Table 5. Scaffolding Configuration</caption>
 <colgroup>
 <col style="width: 33%;">
 <col style="width: 33%;">
@@ -1590,12 +1918,30 @@ validation. This feature is disabled by default. To enable it, add the following
 <td class="tableblock halign-left valign-top"><p class="tableblock">If <code>true</code>, not Excel file (for integration testing) will be created.  Default value is <code>false</code>.</p></td>
 </tr>
 <tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>griffon.simplejpa.scaffolding.dateTimeStyle</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>'DEFAULT'</code>, <code>'SHORT'</code>, <code>'MEDIUM'</code>, <code>'LONG'</code>, or <code>'FULL'</code>.</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Represent formatting styles for auditing properties that are instances of <code>java.util.Date</code>.</p></td>
+</tr>
+<tr>
 <td class="tableblock halign-left valign-top"><p class="tableblock"><code>griffon.simplejpa.scaffolding.target</code></p></td>
 <td class="tableblock halign-left valign-top"><p class="tableblock">A string that consists of domain class names or <code>'*'</code>.</p></td>
 <td class="tableblock halign-left valign-top"><p class="tableblock">List of domain classes to generate.  If <code>'*'</code>, all domain classes will be generated.  Default value is <code>'*'</code>.</p></td>
 </tr>
 </tbody>
 </table>
+</div>
+<div class="sect2">
+<h3 id="auditing-2">A.8. Auditing</h3>
+<div class="paragraph">
+<p>To display a login dialog at startup time, set a service name for <code>griffon.simplejpa.auditing.loginService</code>.  This service must be an
+instance of <code>org.jdesktop.swingx.auth.LoginService</code>.</p>
+</div>
+<div class="listingblock">
+<div class="title">Config.groovy</div>
+<div class="content">
+<pre class="CodeRay"><code class="groovy language-groovy">griffon.simplejpa.auditing.loginService = <span class="string"><span class="delimiter">'</span><span class="content">DatabaseLoginService</span><span class="delimiter">'</span></span></code></pre>
+</div>
+</div>
 </div>
 </div>
 </div>

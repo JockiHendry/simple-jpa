@@ -1,1 +1,216 @@
 == Auditing
+
+=== Auditable Domain Class
+
+Classes annotated by `@DomainClass` will automatically have the following auditing properties:
+
+.Auditing Properties In Domain Class
+|===
+|Name |Type
+
+|createdDate
+|java.util.Date
+
+|createdBy
+|String
+
+|modifiedDate
+|java.util.Date
+
+|modifiedBy
+|String
+|===
+
+To disable automatic creation of auditing properties for a domain class, use `excludeAuditing` property.  For example:
+
+[source,groovy]
+----
+@Entity @DomainClass(excludeAuditing=true) @Canonical
+class Customer {
+
+}
+----
+
+The value for auditing properties are set by JPA entity listener `simplejpa.AuditingEntityListener`.  <<create-simple-jpa>>
+command by default will create `griffon-app/conf/metainf/orm.xml` to register `simplejpa.AuditingEntityListener` as default entity listener.
+The default content of generated `orm.xml` is:
+
+[source,xml]
+.griffon-app/conf/metainf/orm.xml
+----
+<?xml version="1.0" encoding="UTF-8"?>
+<entity-mappings version="2.0" xmlns="http://java.sun.com/xml/ns/persistence/orm"
+                 xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+                 xsi:schemaLocation="http://java.sun.com/xml/ns/persistence/orm orm_2_0.xsd">
+
+<persistence-unit-metadata>
+    <persistence-unit-defaults>
+        <entity-listeners>
+            <entity-listener class="simplejpa.AuditingEntityListener" />
+        </entity-listeners>
+    </persistence-unit-defaults>
+</persistence-unit-metadata>
+
+</entity-mappings>
+----
+
+TIP: You can completely disable auditing by removing the line that register `simplejpa.AuditingEntityListener` in `orm.xml`.
+
+TIP: You can also register your own custom JPA Entity Listener in `orm.xml`.
+
+Built-in scaffolding's generator will generate views that has auditing properties in them.  By default, generated views display
+`java.util.Date` by its string representation such as `Wed Aug 20 13:09:11 ICT 2014`.  To display `java.util.Date` by using
+a custom formatter, style for both date and time can be specified in `Config.groovy`:
+
+[source,groovy]
+.Config.groovy
+----
+griffon.simplejpa.scaffolding.dateTimeStyle = 'MEDIUM'
+----
+
+The configuration above will generate the following code in controller:
+
+[source,groovy]
+----
+def selectionChanged = {
+   ...
+   model.created = selected.createdDate?DateFormat.getDateTimeInstance(DateFormat.MEDIUM, DateFormat.MEDIUM).format(selected.createdDate):null
+   model.modified = selected.modifiedDate?DateFormat.getDateTimeInstance(DateFormat.MEDIUM, DateFormat.MEDIUM).format(selected.modifiedDate):null
+   ...
+}
+----
+
+The following is list of available styles (see http://docs.oracle.com/javase/tutorial/i18n/format/dateFormat.html for more information):
+
+.Possible Values for Date Time Style Configuration
+|===
+|Style |Sample Value in U.S. Locale |Sample Value in French Locale
+
+|DEFAULT
+|Jun 30, 2009 7:03:47 AM
+|30 juin 2009 07:03:47
+
+|SHORT
+|6/30/09 7:03 AM
+|30/06/09 07:03
+
+|MEDIUM
+|Jun 30, 2009 7:03:47 AM
+|30 juin 2009 07:03:47
+
+|LONG
+|June 30, 2009 7:03:47 AM PDT
+|30 juin 2009 07:03:47 PDT
+
+|FULL
+|Tuesday, June 30, 2009 7:03:47 AM PDT
+|mardi 30 juin 2009 07 h 03 PDT
+|===
+
+TIP: You can always change the generated code to use any custom formatter.
+
+=== Logged User
+
+simple-jpa expects the value of current user is stored in `SimpleJpaUtil.user`.  Value for this property must be an
+an implementation of `AuditableUser`.  For example, developer can create a domain class that implement `AuditableUser` such as:
+
+[source,groovy]
+.User.groovy
+----
+package domain
+
+import ...
+
+@DomainClass @Entity @Canonical
+class User implements AuditableUser {
+
+    @NotEmpty @Size(min=2, max=50)
+    String name
+
+    @Override
+    String getUserName() {
+        return name
+    }
+
+}
+----
+
+The following code can be used to set current (logged) user:
+
+[source,groovy]
+----
+User user = new User('guest')
+SimpleJpaUtil.instance.user = user
+----
+
+The code above will set `createdBy` and `modifiedBy` of new entity or updated entity to `'guest'`.
+
+TIP: You're not required to set current user.  If `SimpleJpaUtil.user` is null, value for `createdBy` and `modifiedBy`
+ will be ignored.  Regardless whether `SimpleJpaUtil.user` is available or not, `createdTime` and `modifiedTime` are always updated.
+
+=== Login Dialog
+
+simple-jpa can display a login dialog by using SwingX `JXLoginPane` at startup time.  To enable this feature, a service
+that is derived from `org.jdesktop.swingx.auth.LoginService` is required.  The following is typical steps to create
+ such service:
+
+. Create a new service by using Griffon's `create-service` command.  For example:
++
+....
+griffon create-service DatabaseLoginService
+....
+
+. Change the generated service (in `griffon-app/services` folder) and extends it from `org.jdesktop.swingx.auth.LoginService`.  For example:
++
+[source,groovy]
+.DatabaseLoginService.groovy
+----
+package sample
+
+import domain.User
+import org.jdesktop.swingx.auth.LoginService
+import simplejpa.SimpleJpaUtil
+
+class DatabaseLoginService extends LoginService {
+
+    @Override
+    boolean authenticate(String name, char[] password, String server) throws Exception {
+        if (name == 'jocki' && new String(password) == 'toor') {
+            SimpleJpaUtil.instance.user = new User('jocki')
+            return true
+        }
+        false
+    }
+
+}
+----
++
+[TIP]
+====
+If you add `@Transaction` to `DatabaseLoginService` and add the following line to `Config.groovy` (See <<finders-2>> for more information):
+
+[source,groovy]
+.Config.groovy
+----
+griffon.simplejpa.finders.injectInto = ['controller', 'service']
+----
+
+You will have access to simple-jpa dynamic finders in `authenticate()` method.  Typically, you will query the requested user
+from database and check if user's password is correct.
+====
+
+. Add the service name as value for `griffon.simplejpa.auditing.loginService` in `Config.groovy`.  For example:
++
+[source,groovy]
+.Config.groovy
+----
+griffon.simplejpa.auditing.loginService = 'DatabaseLoginService'
+----
+
+When application is started, the following login dialog will be displayed:
+
+image::login_dialog.png[]
+
+If user cancels the dialog, simple-jpa will terminate the application.  If user enters the correct credentials (which means
+`LoginService.authenticate()` returns `true`), simple-jpa will display startup group as usual.
+
