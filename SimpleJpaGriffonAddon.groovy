@@ -14,8 +14,11 @@
  * limitations under the License.
  */
 
+import griffon.swing.SwingApplication
 import groovy.swing.factory.BeanFactory
 import org.codehaus.griffon.runtime.core.AbstractGriffonClass
+import org.jdesktop.swingx.JXLoginPane
+import org.jdesktop.swingx.auth.LoginService
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 import simplejpa.SimpleJpaHandler
@@ -52,6 +55,7 @@ import javax.swing.JComboBox
 import javax.swing.JList
 import javax.validation.Validation
 import javax.validation.Validator
+import java.awt.Window
 import java.beans.PropertyChangeListener
 import java.util.concurrent.ConcurrentHashMap
 import griffon.util.*
@@ -159,6 +163,27 @@ class SimpleJpaGriffonAddon {
                 } else if (v instanceof String) {
                     errorCleaners[k] = Class.forName(v).newInstance()
                 }
+            }
+        }
+
+        // Displaying login dialog if configured to do so
+        String loginServiceName = ConfigUtils.getConfigValueAsString(app.config, 'griffon.simplejpa.auditing.loginService', null)
+        if (loginServiceName) {
+            try {
+                LoginService loginService = app.serviceManager.findService(loginServiceName)
+                if (loginService == null) {
+                    LOG.error "Can't find the following login service: $loginServiceName"
+                } else {
+                    JXLoginPane loginPane = new JXLoginPane(loginService)
+                    Window startingWindow = (app as SwingApplication).windowManager.getStartingWindow()
+                    JXLoginPane.Status status = JXLoginPane.showLoginDialog(startingWindow, loginPane)
+                    if (status != JXLoginPane.Status.SUCCEEDED) {
+                        app.shutdown()
+                    }
+                }
+            } catch (Exception ex) {
+                LOG.error "Error while displaying login service.", ex
+                app.shutdown()
             }
         }
     }

@@ -158,3 +158,5 @@ First release into griffon artifacts portal.
 1. Add DDD scaffolding generator that can be selected by using `generate-all -generator=simplejpa.scaffolding.generator.ddd.DDDGenerator`.
 1. Add new artifact type: repository.
 1. Add `create-repository` command.
+1. Automatically add `createdBy` and `modifiedBy` to domain classes.
+1. Add optional login dialog that will be displayed at startup time.
