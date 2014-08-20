@@ -24,6 +24,7 @@ class Scaffolding {
     boolean forceOverwrite = false
     boolean skipExcel = false
     boolean setStartup = false
+    String dateTimeStyle = null
     List domainClassesToGenerate = []
     Map<String, DomainClass> domainClasses = [:]
 
@@ -37,6 +38,7 @@ class Scaffolding {
             setIgnoreLazy(ConfigUtils.getConfigValueAsBoolean(config, 'griffon.simplejpa.scaffolding.ignoreLazy', true))
             setForceOverwrite(ConfigUtils.getConfigValueAsBoolean(config, 'griffon.simplejpa.scaffolding.forceOverwrite', false))
             setSkipExcel(ConfigUtils.getConfigValueAsBoolean(config, 'griffon.simplejpa.scaffolding.skipExcel', false))
+            setDateTimeStyle(ConfigUtils.getConfigValueAsString(config, 'griffon.simplejpa.scaffolding.dateTimeStyle', null))
             String target = ConfigUtils.getConfigValueAsString(config, 'griffon.simplejpa.scaffolding.target', '*')
             domainClassesToGenerate = target.split(',')
         }

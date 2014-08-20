@@ -355,8 +355,10 @@ class BasicGenerator extends Generator {
             result.addAll(it.generator.selected())
         }
         if (addAuditing && !domainClass.excludeAuditing) {
-            result << "model.created = selected.createdDate"
-            result << "model.modified = selected.modifiedDate"
+            String style = scaffolding.dateTimeStyle
+            String customFunction = style? "DateFormat.getDateTimeInstance(DateFormat.$style, DateFormat.$style).format(": null
+            result << "model.created = ${customFunction?'selected.createdDate?' + customFunction:''}selected.createdDate${customFunction?'):null':''}"
+            result << "model.modified = ${customFunction?'selected.modifiedDate?' + customFunction:''}selected.modifiedDate${customFunction?'):null':''}"
         }
         return addTab(result, tab)
     }
@@ -428,6 +430,9 @@ class BasicGenerator extends Generator {
             } else if (it instanceof EntityAttribute && it.target.packageName != domainPackageName) {
                 result << "import ${it.target.packageName}.*"
             }
+        }
+        if (scaffolding.dateTimeStyle && !domainClass.excludeAuditing) {
+            result << 'import java.text.DateFormat'
         }
         return addTab(result, 0)
     }
