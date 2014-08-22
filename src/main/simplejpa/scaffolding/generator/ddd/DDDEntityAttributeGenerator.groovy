@@ -22,7 +22,7 @@ class DDDEntityAttributeGenerator extends EntityAttributeGenerator {
 
     public List<String> repo_update() {
         List<String> result = []
-        if (!attribute.hasCascadeAndOrphanRemoval) {
+        if (attribute.oneToOne && !attribute.hasCascadeAndOrphanRemoval) {
             result << "// TODO: The following code may not work because this attribute mapping doesn't enable cascading."
         }
         result << "${name} = ${scaffolding.generator.domainClassNameAsProperty}.${name} == null? null: merge(${scaffolding.generator.domainClassNameAsProperty}.${name})"
