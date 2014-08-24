@@ -60,15 +60,11 @@ class DDDGenerator extends BasicGenerator {
 
     @Override
     void generatePair(EntityAttribute attr) {
-        repositoryVar = "${attr.target.nameAsProperty}Repository"
-        repositoryType = "${attr.target.name}Repository"
         generate(attr.target, 'SimpleJpaPairModel', 'SimpleJpaPairView', 'SimpleJpaDDDPairController', attr.target.nameAsPair)
     }
 
     @Override
     void generateChild(CollectionAttribute attr) {
-        repositoryVar = "${attr.target.nameAsProperty}Repository"
-        repositoryType = "${attr.target.name}Repository"
         generate(attr.target, 'SimpleJpaChildModel', 'SimpleJpaChildView', 'SimpleJpaDDDChildController', attr.target.nameAsChild)
     }
 
@@ -113,7 +109,5 @@ class DDDGenerator extends BasicGenerator {
         }
         "new ${domainClassName}(${result.join(', ')})"
     }
-
-
 
 }

@@ -1,6 +1,7 @@
 package ${g.targetPackageName}
 
 ${g.imports()}
+import ${g.targetPackageName}.*
 import simplejpa.swing.DialogUtils
 import simplejpa.transaction.Transaction
 import javax.swing.*
