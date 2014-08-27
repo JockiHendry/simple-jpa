@@ -93,7 +93,11 @@ class Scaffolding {
             // Add inherited attributes
             DomainClass parent = domainClasses[domainClass.parentClassName]
             while (parent) {
-                domainClass.attributes.addAll(0, parent.attributes)
+                parent.attributes.each {
+                    if (!domainClass.attributes.contains(it)) {
+                        domainClass.attributes.add(0, it)
+                    }
+                }
                 parent = parent.parentClassName? domainClasses[parent.parentClassName]: null
             }
         }
