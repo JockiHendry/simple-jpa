@@ -37,10 +37,10 @@ class DialogUtils {
                     dialog.setVisible(false)
                 }, KeyStroke.getKeyStroke(KeyEvent.VK_ESCAPE, 0), JComponent.WHEN_IN_FOCUSED_WINDOW)
 
-                dialog.pack()
                 dialogProperties?.each { prop, value ->
                     dialog."$prop" = value
                 }
+                dialog.pack()
                 dialog.setLocationRelativeTo(thisWindow)
                 dialog.setVisible(true)
             }
