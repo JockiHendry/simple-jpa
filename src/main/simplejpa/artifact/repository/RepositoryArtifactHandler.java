@@ -3,6 +3,7 @@ package simplejpa.artifact.repository;
 import griffon.core.*;
 import griffon.exceptions.NewInstanceCreationException;
 import griffon.util.ApplicationHolder;
+import griffon.util.GriffonNameUtils;
 import groovy.lang.MetaClass;
 import groovy.lang.MetaProperty;
 import org.codehaus.griffon.runtime.core.ArtifactHandlerAdapter;
@@ -38,6 +39,8 @@ public class RepositoryArtifactHandler extends ArtifactHandlerAdapter {
             if (!name.endsWith("Repository")) {
                 name += "Repository";
             }
+            // Change first letter of the name to lower case if necessary
+            name = GriffonNameUtils.getPropertyNameRepresentation(name);
             Object repositoryInstance = instances.get(name);
             if (repositoryInstance == null) {
                 if (LOG.isInfoEnabled()) {
