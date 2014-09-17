@@ -44,7 +44,7 @@ class GlazedTableFormat implements AdvancedTableFormat {
         if (eventColumn.expression) {
             result = eventColumn.expression.call(e)
         } else if (eventColumn.property) {
-            result = e.metaClass.getProperty(e, eventColumn.property)
+            result = e?.metaClass?.getProperty(e, eventColumn.property)
         }
         result
     }
