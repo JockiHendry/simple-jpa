@@ -35,6 +35,7 @@ class SimpleJpaUtil {
     EntityManagerFactory entityManagerFactory
     RepositoryManager repositoryManager
     AuditableUser user
+    boolean bootFromScript = false
 
     private SimpleJpaUtil() {}
 

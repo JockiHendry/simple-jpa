@@ -168,7 +168,7 @@ class SimpleJpaGriffonAddon {
 
         // Displaying login dialog if configured to do so
         String loginServiceName = ConfigUtils.getConfigValueAsString(app.config, 'griffon.simplejpa.auditing.loginService', null)
-        if (loginServiceName) {
+        if (loginServiceName && !SimpleJpaUtil.instance.bootFromScript) {
             try {
                 LoginService loginService = app.serviceManager.findService(loginServiceName)
                 if (loginService == null) {

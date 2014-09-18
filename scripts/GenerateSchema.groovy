@@ -17,6 +17,7 @@
 
 import griffon.core.*
 import griffon.util.*
+import simplejpa.SimpleJpaUtil
 
 import javax.persistence.Persistence
 
@@ -92,8 +93,8 @@ description for more information.
     jardir = ant.antProject.replaceProperties(buildConfig.griffon.jars.destDir)
     ant.copy(todir: jardir) { fileset(dir: "${griffonHome}/lib/", includes: "jline-*.jar") }
 
+    SimpleJpaUtil.instance.bootFromScript = true
     bootstrap()
-    //griffonApp.startup()
 
     Map props = [:]
     if (argsMap['target']=='database') {

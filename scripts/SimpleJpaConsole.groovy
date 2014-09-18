@@ -18,6 +18,7 @@
 import griffon.core.*
 import griffon.util.*
 import groovy.swing.SwingBuilder
+import simplejpa.SimpleJpaUtil
 import javax.swing.DefaultCellEditor
 import javax.swing.JDialog
 import javax.swing.JFrame
@@ -143,6 +144,7 @@ DETAILS
     jardir = ant.antProject.replaceProperties(buildConfig.griffon.jars.destDir)
     ant.copy(todir: jardir) { fileset(dir: "${griffonHome}/lib/", includes: "jline-*.jar") }
 
+    SimpleJpaUtil.instance.bootFromScript = true
     bootstrap()
 
     def binding = new Binding()
