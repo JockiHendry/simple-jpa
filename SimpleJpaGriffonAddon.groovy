@@ -216,6 +216,7 @@ class SimpleJpaGriffonAddon {
         'javax.swing.JComboBox': new JComboBoxErrorCleaner(),
         'javax.swing.JCheckBox': new JComboBoxErrorCleaner(),
         'javax.swing.JButton': new JButtonErrorCleaner(),
+        'javax.swing.JRadioButton': new JButtonErrorCleaner(),
 
         'org.jdesktop.swingx.JXDatePicker': new JXDatePickerErrorCleaner(),
         'simplejpa.swing.TagChooser': new TagChooserErrorCleaner(),
