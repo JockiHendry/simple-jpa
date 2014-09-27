@@ -30,7 +30,7 @@ import griffon.util.*
  *
  */
 final Map JPA_PROVIDERS = [
-    'hibernate':  'org.hibernate:hibernate-entitymanager:4.3.1.Final'
+    'hibernate':  ['org.hibernate:hibernate-entitymanager:4.3.6.Final', 'org.hibernate:hibernate-c3p0:4.3.6.Final', 'com.mchange:c3p0:0.9.2.1']
 ]
 
 final Map DATABASES = [
@@ -173,6 +173,7 @@ description for more information.
             <property name="javax.persistence.jdbc.password" value="$password" />
             <property name="hibernate.connection.autocommit" value="false" />
             <property name="hibernate.dialect" value="${database.dialect}" />
+            <property name="hibernate.connection.provider_class" value="org.hibernate.c3p0.internal.C3P0ConnectionProvider" />
             <property name="javax.persistence.schema-generation.database.action" value="drop-and-create" />
             <property name="jadira.usertype.autoRegisterUserTypes" value="true"/>
         </properties>
@@ -282,7 +283,12 @@ simplejpa.converter.toInteger = must be a number
     if (!JPA_PROVIDERS[jpaProvider]) {
         println "JPA Provider: $jpaProvider is not supported.  You will need to add dependency to this provider manually by editing $buildConfigFile."
     } else {
-        dependencies << JPA_PROVIDERS[jpaProvider.toLowerCase()]
+        def jpaDependencies = JPA_PROVIDERS[jpaProvider]
+        if (jpaDependencies instanceof Collection) {
+            dependencies.addAll(jpaDependencies)
+        } else {
+            dependencies << jpaDependencies
+        }
     }
 
     dependencies << database.dependencyConfig
