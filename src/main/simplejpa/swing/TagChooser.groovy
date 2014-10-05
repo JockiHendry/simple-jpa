@@ -192,9 +192,9 @@ class TagChooser extends JPanel {
                 add(new SelectedItem(value))
             }
 
-            SwingBuilder swing = new SwingBuilder()
-            swing.edt {
-                SwingUtilities.getWindowAncestor(this).validate()
+            def tagChooserInstance = TagChooser.this
+            griffon.core.UIThreadManager.instance.executeSync {
+                tagChooserInstance.validate()
                 repaint()
             }
         }
