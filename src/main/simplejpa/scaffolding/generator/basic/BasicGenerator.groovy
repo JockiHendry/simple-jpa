@@ -93,7 +93,6 @@ class BasicGenerator extends Generator {
         firstChild = domainClass.attributes.find { it instanceof CollectionAttribute && it.oneToMany && !(it.mappedBy && !it.hasCascadeAndOrphanRemoval) }
     }
 
-    @Override
     void generate(DomainClass domainClass, String modelTemplate = 'SimpleJpaModel', String viewTemplate = 'SimpleJpaView',
               String controllerTemplate = 'SimpleJpaController', String customClassName = null) {
 

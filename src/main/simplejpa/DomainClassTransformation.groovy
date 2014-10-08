@@ -62,13 +62,16 @@ class DomainClassTransformation extends AbstractASTTransformation {
         if (getBooleanProperty(annotation, 'excludeDeletedFlag')) {
             LOG.debug "Didn't inject 'deleted' attribute to $classNode"
         } else {
+            LOG.debug "Creating 'deleted' for ${classNode.name}"
             classNode.addField("deleted", ACC_PUBLIC, ClassHelper.STRING_TYPE, new ConstantExpression("N"))
+            LOG.debug "'deleted' added to ${classNode.name}"
         }
 
         // Add attribute for surrogate primary key
         if (getBooleanProperty(annotation, 'excludeId')) {
             LOG.debug "Didn't inject 'id' attribute to $classNode"
         } else {
+            LOG.debug "Creating 'id' for ${classNode.name}"
             AnnotationNode idAnnotation = new AnnotationNode(ClassHelper.make(Id.class))
             AnnotationNode generatedValueAnnotation = new AnnotationNode(ClassHelper.make(GeneratedValue.class))
             Expression idGenerationStrategy = annotation.getMember('idGenerationStrategy')
@@ -79,12 +82,14 @@ class DomainClassTransformation extends AbstractASTTransformation {
 
             classNode.addField("id", ACC_PUBLIC, ClassHelper.Long_TYPE, null).addAnnotations([
                 idAnnotation, generatedValueAnnotation])
+            LOG.debug "'id' added to ${classNode.name}"
         }
 
         // Add attribute for auditing
         if (getBooleanProperty(annotation, 'excludeAuditing')) {
             LOG.debug "Didn't inject 'createdDate' and 'modifiedDate' attribute to $classNode"
         } else {
+            LOG.debug "Creating auditing fields for ${classNode.name}"
             AnnotationNode temporalAnnotation = new AnnotationNode(ClassHelper.make(Temporal))
             temporalAnnotation.addMember('value', new PropertyExpression(
                new ClassExpression(ClassHelper.make(TemporalType)), 'TIMESTAMP'))
@@ -94,6 +99,7 @@ class DomainClassTransformation extends AbstractASTTransformation {
             classNode.addField("modifiedDate", ACC_PUBLIC, ClassHelper.make(Date.class), null)
                 .addAnnotation(temporalAnnotation)
             classNode.addField("modifiedBy", ACC_PUBLIC, ClassHelper.make(String.class), null)
+            LOG.debug "Auditing fields added to ${classNode.name}"
         }
     }
 

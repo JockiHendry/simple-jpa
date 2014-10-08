@@ -31,7 +31,7 @@ public class TransactionTransformation extends AbstractASTTransformation {
         AnnotationNode annotation = astNodes[0]
         AnnotatedNode node = astNodes[1]
 
-        log.debug "Starting @Domain transformation for ${node.text}..."
+        log.debug "Starting @Transaction transformation for ${node.text}..."
 
         if (getPolicy(annotation)==Transaction.Policy.SKIP) return
 
@@ -40,7 +40,7 @@ public class TransactionTransformation extends AbstractASTTransformation {
         if (node instanceof ClassNode) {
 
             log.debug "@Transaction AST on class: ${node.name}"
-            log.debug "@Transaction AST on fields: ${node.fields}"
+            log.debug "@Transaction AST on fields: ${node.fields.each {it.name}.join(',')}"
 
             node.fields?.each { FieldNode field ->
                 if (field.initialExpression instanceof ClosureExpression &&
