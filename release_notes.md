@@ -160,3 +160,4 @@ First release into griffon artifacts portal.
 1. Add `create-repository` command.
 1. Automatically add `createdBy` and `modifiedBy` to domain classes.
 1. Add optional login dialog that will be displayed at startup time.
+1. Fixes nested property path for validation wasn't parsed properly.

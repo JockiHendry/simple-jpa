@@ -22,7 +22,6 @@ import simplejpa.transaction.EntityManagerLifespan
 import simplejpa.transaction.ReturnFailedSignal
 import simplejpa.transaction.TransactionHolder
 import simplejpa.transaction.WithTransactionHandler
-
 import javax.persistence.*
 import griffon.util.*
 import javax.persistence.criteria.CriteriaBuilder
@@ -679,7 +678,13 @@ final class SimpleJpaHandler {
         validator.validate(model, group).each { ConstraintViolation cv ->
             if (viewModel) {
                 LOG.debug "Adding error path [${cv.propertyPath}] with message [${cv.message}]"
-                viewModel.errors[cv.propertyPath.toString()] = cv.message
+                Iterator i = cv.propertyPath.iterator()
+                String key = i.next().name
+                List extraDesc = []
+                while (i.hasNext()) {
+                    extraDesc << GriffonNameUtils.getNaturalName(i.next().name)
+                }
+                viewModel.errors[key] = (extraDesc.empty? '': (extraDesc.join(', ') + ' ')) + cv.message
             } else {
                 throw new ValidationException("Validation fail on ${cv.propertyPath}: ${cv.message}")
             }
