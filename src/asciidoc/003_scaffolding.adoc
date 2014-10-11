@@ -96,6 +96,13 @@ example, the following command will generate `teacher` MVC group and set it as s
 griffon generate-all -setStartup Teacher
 ....
 
+[IMPORTANT]
+====
+Since 0.8, simple-jpa generates view as a panel.  Because the generated view doesn't have top level container
+such as `JFrame`, it can't be displayed by itself.  The recommended way to present the view is by creating a
+startup group that will act as top level container.
+====
+
 simple-jpa can also create a dedicated startup group that serves as container for existing domain class
 based MVC groups.  To generate a dedicated startup group, `-startupGroup` parameter should be used with
 the startup group's name as its value.  For example, the following command will generate `mainGroup` MVC group and set
