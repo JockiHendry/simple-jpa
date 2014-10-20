@@ -1,13 +1,13 @@
 package simplejpa.swing
 
+import griffon.swing.SwingGriffonApplication
 import javax.swing.JComponent
 import javax.swing.JDialog
 import javax.swing.KeyStroke
 import javax.swing.SwingUtilities
 import java.awt.Dialog
 import java.awt.Window
-import griffon.core.GriffonView
-import griffon.core.GriffonApplication
+import griffon.core.*
 import java.awt.event.ActionEvent
 import java.awt.event.KeyEvent
 
@@ -15,17 +15,18 @@ class DialogUtils {
 
     public static Closure defaultContentDecorator = null
 
-    public static JDialog lastDialog = null
-
     static def showMVCGroup(String mvcGroupName, Map args, GriffonApplication app, GriffonView view,
             Map dialogProperties = null, Closure onFinish = null, Closure contentDecorator = null) {
 
         def result = null
         if (args == null) args = [:]
+        JDialog dialog
         app.withMVCGroup(mvcGroupName, args) { m, v, c ->
-            Window parent = lastDialog ?: SwingUtilities.getWindowAncestor(view.mainPanel)
-            JDialog dialog = new JDialog(parent, Dialog.ModalityType.APPLICATION_MODAL)
-            lastDialog = dialog
+            Window parent = SwingUtilities.getWindowAncestor(view.mainPanel)
+            if (!parent) {
+                parent = (app as SwingGriffonApplication).windowManager.getStartingWindow()
+            }
+            dialog = new JDialog(parent, Dialog.ModalityType.APPLICATION_MODAL)
             if (contentDecorator) {
                 dialog.contentPane = contentDecorator(v.mainPanel)
             } else if (DialogUtils.defaultContentDecorator) {
@@ -47,8 +48,9 @@ class DialogUtils {
             dialog.setVisible(true)
             result = onFinish?.call(m, v, c)
         }
-        lastDialog = null
+        dialog.dispose()
+        dialog = null
         result
-
     }
+
 }
