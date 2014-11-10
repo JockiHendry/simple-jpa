@@ -141,7 +141,7 @@ class EntityAttributeGenerator extends BuiltInAttributeGenerator {
                 "\texecInsideUISync {",
                 "\t\tdef args = [pair: model.${name}]",
                 "\t\tdef props = [title: '$buttonName']",
-                "\t\tDialogUtils.showMVCGroup('${attribute.target.nameAsProperty}AsPair', args, app, view, props) { m, v, c ->",
+                "\t\tDialogUtils.showMVCGroup('${attribute.target.nameAsProperty}AsPair', args, view, props) { m, v, c ->",
                 "\t\t\tmodel.${name} = m.${name}",
                 "\t\t}",
                 "\t}",

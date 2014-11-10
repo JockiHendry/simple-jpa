@@ -4,6 +4,7 @@ import javax.swing.JButton
 import javax.swing.JDialog
 import javax.swing.JOptionPane
 import javax.swing.SwingUtilities
+import javax.swing.plaf.LayerUI
 import java.awt.Dialog
 import java.awt.Window
 import java.awt.event.ActionEvent
@@ -27,7 +28,7 @@ class MVCPopupButtonFactory extends AbstractFactory {
         }
         Closure onFinish = attributes.remove('onFinish')
         Closure onBeforeDisplay = attributes.remove('onBeforeDisplay')
-        Closure contentDecorator = attributes.remove('contentDecorator')
+        LayerUI layerUI = attributes.remove('layerUI')
         def dialogProperties = attributes.remove('dialogProperties')
         JButton btnResult
         if (!value) {
@@ -45,8 +46,7 @@ class MVCPopupButtonFactory extends AbstractFactory {
                 args = arguments.call()
             }
             onBeforeDisplay?.call(btnResult, args)
-            DialogUtils.showMVCGroup(mvcGroup, args, builder.getVariable("app"),
-                builder.getVariable("view"), dialogProperties, onFinish, contentDecorator)
+            DialogUtils.showMVCGroup(mvcGroup, args, builder.getVariable("view"), dialogProperties, layerUI, onFinish)
         }
 
         btnResult

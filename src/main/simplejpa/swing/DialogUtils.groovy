@@ -3,36 +3,39 @@ package simplejpa.swing
 import griffon.swing.SwingGriffonApplication
 import javax.swing.JComponent
 import javax.swing.JDialog
+import javax.swing.JLayer
 import javax.swing.KeyStroke
 import javax.swing.SwingUtilities
+import javax.swing.plaf.LayerUI
 import java.awt.Dialog
 import java.awt.Window
 import griffon.core.*
 import java.awt.event.ActionEvent
 import java.awt.event.KeyEvent
+import griffon.util.*
 
 class DialogUtils {
 
-    public static Closure defaultContentDecorator = null
+    public static LayerUI defaultLayerUI = null
 
     /**
      *  This method will not destroy <code>MVCGroup</code> passed to it.
      */
-    static def showMVCGroup(MVCGroup mvcGroup, GriffonApplication app, GriffonView view,
-            Map dialogProperties = null, Closure onFinish = null, Closure contentDecorator = null) {
-
+    static def showMVCGroup(MVCGroup mvcGroup, GriffonView view, Map dialogProperties = [:], LayerUI layerUI = null, Closure onFinish = null) {
         def result
-
         JDialog dialog
         Window parent = SwingUtilities.getWindowAncestor(view.mainPanel)
         if (!parent) {
-            parent = (app as SwingGriffonApplication).windowManager.getStartingWindow()
+            parent = (ApplicationHolder.application as SwingGriffonApplication).windowManager.getStartingWindow()
         }
         dialog = new JDialog(parent, Dialog.ModalityType.APPLICATION_MODAL)
-        if (contentDecorator) {
-            dialog.contentPane = contentDecorator(mvcGroup.view.mainPanel)
-        } else if (DialogUtils.defaultContentDecorator) {
-            dialog.contentPane = DialogUtils.defaultContentDecorator.call(mvcGroup.view.mainPanel)
+        JLayer layer
+        if (layerUI) {
+            layer = new JLayer(mvcGroup.view.mainPanel, layerUI)
+            dialog.contentPane = layer
+        } else if (defaultLayerUI) {
+            layer = new JLayer(mvcGroup.view.mainPanel, defaultLayerUI)
+            dialog.contentPane = layer
         } else {
             dialog.contentPane = mvcGroup.view.mainPanel
         }
@@ -45,7 +48,7 @@ class DialogUtils {
             dialog.setVisible(false)
         }, KeyStroke.getKeyStroke(KeyEvent.VK_ESCAPE, 0), JComponent.WHEN_IN_FOCUSED_WINDOW)
 
-        dialogProperties?.each { prop, value ->
+        dialogProperties.each { prop, value ->
             dialog."$prop" = value
         }
         dialog.pack()
@@ -54,32 +57,32 @@ class DialogUtils {
 
         result = onFinish?.call(mvcGroup.model, mvcGroup.view, mvcGroup.controller)
 
+        if (layer) {
+            layer.getUI().uninstallUI(layer)
+        }
         dialog.dispose()
         dialog = null
         result
-
     }
 
-    static def showMVCGroup(String mvcGroupName, Map args, GriffonApplication app, GriffonView view,
-            Map dialogProperties = null, Closure onFinish = null, Closure contentDecorator = null) {
-
-        if (args == null) args = [:]
-        MVCGroup mvcGroup = app.buildMVCGroup(mvcGroupName, args)
-        def result = showMVCGroup(mvcGroup, app, view, dialogProperties, onFinish, contentDecorator)
-
+    static def showMVCGroup(String mvcGroupName, Map args = [:], GriffonView view, Map dialogProperties = [:], LayerUI layerUI, Closure onFinish = null) {
+        MVCGroup mvcGroup = ApplicationHolder.application.buildMVCGroup(mvcGroupName, args)
+        def result = showMVCGroup(mvcGroup, view, dialogProperties, layerUI, onFinish)
         mvcGroup.destroy()
         result
-
     }
 
-    static def showAndReuseMVCGroup(String mvcGroupName, Map args, GriffonApplication app, GriffonView view,
-            Map dialogProperties = null, Closure onFinish = null, Closure contentDecorator = null) {
+    static def showMVCGroup(String mvcGroupName, Map args = [:], GriffonView view, Map dialogProperties = [:], Closure onFinish = null) {
+        showMVCGroup(mvcGroupName, args, view, dialogProperties, null, onFinish)
+    }
 
+    static def showAndReuseMVCGroup(String mvcGroupName, Map args = [:], GriffonView view, Map dialogProperties = [:], LayerUI layerUI = null, Closure onFinish = null) {
+        def app = ApplicationHolder.application
         MVCGroup mvcGroup = app.mvcGroupManager.getAt(mvcGroupName)
         if (!mvcGroup) {
             mvcGroup = app.buildMVCGroup(mvcGroupName, mvcGroupName, args)
         }
-        showMVCGroup(mvcGroup, app, view, dialogProperties, onFinish, contentDecorator)
+        showMVCGroup(mvcGroup, view, dialogProperties, layerUI, onFinish)
 
     }
 

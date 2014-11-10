@@ -85,8 +85,7 @@ class TableColumnConfig extends AbstractFactory {
                                     selectedValue = table.getValueAt(table.selectedRow, table.selectedColumn)
                                 }
                                 if (v instanceof String) {
-                                    DialogUtils.showMVCGroup(v, ['value': selectedValue], 'Popup', builder.getVariable('app'),
-                                        builder.getVariable('view'))
+                                    DialogUtils.showMVCGroup(v, ['value': selectedValue], 'Popup', builder.getVariable('view'))
                                 } else if (v instanceof Closure) {
                                     v.call(selectedValue)
                                 }

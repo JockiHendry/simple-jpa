@@ -171,7 +171,7 @@ class CollectionAttributeGenerator extends BuiltInAttributeGenerator {
                     "\texecInsideUISync {",
                     "\t\tdef args = [parentList: model.$name]",
                     "\t\tdef props = [title: '$buttonName']",
-                    "\t\tDialogUtils.showMVCGroup('${attribute.target.nameAsProperty}AsChild', args, app, view, props) { m, v, c ->",
+                    "\t\tDialogUtils.showMVCGroup('${attribute.target.nameAsProperty}AsChild', args, view, props) { m, v, c ->",
                     "\t\t\tmodel.${name}.clear()",
                     "\t\t\tmodel.${name}.addAll(m.$var_glazedTable)",
                     "\t\t}",
