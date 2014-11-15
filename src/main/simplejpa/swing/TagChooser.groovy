@@ -33,7 +33,6 @@ import javax.swing.JLabel
 import javax.swing.JList
 import javax.swing.JPanel
 import javax.swing.ListCellRenderer
-import javax.swing.SwingUtilities
 import java.awt.BorderLayout
 import java.awt.Color
 import java.awt.Component
@@ -204,7 +203,8 @@ class TagChooser extends JPanel {
 
         private JLabel lblData
         private JButton btnRemove
-        private Color background
+        private Color backgroundColor
+        private Color hoverColor
         private Object data
 
         public SelectedItem(Object data) {
@@ -215,7 +215,8 @@ class TagChooser extends JPanel {
 
             this.data = data
             lblData = new JLabel(model.render(data))
-            background = getBackground()
+            backgroundColor = getBackground()
+            hoverColor = getBackground().darker()
             add(lblData)
 
             btnRemove = new JButton(removeIcon)
@@ -232,16 +233,16 @@ class TagChooser extends JPanel {
             addMouseListener(new MouseAdapter() {
                 @Override
                 public void mouseEntered(MouseEvent e) {
-                    setBackground(background.darker())
+                    setBackground(hoverColor)
                 }
 
                 @Override
                 public void mouseExited(MouseEvent e) {
-                    setBackground(background)
+                    setBackground(backgroundColor)
                 }
             })
 
-            setBorder(BorderFactory.createLineBorder(getBackground().darker()))
+            setBorder(BorderFactory.createLineBorder(hoverColor))
         }
 
     }
