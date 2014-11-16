@@ -162,4 +162,6 @@ First release into griffon artifacts portal.
 1. Add optional login dialog that will be displayed at startup time.
 1. Fixes nested property path for validation wasn't parsed properly.
 1. Fixes `TagChooser` hover not working properly.
-1. Change `DialogUtils` methods signature.
+1. Changes `DialogUtils` methods signature.
+1. Changes `DbUnitTestCase` to perform insert operation only.  This can be changed by overriding `cleanDataSet()` and `insertDataSet()`).
+1. Changes `DbUnitTestCase` to execute `clean.sql` before inserting records from dataset if it is exists.
