@@ -28,9 +28,11 @@ abstract class DbUnitTestCase extends GriffonUnitTestCase {
 
     public static IDatabaseConnection CONNECTION
 
-    public static List<String> CLEANING_SQL
+    public static final List<String> CLEANING_SQL
 
     static {
+        griffon.util.ApplicationHolder.application.startup()
+
         String dbUrl, dbUser, dbPassword
         boolean dbAutoCommit = true
         InputStream is = griffon.util.ApplicationHolder.application.getResourceAsStream("metainf/persistence.xml")
@@ -68,8 +70,7 @@ abstract class DbUnitTestCase extends GriffonUnitTestCase {
     GriffonView view
     IDataSet dataSet
 
-    void setUpDatabase(String mvcGroup, String dataFile, DatabaseOperation preOperation = null) {
-        app.startup()
+    void loadMVC(String mvcGroup) {
         if (app.mvcGroupManager.findGroup(mvcGroup) != null) {
             if (app.controllers[mvcGroup]==null) {
                 app.createMVCGroup(mvcGroup)
@@ -78,7 +79,10 @@ abstract class DbUnitTestCase extends GriffonUnitTestCase {
             model = app.models[mvcGroup]
             view = app.views[mvcGroup]
         }
+    }
 
+    void setUpDatabase(String dataFile, DatabaseOperation preOperation = null,
+                       DatabaseOperation insertOperation = DatabaseOperation.CLEAN_INSERT) {
         if (dataFile.endsWith(".xml")) {
             dataSet = new FlatXmlDataFileLoader().load(dataFile)
         } else if (dataFile.endsWith(".xls")) {
@@ -92,7 +96,7 @@ abstract class DbUnitTestCase extends GriffonUnitTestCase {
         if (preOperation) preOperation.execute(CONNECTION, dataSet)
 
         cleanDataset()
-        insertDataset()
+        insertOperation.execute(CONNECTION, dataSet)
     }
 
     void cleanDataset() {
@@ -108,10 +112,6 @@ abstract class DbUnitTestCase extends GriffonUnitTestCase {
                 statement.close()
             }
         }
-    }
-
-    void insertDataset() {
-        DatabaseOperation.INSERT.execute(CONNECTION, dataSet)
     }
 
     void cleanInsert() {
