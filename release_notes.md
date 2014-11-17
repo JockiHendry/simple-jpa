@@ -165,4 +165,5 @@ First release into griffon artifacts portal.
 1. Changes `DialogUtils` methods signature.
 1. Changes `DbUnitTestCase` to perform insert operation only.  This can be changed by overriding `cleanDataSet()` and `insertDataSet()`.
 1. Changes `DbUnitTestCase` to execute `clean.sql` before inserting records from dataset if it is exists.
+1. Changes `DbUnitTestCase` to execute `before.sql` before `setUpDatabase()` and `after.sql` after `setUpDatabase()` operation.
 1. Split setup method in `DbUnitTestCase` to `loadMVC()` and `setUpDatabase()`.

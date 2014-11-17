@@ -29,6 +29,8 @@ abstract class DbUnitTestCase extends GriffonUnitTestCase {
     public static IDatabaseConnection CONNECTION
 
     public static final List<String> CLEANING_SQL
+    public static final List<String> BEFORE_SQL
+    public static final List<String> AFTER_SQL
 
     static {
         griffon.util.ApplicationHolder.application.startup()
@@ -62,6 +64,20 @@ abstract class DbUnitTestCase extends GriffonUnitTestCase {
             CLEANING_SQL = new ArrayList<>()
             cleanSqlStream.eachLine { CLEANING_SQL.add(it) }
         }
+
+        // Check if `before.sql` is exists
+        InputStream beforeSqlStream = Thread.currentThread().contextClassLoader.getResourceAsStream('before.sql')
+        if (beforeSqlStream ) {
+            BEFORE_SQL = new ArrayList<>()
+            beforeSqlStream .eachLine { BEFORE_SQL.add(it) }
+        }
+
+        // Check if `after.sql` is exists
+        InputStream afterSqlStream = Thread.currentThread().contextClassLoader.getResourceAsStream('after.sql')
+        if (afterSqlStream ) {
+            AFTER_SQL = new ArrayList<>()
+            afterSqlStream .eachLine { AFTER_SQL.add(it) }
+        }
     }
 
     GriffonApplication app
@@ -91,26 +107,46 @@ abstract class DbUnitTestCase extends GriffonUnitTestCase {
             dataSet = new CsvDataFileLoader().load(dataFile)
         }
 
+        beforeSetupDatabase()
+
         ITableFilter filter = new DatabaseSequenceFilter(CONNECTION)
         dataSet = new FilteredDataSet(filter, dataSet)
         if (preOperation) preOperation.execute(CONNECTION, dataSet)
 
         cleanDataset()
         insertOperation.execute(CONNECTION, dataSet)
+
+        afterSetupDatabase()
+    }
+
+    void beforeSetupDatabase() {
+        if (BEFORE_SQL) {
+            execute(BEFORE_SQL)
+        }
+    }
+
+    void afterSetupDatabase() {
+        if (AFTER_SQL) {
+            execute(AFTER_SQL)
+        }
     }
 
     void cleanDataset() {
         if (CLEANING_SQL) {
-            Connection conn = CONNECTION.connection
-            Statement statement = conn.createStatement()
-            try {
-                CLEANING_SQL.each { String line ->
-                    statement.addBatch(line)
-                }
-                statement.executeBatch()
-            } finally {
-                statement.close()
+            execute(CLEANING_SQL)
+        }
+    }
+
+    void execute(List<String> sqls) {
+        Connection conn = CONNECTION.connection
+        Statement statement = conn.createStatement()
+        try {
+            sqls.each { String line ->
+                statement.addBatch(line)
             }
+            statement.executeBatch()
+        } finally {
+            statement.close()
         }
     }
 
