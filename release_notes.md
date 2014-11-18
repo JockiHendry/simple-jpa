@@ -163,6 +163,7 @@ First release into griffon artifacts portal.
 1. Fixes nested property path for validation wasn't parsed properly.
 1. Fixes `TagChooser` hover not working properly.
 1. Changes `DialogUtils` methods signature.
+1. Increases performance of `DbUnitTestCase` by caching `IDataSet`.
 1. Changes `DbUnitTestCase` to perform insert operation only.  This can be changed by overriding `cleanDataSet()` and `insertDataSet()`.
 1. Changes `DbUnitTestCase` to execute `clean.sql` before inserting records from dataset if it is exists.
 1. Changes `DbUnitTestCase` to execute `before.sql` before `setUpDatabase()` and `after.sql` after `setUpDatabase()` operation.

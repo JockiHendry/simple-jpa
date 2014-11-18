@@ -9,15 +9,8 @@ import org.dbunit.dataset.FilteredDataSet
 import org.dbunit.dataset.IDataSet
 import org.dbunit.dataset.filter.ITableFilter
 import org.dbunit.operation.DatabaseOperation
-import org.dbunit.util.fileloader.CsvDataFileLoader
-import org.dbunit.util.fileloader.FlatXmlDataFileLoader
-import org.dbunit.util.fileloader.XlsDataFileLoader
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
-
-import java.nio.file.Files
-import java.nio.file.Path
-import java.nio.file.Paths
 import java.sql.Connection
 import java.sql.DriverManager
 import java.sql.Statement
@@ -27,13 +20,15 @@ abstract class DbUnitTestCase extends GriffonUnitTestCase {
     private static final Logger log = LoggerFactory.getLogger(DbUnitTestCase)
 
     public static IDatabaseConnection CONNECTION
-
     public static final List<String> CLEANING_SQL
     public static final List<String> BEFORE_SQL
     public static final List<String> AFTER_SQL
+    public static final DataSetCache DATASET_CACHE
 
     static {
         griffon.util.ApplicationHolder.application.startup()
+
+        DATASET_CACHE = new DataSetCache()
 
         String dbUrl, dbUser, dbPassword
         boolean dbAutoCommit = true
@@ -97,22 +92,16 @@ abstract class DbUnitTestCase extends GriffonUnitTestCase {
         }
     }
 
-    void setUpDatabase(String dataFile, DatabaseOperation preOperation = null,
+    void setUpDatabase(String dataFile, DatabaseOperation preOperation = null, boolean sequenceFilter = false,
                        DatabaseOperation insertOperation = DatabaseOperation.CLEAN_INSERT) {
-        if (dataFile.endsWith(".xml")) {
-            dataSet = new FlatXmlDataFileLoader().load(dataFile)
-        } else if (dataFile.endsWith(".xls")) {
-            dataSet = new XlsDataFileLoader().load(dataFile)
-        } else {
-            dataSet = new CsvDataFileLoader().load(dataFile)
-        }
-
         beforeSetupDatabase()
 
-        ITableFilter filter = new DatabaseSequenceFilter(CONNECTION)
-        dataSet = new FilteredDataSet(filter, dataSet)
+        dataSet = DATASET_CACHE.get(dataFile)
+        if (sequenceFilter) {
+            ITableFilter filter = new DatabaseSequenceFilter(CONNECTION)
+            dataSet = new FilteredDataSet(filter, dataSet)
+        }
         if (preOperation) preOperation.execute(CONNECTION, dataSet)
-
         cleanDataset()
         insertOperation.execute(CONNECTION, dataSet)
 
