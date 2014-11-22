@@ -1,5 +1,5 @@
 /*
- * Copyright 2013 Jocki Hendry.
+ * Copyright 2014 Jocki Hendry.
  *
  * Licensed under the Apache License, Version 2.0 (the 'License');
  * you may not use this file except in compliance with the License.
@@ -40,13 +40,13 @@ DESCRIPTION
 
 SYNTAX
     griffon generate-all * [-generatedPackage=value] [-forceOverwrite]
-        [-setStartup] [-skipExcel] [-startupGroup=value] [-generator=generator]
+        [-setStartup] [-startupGroup=value] [-generator=generator]
     griffon generate-all [domainClassName] [-generatedPackage=value]
-        [-forceOverwrite] [-setStartup] [-skipExcel] [-startupGroup=value]
+        [-forceOverwrite] [-setStartup] [-startupGroup=value]
         [-generator=generator]
     griffon generate-all [domainClassName] [domainClassName] ...
         [-generatedPackage=value] [-forceOverwrite] [-setStartup]
-        [-skipExcel] [-startupGroup=value] [-generator=generator]
+        [-startupGroup=value] [-generator=generator]
 
 ARGUMENTS
     *
@@ -69,10 +69,6 @@ ARGUMENTS
         be launched when program starts).  If this argument is present when
         using generating more than one MVCGroup, then the last MVCGroup will
         be set as startup group.
-
-    skipExcel (optional)
-        If this argument is present, generate-all will not create Microsoft
-        Excel file for integration testing (DbUnit).
 
     startupGroup (optional)
         Generate a distinct MVCGroup that serves as startup group.  This
@@ -147,9 +143,6 @@ description for more information.
     }
     if (argsMap['forceOverwrite']) {
         scaffolding.forceOverwrite = argsMap.containsKey('forceOverwrite')
-    }
-    if (argsMap['skipExcel']) {
-        scaffolding.skipExcel = argsMap.containsKey('skipExcel')
     }
     if (argsMap['setStartup']) {
         scaffolding.setStartup = argsMap['setStartup']

@@ -4,6 +4,7 @@
     <exclude-output />
     <orderEntry type="inheritedJdk" />
     <orderEntry type="sourceFolder" forTests="false" />
+    <orderEntry type="library" scope="PROVIDED" name="griffon-1.5.0" level="application" />
     <orderEntry type="module-library" exported="">
       <library name="Griffon:lib-fixes (simple-jpa-griffonPluginFixes)">
         <CLASSES>
@@ -15,13 +16,6 @@
           <root url="jar://$IVY_CACHE$/net.java.dev.glazedlists/glazedlists_java15/jars/glazedlists_java15-1.9.0.jar!/" />
           <root url="jar://$IVY_CACHE$/org.dbunit/dbunit/jars/dbunit-2.4.9.jar!/" />
           <root url="jar://$IVY_CACHE$/junit/junit/jars/junit-3.8.2.jar!/" />
-          <root url="jar://$IVY_CACHE$/org.reflections/reflections/jars/reflections-0.9.9-RC1.jar!/" />
-          <root url="jar://$IVY_CACHE$/com.google.guava/guava/jars/guava-11.0.2.jar!/" />
-          <root url="jar://$IVY_CACHE$/com.google.code.findbugs/jsr305/jars/jsr305-1.3.9.jar!/" />
-          <root url="jar://$IVY_CACHE$/org.javassist/javassist/jars/javassist-3.16.1-GA.jar!/" />
-          <root url="jar://$IVY_CACHE$/dom4j/dom4j/jars/dom4j-1.6.1.jar!/" />
-          <root url="jar://$IVY_CACHE$/org.apache.poi/poi/jars/poi-3.2-FINAL.jar!/" />
-          <root url="jar://$IVY_CACHE$/commons-logging/commons-logging/jars/commons-logging-1.1.jar!/" />
           <root url="jar://$IVY_CACHE$/org.codehaus.griffon.plugins/griffon-glazedlists-runtime/jars/griffon-glazedlists-runtime-1.1.0.jar!/" />
           <root url="jar://$IVY_CACHE$/com.miglayout/miglayout-swing/jars/miglayout-swing-4.2.jar!/" />
           <root url="jar://$IVY_CACHE$/com.miglayout/miglayout-core/jars/miglayout-core-4.2.jar!/" />
@@ -53,4 +47,3 @@
     </orderEntry>
   </component>
 </module>
-

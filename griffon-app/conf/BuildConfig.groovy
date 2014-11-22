@@ -1,3 +1,19 @@
+/*
+ * Copyright 2014 Jocki Hendry.
+ *
+ * Licensed under the Apache License, Version 2.0 (the 'License');
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *      http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an 'AS IS' BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
 griffon.project.dependency.resolution = {
     // implicit variables
     // pluginName:     plugin's name
@@ -38,7 +54,6 @@ griffon.project.dependency.resolution = {
         compile 'joda-time:joda-time:2.1'
         compile 'net.java.dev.glazedlists:glazedlists_java15:1.9.0'
         compile 'org.dbunit:dbunit:2.4.9'
-        runtime 'org.apache.poi:poi:3.2-FINAL'
     }
 }
 

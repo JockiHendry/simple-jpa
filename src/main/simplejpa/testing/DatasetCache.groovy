@@ -14,12 +14,15 @@
  * limitations under the License.
  */
 
+
+
 package simplejpa.testing
 
 import org.dbunit.dataset.IDataSet
 import org.dbunit.util.fileloader.CsvDataFileLoader
 import org.dbunit.util.fileloader.FlatXmlDataFileLoader
 import org.dbunit.util.fileloader.XlsDataFileLoader
+import simplejpa.testing.xlsx.XlsxDataFileLoader
 
 class DataSetCache {
 
@@ -32,6 +35,8 @@ class DataSetCache {
                 result = new FlatXmlDataFileLoader().load(resourceName)
             } else if (resourceName.endsWith(".xls")) {
                 result = new XlsDataFileLoader().load(resourceName)
+            } else if (resourceName.endsWith('.xlsx')) {
+                result = new XlsxDataFileLoader().load(resourceName)
             } else {
                 result = new CsvDataFileLoader().load(resourceName)
             }

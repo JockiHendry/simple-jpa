@@ -1,6 +1,21 @@
+/*
+ * Copyright 2014 Jocki Hendry.
+ *
+ * Licensed under the Apache License, Version 2.0 (the 'License');
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *      http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an 'AS IS' BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
 package simplejpa.scaffolding.generator.basic
 
-import org.apache.poi.hssf.usermodel.HSSFWorkbook
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 import simplejpa.scaffolding.DomainClass
@@ -135,21 +150,6 @@ class BasicGenerator extends Generator {
             generateArtifact('SimpleJpaIntegrationTest',
                 "${BuildSettingsHolder.settings.baseDir}/test/integration/${targetPackageName.replace('.', '/')}",
                 "${domainClassName}Test.groovy")
-
-            if (!scaffolding.skipExcel) {
-                File xmlFile = new File("${BuildSettingsHolder.settings.baseDir}/test/integration/${targetPackageName.replace('.', '/')}/data.xls")
-                String sheetName = domainClassName.toLowerCase()
-                HSSFWorkbook workbook = xmlFile.exists()? new HSSFWorkbook(new FileInputStream(xmlFile)): new HSSFWorkbook()
-                if (workbook.getSheet(sheetName)) {
-                    log.info "Sheet $sheetName already exists, it will not modified!"
-                } else {
-                    workbook.createSheet(sheetName)
-                    FileOutputStream output = new FileOutputStream(xmlFile)
-                    workbook.write(output)
-                    output.close()
-                }
-                log.info "File $xmlFile created or updated!"
-            }
         }
 
         // create MVCGroup
