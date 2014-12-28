@@ -30,10 +30,9 @@ class ${g.customClassName}Controller {
 %>    }
 
 	def save = {
-        if (!view.table.selectionModel.selectionEmpty) {
-            if (JOptionPane.showConfirmDialog(view.mainPanel, app.getMessage("simplejpa.dialog.update.message"), app.getMessage("simplejpa.dialog.update.title"), JOptionPane.YES_NO_OPTION, JOptionPane.WARNING_MESSAGE) != JOptionPane.YES_OPTION) {
+        if (!view.table.selectionModel.selectionEmpty &&
+            !DialogUtils.confirm(view.mainPanel, app.getMessage("simplejpa.dialog.update.message"), app.getMessage("simplejpa.dialog.update.title"), JOptionPane.WARNING_MESSAGE)) {
                 return
-            }
         }
 
 		${g.domainClassName} ${g.domainClassNameAsProperty} = ${g.domainClassConstructor()}
@@ -61,7 +60,7 @@ ${g.update(3)}
 	}
 
 	def delete = {
-        if (JOptionPane.showConfirmDialog(view.mainPanel, app.getMessage("simplejpa.dialog.delete.message"), app.getMessage("simplejpa.dialog.delete.title"), JOptionPane.YES_NO_OPTION, JOptionPane.WARNING_MESSAGE) != JOptionPane.YES_OPTION) {
+        if (!DialogUtils.confirm(view.mainPanel, app.getMessage("simplejpa.dialog.delete.message"), app.getMessage("simplejpa.dialog.delete.title"), JOptionPane.WARNING_MESSAGE)) {
             return
         }
 		${g.domainClassName} ${g.domainClassNameAsProperty} = view.table.selectionModel.selected[0]
@@ -94,7 +93,9 @@ ${g.selected(4, false)}
 	}
 
     def close = {
-        SwingUtilities.getWindowAncestor(view.mainPanel)?.dispose()
+    	execInsideUISync {
+        	SwingUtilities.getWindowAncestor(view.mainPanel)?.dispose()
+		}
     }
 
 }

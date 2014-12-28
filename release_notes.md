@@ -168,3 +168,4 @@ First release into griffon artifacts portal.
 1. Changes `DbUnitTestCase` to execute `clean.sql` before inserting records from dataset if it is exists.
 1. Changes `DbUnitTestCase` to execute `before.sql` before `setUpDatabase()` and `after.sql` after `setUpDatabase()` operation.
 1. Split setup method in `DbUnitTestCase` to `loadMVC()` and `setUpDatabase()`.
+1. Add `confirm()` and `message()` to `DialogUtils` that will display message dialogs from EDT thread.

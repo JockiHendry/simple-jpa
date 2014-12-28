@@ -24,17 +24,14 @@ application(id: 'mainFrame',
 	borderLayout()
 
 	toolBar(constraints: BorderLayout.PAGE_START, floatable: false) {
-		buttonGroup(id: 'buttons')
 <%
 	g.domainClasses.findAll{ k,v -> v.entity }.each { String name, def domainClass ->
 		def prop = griffon.util.GriffonNameUtils.getPropertyName(name)
-		out << "\t\ttoggleButton(buttonGroup: buttons, action: $prop, verticalTextPosition: SwingConstants.BOTTOM, horizontalTextPosition: SwingConstants.CENTER)\n"
+		out << "\t\tbutton(action: $prop, verticalTextPosition: SwingConstants.BOTTOM, horizontalTextPosition: SwingConstants.CENTER)\n"
 	}
 %>    }
 
-	panel(id: "mainPanel", constraints: BorderLayout.CENTER) {
-		borderLayout()
-	}
+	widget(new simplejpa.swing.MainTabbedPane(), id: 'mainTab', constraints: BorderLayout.CENTER)
 
 	statusBar(constraints: BorderLayout.PAGE_END, border: BorderFactory.createBevelBorder(BevelBorder.LOWERED)) {
 		busyLabel(id: "busyLabel", busy: true, visible: false)

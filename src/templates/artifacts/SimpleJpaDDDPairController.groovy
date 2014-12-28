@@ -37,10 +37,9 @@ ${g.pair_init(3)}
 %>    }
 
 	def save = {
-        if (model.${g.domainClassNameAsProperty}!=null) {
-            if (JOptionPane.showConfirmDialog(view.mainPanel, app.getMessage("simplejpa.dialog.update.message"), app.getMessage("simplejpa.dialog.update.title"), JOptionPane.YES_NO_OPTION, JOptionPane.WARNING_MESSAGE) != JOptionPane.YES_OPTION) {
+        if (model.${g.domainClassNameAsProperty} &&
+            !DialogUtils.confirm(view.mainPanel, app.getMessage("simplejpa.dialog.update.message"), app.getMessage("simplejpa.dialog.update.title"))) {
                 return
-            }
         }
 
 		${g.domainClassName} ${g.domainClassNameAsProperty} = ${g.domainClassConstructor()}
