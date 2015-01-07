@@ -1,5 +1,5 @@
 /*
- * Copyright 2014 Jocki Hendry.
+ * Copyright 2015 Jocki Hendry.
  *
  * Licensed under the Apache License, Version 2.0 (the 'License');
  * you may not use this file except in compliance with the License.
@@ -49,11 +49,11 @@ griffon.project.dependency.resolution = {
         // specify dependencies here under either 'scripts.build', 'compile', 'runtime' or 'test' scopes eg.
 
         compile 'org.hibernate.javax.persistence:hibernate-jpa-2.1-api:1.0.0.Final'
-        compile 'javax.validation:validation-api:1.1.0.Final'
+        compile 'javax.validation:validation-api:1.0.0.GA'
         compile 'org.jadira.usertype:usertype.jodatime:2.0.1'
         compile 'joda-time:joda-time:2.1'
         compile 'net.java.dev.glazedlists:glazedlists_java15:1.9.0'
-        compile 'org.dbunit:dbunit:2.4.9'
+        test 'org.dbunit:dbunit:2.4.9'
     }
 }
 
