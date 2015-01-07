@@ -1,3 +1,19 @@
+/*
+ * Copyright 2015 Jocki Hendry.
+ *
+ * Licensed under the Apache License, Version 2.0 (the 'License');
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *      http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an 'AS IS' BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
 package simplejpa.transaction
 
 import org.codehaus.griffon.ast.AbstractASTTransformation
@@ -73,41 +89,42 @@ public class TransactionTransformation extends AbstractASTTransformation {
         } else if (node instanceof MethodNode) {
 
             log.debug "It is a method: ${node.name}"
-            if (!AstUtils.isValidMethod(node)) {
-                log.warn "Not transforming method: ${node.name}"
-            } else {
+            if (AstUtils.isValidMethod(node)) {
                 log.debug "Processing method $node.name..."
                 wrapStatements(node, node, annotation)
+            } else {
+                log.warn "Not transforming method: ${node.name}"
             }
 
         }
 
         // Entry to write
-        List entries = []
-        for (ClassNode c: sourceUnit.AST.classes) {
-            if (!c.getAnnotations(annotationClass).isEmpty()) {
-                entries << c.name
+        File outputFile = BuildSettingsHolder.settings?.baseDir?.toPath()?.resolve("griffon-app")?.resolve("resources")?.resolve(SimpleJpaUtil.FILE_ANNOTATED)?.toFile()
+        if (outputFile) {
+            List entries = []
+            for (ClassNode c : sourceUnit.AST.classes) {
+                if (!c.getAnnotations(annotationClass).isEmpty()) {
+                    entries << c.name
+                }
             }
-        }
 
-        // Check if files already registered in output file
-        File outputFile = BuildSettingsHolder.settings.baseDir.toPath().
-            resolve("griffon-app").resolve("resources").resolve(SimpleJpaUtil.FILE_ANNOTATED).toFile()
-        if (outputFile.exists()) {
-            outputFile.eachLine { line ->
-                for (String entry : entries.toArray()) {
-                    if (line.equals(entry)) entries.remove(entry)
+            // Check if files already registered in output file
+            if (outputFile.exists()) {
+                outputFile.eachLine { line ->
+                    for (String entry : entries.toArray()) {
+                        if (line.equals(entry)) entries.remove(entry)
+                    }
+                }
+            }
+            if (entries.isEmpty()) return
+
+            // Add this class to output file
+            new BufferedOutputStream(new FileOutputStream(outputFile, true)).withPrintWriter { out ->
+                for (String entry : entries) {
+                    out.println(entry)
                 }
             }
         }
-        if (entries.isEmpty()) return
-
-        // Add this class to output file
-        def out = new BufferedOutputStream(new FileOutputStream(outputFile, true))
-        for (String entry: entries) {
-            out.write("${entry}\n".bytes)
-        }
-        out.close()
     }
 
     private static Transaction.Policy getPolicy(AnnotationNode annotation) {
@@ -116,11 +133,7 @@ public class TransactionTransformation extends AbstractASTTransformation {
     }
 
     private static boolean isResume(AnnotationNode annotation) {
-        if (getPolicy(annotation)==Transaction.Policy.SKIP_PROPAGATION) {
-            return false
-        } else {
-            return true
-        }
+        return getPolicy(annotation) != Transaction.Policy.SKIP_PROPAGATION
     }
 
     private static boolean isNewSession(AnnotationNode annotation) {
