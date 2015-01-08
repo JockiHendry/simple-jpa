@@ -1,5 +1,4 @@
-= Documentation for simple-jpa
-Version 0.8
+= +++<i class="icon-reorder" id='nav-icon'></i>+++ simple-jpa 0.8
 :description: This guide is a documentation for simple-jpa plugin for Griffon.
 :keywords: simplejpa
 :idprefix:
@@ -7,15 +6,14 @@ Version 0.8
 :linkcss:
 :scriptsdir: ../javascripts
 :stylesdir: ../stylesheets
+:stylesheet: simplejpadoc.css
 :imagesdir: ../images
 :numbered:
 :icons: font
 :source-highlighter: coderay
-:toc: left
+:toc:
 :homepage: http://jockihendry.github.io/simple-jpa
 :docinfo1:
-
-A complete solution for developing full stack desktop applications in Griffon.
 
 include::001_introduction.adoc[]
 include::002_gettingStarted.adoc[]

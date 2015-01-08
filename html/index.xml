@@ -4,17 +4,9 @@
 <?asciidoc-numbered?>
 <article xmlns="http://docbook.org/ns/docbook" xmlns:xlink="http://www.w3.org/1999/xlink" version="5.0" lang="en">
 <info>
-<title>Documentation for simple-jpa</title>
-<date>2014-08-14</date>
-<author>
-<personname>
-<firstname>Version</firstname>
-<surname>0.8</surname>
-</personname>
-</author>
-<authorinitials>V0</authorinitials>
+<title><i class="icon-reorder" id='nav-icon'></i> simple-jpa 0.8</title>
+<date>2015-01-08</date>
 </info>
-<simpara>A complete solution for developing full stack desktop applications in Griffon.</simpara>
 <section xml:id="introduction">
 <title>Introduction</title>
 <simpara>simple-jpa is a Griffon plugin for developing JPA and Swing based desktop application. The main goal of simple-jpa is
@@ -168,6 +160,11 @@ not modify the value of current startup group.  This behaviour can be changed by
 <literal>-setStartup</literal> is passed to <literal>generate-all</literal>, the command will set startup group to the generated MVC group.  For
 example, the following command will generate <literal>teacher</literal> MVC group and set it as startup group:</simpara>
 <literallayout class="monospaced">griffon generate-all -setStartup Teacher</literallayout>
+<important>
+<simpara>Since 0.8, simple-jpa generates view as a panel.  Because the generated view doesn&#8217;t have top level container
+such as <literal>JFrame</literal>, it can&#8217;t be displayed by itself.  The recommended way to present the view is by creating a
+startup group that will act as top level container.</simpara>
+</important>
 <simpara>simple-jpa can also create a dedicated startup group that serves as container for existing domain class
 based MVC groups.  To generate a dedicated startup group, <literal>-startupGroup</literal> parameter should be used with
 the startup group&#8217;s name as its value.  For example, the following command will generate <literal>mainGroup</literal> MVC group and set
@@ -648,7 +645,50 @@ class MyGenerator extends BasicGenerator {
 </section>
 <section xml:id="validation">
 <title>Validation</title>
-
+<section xml:id="bean-validation-api">
+<title>Bean Validation API</title>
+<simpara>simple-jpa uses Bean Validation API (JSR 303) for validation.  By default, it uses Hibernate Validator as Bean Validation
+ API implementation.  The following are some of common annotations supported by Hibernate Validator:</simpara>
+<table frame="all" rowsep="1" colsep="1">
+<title>Bean Validation Constraints</title>
+<tgroup cols="2">
+<colspec colname="col_1" colwidth="25*"/>
+<colspec colname="col_2" colwidth="75*"/>
+<thead>
+<row>
+<entry align="left" valign="top">Annotation</entry>
+<entry align="left" valign="top">Use</entry>
+</row>
+</thead>
+<tbody>
+<row>
+<entry align="left" valign="top"><simpara>@NotNull</simpara></entry>
+<entry align="left" valign="top"><simpara>Checks that the annotated value is not null</simpara></entry>
+</row>
+<row>
+<entry align="left" valign="top"><simpara>@NotBlank</simpara></entry>
+<entry align="left" valign="top"><simpara>Checks that the annotated character sequence is not null and the trimmed length is greater than 0.</simpara></entry>
+</row>
+<row>
+<entry align="left" valign="top"><simpara>@NotEmpty</simpara></entry>
+<entry align="left" valign="top"><simpara>Can be used for Collection to check whether the annotated element is not null or empty.</simpara></entry>
+</row>
+<row>
+<entry align="left" valign="top"><simpara>@Size(min=,max=)</simpara></entry>
+<entry align="left" valign="top"><simpara>Checks if the annotated element&#8217;s size is between min and max (inclusive).</simpara></entry>
+</row>
+<row>
+<entry align="left" valign="top"><simpara>@Max(value=)</simpara></entry>
+<entry align="left" valign="top"><simpara>Checks whether the annotated value is less than or equal to the specified maximum.</simpara></entry>
+</row>
+<row>
+<entry align="left" valign="top"><simpara>@Min(value=)</simpara></entry>
+<entry align="left" valign="top"><simpara>Checks whether the annotated value is higher than or equal to the specified minimum.</simpara></entry>
+</row>
+</tbody>
+</tgroup>
+</table>
+</section>
 </section>
 <section xml:id="swing-builder">
 <title>Swing Builder</title>
@@ -891,7 +931,7 @@ from database and check if user&#8217;s password is correct.</simpara>
 </mediaobject>
 </figure>
 <simpara>If user cancels the dialog, simple-jpa will terminate the application.  If user enters the correct credentials (which means
-<literal>LoginService.authenticate()</literal> return <literal>true</literal>), simple-jpa will display startup group as usual.</simpara>
+<literal>LoginService.authenticate()</literal> returns <literal>true</literal>), simple-jpa will display startup group as usual.</simpara>
 </section>
 </section>
 <section xml:id="finders">

@@ -1,0 +1,23 @@
+<div id="mask"></div>
+<script type="text/javascript">
+var gaJsHost = (("https:" == document.location.protocol) ? "https://ssl." : "http://www.");
+document.write(unescape("%3Cscript src='" + gaJsHost + "google-analytics.com/ga.js' type='text/javascript'%3E%3C/script%3E"));
+try {
+  var pageTracker = _gat._getTracker("UA-41202290-1");
+  pageTracker._trackPageview();
+} catch(err) {}
+var navIcon = document.getElementById('nav-icon');
+var toc = document.getElementById('toc');
+var mask = document.getElementById('mask');
+function navIconClick() {
+    toc.style.visibility = 'visible';
+    mask.style.visibility = 'visible';
+}
+function hideToc() {
+    toc.style.visibility = 'hidden';
+    mask.style.visibility = 'hidden';
+}
+navIcon.addEventListener('click', navIconClick);
+toc.addEventListener('click', hideToc);
+mask.addEventListener('click', hideToc);
+</script>

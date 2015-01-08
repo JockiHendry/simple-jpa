@@ -5,7 +5,7 @@
 <article xmlns="http://docbook.org/ns/docbook" xmlns:xlink="http://www.w3.org/1999/xlink" version="5.0" lang="en">
 <info>
 <title>Untitled</title>
-<date>2014-08-20</date>
+<date>2014-09-28</date>
 </info>
 <section xml:id="_auditing">
 <title>Auditing</title>
@@ -240,7 +240,7 @@ from database and check if user&#8217;s password is correct.</simpara>
 </mediaobject>
 </figure>
 <simpara>If user cancels the dialog, simple-jpa will terminate the application.  If user enters the correct credentials (which means
-<literal>LoginService.authenticate()</literal> return <literal>true</literal>), simple-jpa will display startup group as usual.</simpara>
+<literal>LoginService.authenticate()</literal> returns <literal>true</literal>), simple-jpa will display startup group as usual.</simpara>
 </section>
 </section>
 </article>

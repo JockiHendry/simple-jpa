@@ -7,27 +7,15 @@
 <meta name="generator" content="Asciidoctor 1.5.0.preview.7">
 <meta name="description" content="This guide is a documentation for simple-jpa plugin for Griffon.">
 <meta name="keywords" content="simplejpa">
-<meta name="author" content="Version 0.8">
-<title>Documentation for simple-jpa</title>
-<link rel="stylesheet" href="../stylesheets/asciidoctor.css">
+<title>simple-jpa 0.8</title>
+<link rel="stylesheet" href="../stylesheets/simplejpadoc.css">
 <link rel="stylesheet" href="http://cdnjs.cloudflare.com/ajax/libs/font-awesome/3.2.1/css/font-awesome.min.css">
 <link rel="stylesheet" href="../stylesheets/coderay-asciidoctor.css">
-<script type="text/javascript">
-var gaJsHost = (("https:" == document.location.protocol) ? "https://ssl." : "http://www.");
-document.write(unescape("%3Cscript src='" + gaJsHost + "google-analytics.com/ga.js' type='text/javascript'%3E%3C/script%3E"));
-</script>
-<script type="text/javascript">
-try {
-  var pageTracker = _gat._getTracker("UA-41202290-1");
-  pageTracker._trackPageview();
-} catch(err) {}
-</script>
 </head>
-<body class="article toc2 toc-left">
+<body class="article">
 <div id="header">
-<h1>Documentation for simple-jpa</h1>
-<span id="author" class="author">Version 0.8</span><br>
-<div id="toc" class="toc2">
+<h1><i class="icon-reorder" id='nav-icon'></i> simple-jpa 0.8</h1>
+<div id="toc" class="toc">
 <div id="toctitle">Table of Contents</div>
 <ul class="sectlevel1">
 <li><a href="#introduction">1. Introduction</a></li>
@@ -42,6 +30,11 @@ try {
 </ul>
 </li>
 <li><a href="#validation">4. Validation</a></li>
+<li>
+<ul class="sectlevel2">
+<li><a href="#bean-validation-api">4.1. Bean Validation API</a></li>
+</ul>
+</li>
 <li><a href="#swing-builder">5. Swing Builder</a></li>
 <li><a href="#persistence">6. Persistence</a></li>
 <li><a href="#auditing">7. Auditing</a></li>
@@ -121,13 +114,6 @@ try {
 </div>
 </div>
 <div id="content">
-<div id="preamble">
-<div class="sectionbody">
-<div class="paragraph">
-<p>A complete solution for developing full stack desktop applications in Griffon.</p>
-</div>
-</div>
-</div>
 <div class="sect1">
 <h2 id="introduction">1. Introduction</h2>
 <div class="sectionbody">
@@ -325,6 +311,22 @@ example, the following command will generate <code>teacher</code> MVC group and 
 <div class="content">
 <pre>griffon generate-all -setStartup Teacher</pre>
 </div>
+</div>
+<div class="admonitionblock important">
+<table>
+<tr>
+<td class="icon">
+<i class="icon-important" title="Important"></i>
+</td>
+<td class="content">
+<div class="paragraph">
+<p>Since 0.8, simple-jpa generates view as a panel.  Because the generated view doesn&#8217;t have top level container
+such as <code>JFrame</code>, it can&#8217;t be displayed by itself.  The recommended way to present the view is by creating a
+startup group that will act as top level container.</p>
+</div>
+</td>
+</tr>
+</table>
 </div>
 <div class="paragraph">
 <p>simple-jpa can also create a dedicated startup group that serves as container for existing domain class
@@ -1022,7 +1024,52 @@ files for individual domain class.</p>
 <div class="sect1">
 <h2 id="validation">4. Validation</h2>
 <div class="sectionbody">
-
+<div class="sect2">
+<h3 id="bean-validation-api">4.1. Bean Validation API</h3>
+<div class="paragraph">
+<p>simple-jpa uses Bean Validation API (JSR 303) for validation.  By default, it uses Hibernate Validator as Bean Validation
+ API implementation.  The following are some of common annotations supported by Hibernate Validator:</p>
+</div>
+<table class="tableblock frame-all grid-all" style="width: 100%;">
+<caption class="title">Table 3. Bean Validation Constraints</caption>
+<colgroup>
+<col style="width: 25%;">
+<col style="width: 75%;">
+</colgroup>
+<thead>
+<tr>
+<th class="tableblock halign-left valign-top">Annotation</th>
+<th class="tableblock halign-left valign-top">Use</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">@NotNull</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Checks that the annotated value is not null</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">@NotBlank</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Checks that the annotated character sequence is not null and the trimmed length is greater than 0.</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">@NotEmpty</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Can be used for Collection to check whether the annotated element is not null or empty.</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">@Size(min=,max=)</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Checks if the annotated element&#8217;s size is between min and max (inclusive).</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">@Max(value=)</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Checks whether the annotated value is less than or equal to the specified maximum.</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">@Min(value=)</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Checks whether the annotated value is higher than or equal to the specified minimum.</p></td>
+</tr>
+</tbody>
+</table>
+</div>
 </div>
 </div>
 <div class="sect1">
@@ -1046,7 +1093,7 @@ files for individual domain class.</p>
 <p>Classes annotated by <code>@DomainClass</code> will automatically have the following auditing properties:</p>
 </div>
 <table class="tableblock frame-all grid-all" style="width: 100%;">
-<caption class="title">Table 3. Auditing Properties In Domain Class</caption>
+<caption class="title">Table 4. Auditing Properties In Domain Class</caption>
 <colgroup>
 <col style="width: 50%;">
 <col style="width: 50%;">
@@ -1163,7 +1210,7 @@ a custom formatter, style for both date and time can be specified in <code>Confi
 <p>The following is list of available styles (see <a href="http://docs.oracle.com/javase/tutorial/i18n/format/dateFormat.html">http://docs.oracle.com/javase/tutorial/i18n/format/dateFormat.html</a> for more information):</p>
 </div>
 <table class="tableblock frame-all grid-all" style="width: 100%;">
-<caption class="title">Table 4. Possible Values for Date Time Style Configuration</caption>
+<caption class="title">Table 5. Possible Values for Date Time Style Configuration</caption>
 <colgroup>
 <col style="width: 33%;">
 <col style="width: 33%;">
@@ -1358,7 +1405,7 @@ from database and check if user&#8217;s password is correct.</p>
 </div>
 <div class="paragraph">
 <p>If user cancels the dialog, simple-jpa will terminate the application.  If user enters the correct credentials (which means
-<code>LoginService.authenticate()</code> return <code>true</code>), simple-jpa will display startup group as usual.</p>
+<code>LoginService.authenticate()</code> returns <code>true</code>), simple-jpa will display startup group as usual.</p>
 </div>
 </div>
 </div>
@@ -1872,7 +1919,7 @@ validation. This feature is disabled by default. To enable it, add the following
 <p>Another scaffolding related configurations are:</p>
 </div>
 <table class="tableblock frame-all grid-all" style="width: 100%;">
-<caption class="title">Table 5. Scaffolding Configuration</caption>
+<caption class="title">Table 6. Scaffolding Configuration</caption>
 <colgroup>
 <col style="width: 33%;">
 <col style="width: 33%;">
@@ -3011,8 +3058,31 @@ println <span class="string"><span class="delimiter">&quot;</span><span class="c
 </div>
 <div id="footer">
 <div id="footer-text">
-Last updated 2014-08-14 23:58:49 ICT
+Last updated 2015-01-08 20:10:28 ICT
 </div>
+<div id="mask"></div>
+<script type="text/javascript">
+var gaJsHost = (("https:" == document.location.protocol) ? "https://ssl." : "http://www.");
+document.write(unescape("%3Cscript src='" + gaJsHost + "google-analytics.com/ga.js' type='text/javascript'%3E%3C/script%3E"));
+try {
+  var pageTracker = _gat._getTracker("UA-41202290-1");
+  pageTracker._trackPageview();
+} catch(err) {}
+var navIcon = document.getElementById('nav-icon');
+var toc = document.getElementById('toc');
+var mask = document.getElementById('mask');
+function navIconClick() {
+    toc.style.visibility = 'visible';
+    mask.style.visibility = 'visible';
+}
+function hideToc() {
+    toc.style.visibility = 'hidden';
+    mask.style.visibility = 'hidden';
+}
+navIcon.addEventListener('click', navIconClick);
+toc.addEventListener('click', hideToc);
+mask.addEventListener('click', hideToc);
+</script>
 </div>
 </body>
 </html>

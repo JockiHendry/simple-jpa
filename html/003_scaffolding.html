@@ -517,6 +517,22 @@ example, the following command will generate <code>teacher</code> MVC group and 
 <pre>griffon generate-all -setStartup Teacher</pre>
 </div>
 </div>
+<div class="admonitionblock important">
+<table>
+<tr>
+<td class="icon">
+<div class="title">Important</div>
+</td>
+<td class="content">
+<div class="paragraph">
+<p>Since 0.8, simple-jpa generates view as a panel.  Because the generated view doesn&#8217;t have top level container
+such as <code>JFrame</code>, it can&#8217;t be displayed by itself.  The recommended way to present the view is by creating a
+startup group that will act as top level container.</p>
+</div>
+</td>
+</tr>
+</table>
+</div>
 <div class="paragraph">
 <p>simple-jpa can also create a dedicated startup group that serves as container for existing domain class
 based MVC groups.  To generate a dedicated startup group, <code>-startupGroup</code> parameter should be used with
@@ -1213,7 +1229,7 @@ class MyGenerator extends BasicGenerator {
 </div>
 <div id="footer">
 <div id="footer-text">
-Last updated 2014-08-18 17:55:19 ICT
+Last updated 2014-10-11 14:53:57 ICT
 </div>
 </div>
 </body>
