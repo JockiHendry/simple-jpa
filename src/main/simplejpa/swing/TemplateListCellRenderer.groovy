@@ -1,5 +1,5 @@
 /*
- * Copyright 2013 Jocki Hendry.
+ * Copyright 2015 Jocki Hendry.
  *
  * Licensed under the Apache License, Version 2.0 (the 'License');
  * you may not use this file except in compliance with the License.
@@ -20,10 +20,8 @@ import groovy.text.SimpleTemplateEngine
 import groovy.text.Template
 
 import javax.swing.*
-import javax.swing.plaf.basic.BasicComboBoxRenderer
 import java.awt.*
 
-@Deprecated
 public class TemplateListCellRenderer extends JLabel implements ListCellRenderer {
 
     private Template template

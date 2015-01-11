@@ -1,5 +1,5 @@
 /*
- * Copyright 2013 Jocki Hendry.
+ * Copyright 2015 Jocki Hendry.
  *
  * Licensed under the Apache License, Version 2.0 (the 'License');
  * you may not use this file except in compliance with the License.
@@ -32,13 +32,10 @@ import simplejpa.swing.glazed.factory.GlazedTableFactory
 import simplejpa.swing.MVCPopupButtonFactory
 import simplejpa.swing.MaskTextFieldFactory
 import simplejpa.swing.DateTimePicker
-import simplejpa.swing.EventTableModelFactory
 import simplejpa.swing.NumberTextFieldFactory
-import simplejpa.swing.TableColumnConfig
 import simplejpa.swing.TagChooser
 import simplejpa.swing.TemplateListCellRenderer
 import simplejpa.swing.glazed.factory.TemplateRendererFactory
-import simplejpa.transaction.Transaction
 import simplejpa.validation.BasicHighlightErrorNotification
 import simplejpa.validation.ConverterFactory
 import simplejpa.validation.DateTimePickerErrorCleaner
@@ -192,8 +189,6 @@ class SimpleJpaGriffonAddon {
         errorLabel: new ErrorLabelFactory(),
         toInteger: new ConverterFactory(ConverterFactory.TYPE.INTEGER),
         toReverseString: new ConverterFactory(ConverterFactory.TYPE.REVERSE_STRING),
-        eventTableModel: new EventTableModelFactory(),
-        tableColumnConfig: new TableColumnConfig(),
         mvcPopupButton: new MVCPopupButtonFactory(),
 
         glazedTable: new GlazedTableFactory(),
