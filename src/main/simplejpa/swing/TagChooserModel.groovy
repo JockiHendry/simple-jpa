@@ -1,5 +1,5 @@
 /*
- * Copyright 2013 Jocki Hendry.
+ * Copyright 2015 Jocki Hendry.
  *
  * Licensed under the Apache License, Version 2.0 (the 'License');
  * you may not use this file except in compliance with the License.
@@ -14,13 +14,14 @@
  * limitations under the License.
  */
 
+
+
 package simplejpa.swing
 
 import groovy.text.SimpleTemplateEngine
-import groovy.text.Template
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
-
+import simplejpa.swing.template.TemplateRenderer
 import javax.swing.DefaultComboBoxModel
 import java.beans.PropertyChangeListener
 import java.beans.PropertyChangeSupport
@@ -32,17 +33,15 @@ class TagChooserModel {
 
     List values
     List selectedValues
-    def templateString
+    def templateRenderer
     boolean allowMultiple
     DefaultComboBoxModel comboBoxModel
-
-    def template
     PropertyChangeSupport pcs = new PropertyChangeSupport(this)
 
     public TagChooserModel() {
         selectedValues = []
         values = []
-        templateString = '${value}'
+        templateRenderer = 'this'
         comboBoxModel = new DefaultComboBoxModel(values.toArray())
         refreshTemplateValues()
         allowMultiple = false
@@ -106,14 +105,11 @@ class TagChooserModel {
         pcs.firePropertyChange("selectedValues", null, selectedValues)
     }
 
-    public void setTemplateString(def templateString) {
-        def oldTemplateString = this.templateString
-        this.templateString = templateString
-        if (templateString instanceof String) {
-            template = new SimpleTemplateEngine().createTemplate(templateString)
-        }
+    public void setTemplateRenderer(def template) {
+        def oldTemplateString = this.templateRenderer
+        this.templateRenderer = template
         refreshTemplateValues()
-        pcs.firePropertyChange("templateString", oldTemplateString, templateString)
+        pcs.firePropertyChange("templateString", oldTemplateString, template)
     }
 
     public void refreshTemplateValues() {
@@ -122,15 +118,9 @@ class TagChooserModel {
 
     String render(def value) {
         if (value==null || value=="This is a prototype display") return ""
-        if (templateString instanceof Closure) {
-            return templateString.call(value)
-        } else {
-            if (template) {
-                return TemplateRenderer?.make(template,value) ?: value?.toString()
-            } else {
-                return value?.toString() ?: ""
-            }
-        }
+        TemplateRenderer renderer = new TemplateRenderer()
+        renderer.add(templateRenderer)
+        renderer.make(value)
     }
 
     public void addPropertyChangeListener(PropertyChangeListener listener) {

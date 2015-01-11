@@ -14,6 +14,10 @@
  * limitations under the License.
  */
 
+
+
+
+
 import griffon.swing.SwingApplication
 import groovy.swing.factory.BeanFactory
 import org.codehaus.griffon.runtime.core.AbstractGriffonClass
@@ -34,7 +38,7 @@ import simplejpa.swing.MaskTextFieldFactory
 import simplejpa.swing.DateTimePicker
 import simplejpa.swing.NumberTextFieldFactory
 import simplejpa.swing.TagChooser
-import simplejpa.swing.TemplateListCellRenderer
+import simplejpa.swing.template.TemplateListCellRenderer
 import simplejpa.swing.glazed.factory.TemplateRendererFactory
 import simplejpa.validation.BasicHighlightErrorNotification
 import simplejpa.validation.ConverterFactory
@@ -257,11 +261,13 @@ class SimpleJpaGriffonAddon {
 
             }
             if (attributes.get('templateRenderer')!=null) {
-                String templateString = attributes.remove('templateRenderer')
+                def template = attributes.remove('templateRenderer')
                 if (node instanceof JComboBox) {
-                    node.setRenderer(new TemplateListCellRenderer(templateString))
+                    node.setRenderer(new TemplateListCellRenderer(template))
                 } else if (node instanceof JList) {
-                    node.setCellRenderer(new TemplateListCellRenderer(templateString))
+                    node.setCellRenderer(new TemplateListCellRenderer(template))
+                } else if (node instanceof TagChooser) {
+                    node.setTemplateRenderer(template)
                 } else {
                     throw new Exception("templateRenderer can't be applied to $node")
                 }

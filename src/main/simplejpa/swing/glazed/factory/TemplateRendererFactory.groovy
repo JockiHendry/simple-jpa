@@ -1,5 +1,5 @@
 /*
- * Copyright 2013 Jocki Hendry.
+ * Copyright 2015 Jocki Hendry.
  *
  * Licensed under the Apache License, Version 2.0 (the 'License');
  * you may not use this file except in compliance with the License.
@@ -16,7 +16,7 @@
 
 package simplejpa.swing.glazed.factory
 
-import simplejpa.swing.glazed.renderer.TemplateTableCellRenderer
+import simplejpa.swing.template.TemplateTableCellRenderer
 
 class TemplateRendererFactory extends ConditionRendererFactory {
 
@@ -24,13 +24,14 @@ class TemplateRendererFactory extends ConditionRendererFactory {
     Object newInstance(FactoryBuilderSupport builder, Object name, Object value, Map attributes) throws InstantiationException, IllegalAccessException {
         def result
         def template
+        def keys
 
         if (FactoryBuilderSupport.checkValueIsType(value, name, String)) {
             template = value
         } else if (FactoryBuilderSupport.checkValueIsType(value, name, TemplateTableCellRenderer)) {
             return value
         } else {
-            def keys = ['templateString', 'templateExpression', 'exp']
+            keys = ['templateString', 'templateExpression', 'exp']
             for (String s: keys) {
                 template = attributes.remove(s)
             }

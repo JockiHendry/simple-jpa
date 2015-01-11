@@ -169,3 +169,4 @@ First release into griffon artifacts portal.
 1. Changes `DbUnitTestCase` to execute `before.sql` before `setUpDatabase()` and `after.sql` after `setUpDatabase()` operation.
 1. Split setup method in `DbUnitTestCase` to `loadMVC()` and `setUpDatabase()`.
 1. Add `confirm()` and `message()` to `DialogUtils` that will display message dialogs from EDT thread.
+1. Don't execute String in templateRenderer node using SimpleTemplateEngine but treats it as property/function lookup (use closure for more complex expression).

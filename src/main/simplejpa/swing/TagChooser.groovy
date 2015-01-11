@@ -1,5 +1,5 @@
 /*
- * Copyright 2013 Jocki Hendry.
+ * Copyright 2015 Jocki Hendry.
  *
  * Licensed under the Apache License, Version 2.0 (the 'License');
  * you may not use this file except in compliance with the License.
@@ -23,7 +23,6 @@ import org.jdesktop.swingx.autocomplete.AutoCompleteDecorator
 import org.jdesktop.swingx.autocomplete.ObjectToStringConverter
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
-
 import javax.swing.BorderFactory
 import javax.swing.ImageIcon
 import javax.swing.JButton
@@ -50,7 +49,7 @@ class TagChooser extends JPanel {
     private static final Logger LOG = LoggerFactory.getLogger(TagChooser)
 
     TagChooserModel model
-    def templateString
+    def templateRenderer
 
     Closure selectedValueChanged  // will be called when model.selectedValues changed
 
@@ -174,8 +173,8 @@ class TagChooser extends JPanel {
         this.model = model
     }
 
-    public void setTemplateString(def templateString) {
-        model.setTemplateString(templateString)
+    public void setTemplateRenderer(def templateRenderer) {
+        model.setTemplateRenderer(templateRenderer)
     }
 
     class PanelSelectedItems extends JXPanel {
