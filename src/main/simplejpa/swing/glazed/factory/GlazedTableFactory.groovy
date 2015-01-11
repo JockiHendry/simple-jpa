@@ -1,5 +1,5 @@
 /*
- * Copyright 2013 Jocki Hendry.
+ * Copyright 2015 Jocki Hendry.
  *
  * Licensed under the Apache License, Version 2.0 (the 'License');
  * you may not use this file except in compliance with the License.
@@ -19,6 +19,7 @@ package simplejpa.swing.glazed.factory
 import ca.odell.glazedlists.impl.gui.SortingStrategy
 import simplejpa.swing.glazed.GlazedColumn
 import simplejpa.swing.glazed.GlazedTable
+import javax.swing.JMenuItem
 
 class GlazedTableFactory extends AbstractFactory {
 
@@ -50,9 +51,11 @@ class GlazedTableFactory extends AbstractFactory {
         GlazedTable table = (GlazedTable) parent
         if (child instanceof GlazedColumn) {
             if (!child.expression && !child.property) {
-                throw new IllegalArgumentException("In eventColumn you must define a value for then_property_ or expression")
+                throw new IllegalArgumentException("In glazedColumn you must define a value for property or expression")
             }
             table.addEventColumn(child)
+        } else if (child instanceof JMenuItem) {
+            table.addPopupMenuItem(child)
         }
     }
 

@@ -1,5 +1,5 @@
 /*
- * Copyright 2013 Jocki Hendry.
+ * Copyright 2015 Jocki Hendry.
  *
  * Licensed under the Apache License, Version 2.0 (the 'License');
  * you may not use this file except in compliance with the License.
@@ -14,6 +14,8 @@
  * limitations under the License.
  */
 
+
+
 package simplejpa.swing.glazed
 
 import ca.odell.glazedlists.EventList
@@ -23,20 +25,30 @@ import ca.odell.glazedlists.swing.AdvancedTableModel
 import ca.odell.glazedlists.swing.GlazedListsSwing
 import ca.odell.glazedlists.swing.TableComparatorChooser
 import groovy.beans.Bindable
-import org.codehaus.groovy.binding.SourceBinding
 import simplejpa.swing.glazed.renderer.DefaultTableHeaderRenderer
 import javax.swing.*
 import javax.swing.table.JTableHeader
 import javax.swing.table.TableColumnModel
 import java.awt.Color
+import java.awt.Toolkit
+import java.awt.datatransfer.StringSelection
 import java.awt.event.ActionEvent
 import java.awt.event.KeyEvent
 import java.awt.event.MouseAdapter
 import java.awt.event.MouseEvent
 import java.beans.PropertyChangeEvent
 import java.beans.PropertyChangeListener
+import java.text.MessageFormat
+import griffon.util.*
 
 class GlazedTable extends JTable implements PropertyChangeListener {
+
+    static final MessageFormat printHeader, printFooter
+
+    static {
+        printHeader = new MessageFormat(ApplicationHolder.application.getMessage('simplejpa.table.print.header', ''))
+        printFooter = new MessageFormat(ApplicationHolder.application.getMessage('simplejpa.table.print.footer', 'Page {0}'))
+    }
 
     EventList eventList
     List<GlazedColumn> eventColumns = []
@@ -49,6 +61,7 @@ class GlazedTable extends JTable implements PropertyChangeListener {
     GlazedTableFormat tableFormat
     Action doubleClickAction
     Action enterKeyAction
+    List<JMenuItem> popupMenuItems = []
 
     private static final Random random = new Random()
 
@@ -141,6 +154,43 @@ class GlazedTable extends JTable implements PropertyChangeListener {
             }
         }
 
+        // Begin adding popup menu
+        JPopupMenu popupMenu = new JPopupMenu()
+
+        // 'Copy Cell' menu
+        Action copyCellAction = new AbstractAction('Copy Cell') {
+            @Override
+            void actionPerformed(ActionEvent e) {
+                int r = getSelectedRow()
+                int c = getSelectedColumn()
+                if ((r >= 0) && (c >= 0)) {
+                    String v = getValueAt(r, c)
+                    Toolkit.defaultToolkit.systemClipboard.setContents(new StringSelection(v), null)
+                }
+            }
+        }
+        JMenuItem menuCopy = new JMenuItem(copyCellAction)
+        getActionMap().put('copyCell', copyCellAction)
+        popupMenu.add(menuCopy)
+
+        // 'Print' menu
+        Action printAction = new AbstractAction('Print') {
+            @Override
+            void actionPerformed(ActionEvent e) {
+                print(JTable.PrintMode.FIT_WIDTH, printHeader, printFooter)
+            }
+        }
+        JMenuItem menuPrint = new JMenuItem(printAction)
+        popupMenu.add(menuPrint)
+
+        if (!popupMenuItems.empty) {
+            popupMenu.addSeparator()
+            for (JMenuItem menuItem: popupMenuItems) {
+                popupMenu.add(menuItem)
+            }
+        }
+        setComponentPopupMenu(popupMenu)
+
         // Refresh
         UIManager.getLookAndFeelDefaults().put("Table.alternateRowColor", new Color(242,242,242))
         updateUI()
@@ -175,4 +225,9 @@ class GlazedTable extends JTable implements PropertyChangeListener {
             }
         }
     }
+
+    void addPopupMenuItem(JMenuItem menuItem) {
+        popupMenuItems << menuItem
+    }
+
 }

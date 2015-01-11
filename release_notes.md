@@ -170,3 +170,5 @@ First release into griffon artifacts portal.
 1. Split setup method in `DbUnitTestCase` to `loadMVC()` and `setUpDatabase()`.
 1. Add `confirm()` and `message()` to `DialogUtils` that will display message dialogs from EDT thread.
 1. Don't execute String in templateRenderer node using SimpleTemplateEngine but treats it as property/function lookup (use closure for more complex expression).
+1. Add default popup menu for `glazedTable()` to copy a cell value and print table's content.
+1. Allow using `menuItem()` inside `glazedTable()` to define menu items for popup menu.
