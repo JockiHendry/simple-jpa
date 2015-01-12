@@ -16,6 +16,8 @@
 
 
 
+
+
 package simplejpa.swing.template
 
 import java.text.NumberFormat
@@ -67,27 +69,27 @@ class TemplateRenderer {
     }
 
     String numberFormat(def v) {
-        NumberFormat.getInstance().format(v)
+        (v == null)? '': NumberFormat.getInstance().format(v)
     }
 
     String percentFormat(def v) {
-        NumberFormat.getPercentInstance().format(v)
+        (v == null)? '': NumberFormat.getPercentInstance().format(v)
     }
 
     String currencyFormat(def v) {
-        NumberFormat.getCurrencyInstance().format(v)
+        (v == null)? '': NumberFormat.getCurrencyInstance().format(v)
     }
 
     String lowerCase(def v) {
-        (v as String).toLowerCase()
+        (v == null)? '': (v as String).toLowerCase()
     }
 
     String upperCase(def v) {
-        (v as String).toUpperCase()
+        (v == null)? '': (v as String).toUpperCase()
     }
 
     String titleCase(def v) {
-        (v as String).replaceAll(/\b[a-z]/, {v.toUpperCase()})
+        (v == null)? '': (v as String).replaceAll(/\b[a-z]/, {v.toUpperCase()})
     }
 
 }
