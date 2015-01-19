@@ -1,8 +1,24 @@
+/*
+ * Copyright 2015 Jocki Hendry.
+ *
+ * Licensed under the Apache License, Version 2.0 (the 'License');
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *      http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an 'AS IS' BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
 package simplejpa.transaction
 
+import org.codehaus.groovy.runtime.StackTraceUtils
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
-
 import javax.persistence.EntityManager
 import javax.persistence.EntityTransaction
 
@@ -35,36 +51,53 @@ class TransactionHolder {
         em.transaction
     }
 
+    public void debug(String message) {
+        if (LOG.isDebugEnabled()) {
+            StackTraceElement[] traces = Thread.currentThread().getStackTrace()
+            StackTraceElement caller
+            for (StackTraceElement e: traces) {
+                if (StackTraceUtils.isApplicationClass(e.className)) {
+                    if (e.className.startsWith('simplejpa') || e.className.startsWith('java_lang_Thread') ||
+                        e.className.startsWith('org.codehaus.griffon')) {
+                            continue
+                    }
+                    caller = e
+                    break
+                }
+            }
+            LOG.debug("${caller?:traces[0]}: $message")
+        }
+    }
+
     public boolean beginTransaction(boolean resume = true) {
         assert em != null
         if (resumeLevel > 0) {
             if (!resume) {
-                LOG.debug "Commiting transaction."
+                debug "Commiting transaction."
                 em.transaction.commit()
-                LOG.debug "Starting new transaction."
+                debug "Starting new transaction."
                 em.transaction.begin()
                 resumeLevel = 1
                 return true
             } else {
                 resumeLevel++
-                LOG.debug "Resuming from previous transaction, now in tr [$resumeLevel]."
+                debug "Resuming from previous transaction, now in tr [$resumeLevel]."
                 return false
             }
         } else if (resumeLevel==0) {
-            LOG.debug "Start a new transaction..."
+            debug "Start a new transaction..."
             if (!em.transaction.active) {
                 em.transaction.begin()
             }
             resumeLevel = 1
-            LOG.debug "Now in tr [$resumeLevel]."
+            debug "Now in tr [$resumeLevel]."
             return true
         }
 
     }
 
     public boolean commitTransaction() {
-        assert em != null
-        LOG.debug "Trying to ${isRollback?'rollback':'commit'} from tr [$resumeLevel] from thread ${Thread.currentThread().id}"
+        debug "Trying to ${isRollback?'rollback':'commit'} from tr [$resumeLevel] from thread ${Thread.currentThread().id}"
         if (resumeLevel>0) {
             boolean commit = false
             if (resumeLevel==1) {
@@ -72,47 +105,46 @@ class TransactionHolder {
                     rollbackTransaction()
                     return false
                 }
-                LOG.debug "Commiting transaction..."
+                debug "Commiting transaction..."
                 try {
                     em.transaction.commit()
                     commit = true
                 } catch (Exception ex) {
-                    LOG.error "Exception while committing!", ex
+                    debug "Exception while committing!", ex
                     throw ex
                 }
                 finally {
-                    LOG.debug "After committing, tr [$resumeLevel]."
+                    debug "After committing, tr [$resumeLevel]."
                     resumeLevel--
                 }
             } else {
-                LOG.debug "Not committing yet [$resumeLevel]."
+                debug "Not committing yet [$resumeLevel]."
                 resumeLevel--
             }
-            LOG.debug "Now in tr  [${resumeLevel>0?resumeLevel:'no transaction'}]."
+            debug "Now in tr  [${resumeLevel>0?resumeLevel:'no transaction'}]."
             return commit
         } else if (resumeLevel==0) {
-            LOG.debug "Can't commit: Not inside a transaction. This is normal if transaction was rollbacked due to exception."
+            debug "Can't commit: Not inside a transaction. This is normal if transaction was rollbacked due to exception."
             return false
         }
     }
 
     public boolean rollbackTransaction() {
-        assert em != null
         if (resumeLevel==0) {
-            LOG.debug "Can't rollback: Not inside a transaction."
+            debug "Can't rollback: Not inside a transaction."
             return false
         } else if (resumeLevel==1) {
-            LOG.debug "Rollback transaction..."
+            debug "Rollback transaction..."
             try {
                 em.transaction.rollback()
             } finally {
                 resumeLevel = 0
-                LOG.debug "Now in [no transaction]."
+                debug "Now in [no transaction]."
                 isRollback = false
                 return true
             }
         } else if (resumeLevel > 1) {
-            LOG.debug "No rollback yet [$resumeLevel]"
+            debug "No rollback yet [$resumeLevel]"
             isRollback = true
             resumeLevel--
             return false
