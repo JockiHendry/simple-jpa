@@ -18,6 +18,8 @@
 
 
 
+
+
 import griffon.swing.SwingApplication
 import groovy.swing.factory.BeanFactory
 import org.codehaus.griffon.runtime.core.AbstractGriffonClass
@@ -119,8 +121,6 @@ class SimpleJpaGriffonAddon {
             target.metaClass.commitTransaction = simpleJpaHandler.commitTransaction
             target.metaClass.rollbackTransaction = simpleJpaHandler.rollbackTransaction
             target.metaClass.return_failed = simpleJpaHandler.returnFailed
-            target.metaClass.createEntityManager = simpleJpaHandler.createEntityManager
-            target.metaClass.destroyEntityManager = simpleJpaHandler.destroyEntityManager
             target.metaClass.getEntityManager = simpleJpaHandler.getEntityManager
             target.metaClass.withTransaction = simpleJpaHandler.withTransaction
 

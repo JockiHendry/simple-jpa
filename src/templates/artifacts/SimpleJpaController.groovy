@@ -16,11 +16,6 @@ class ${g.domainClassName}Controller {
 		listAll()
 	}
 
-	void mvcGroupDestroy() {
-		destroyEntityManager()
-	}
-
-	@Transaction(newSession = true)
 	def listAll = {
 		execInsideUISync {
 ${g.listAll_clear(3)}
@@ -33,7 +28,6 @@ ${g.listAll_set(3)}
 		}
 	}
 
-	@Transaction(newSession = true)
 	def search = {
         List result = findAll${g.domainClassName}ByDsl {
             if (model.${g.firstAttrSearch}?.length() > 0) {

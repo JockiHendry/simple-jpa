@@ -17,10 +17,6 @@ class ${g.customClassName}Controller {
 		listAll()
 	}
 
-	void mvcGroupDestroy() {
-		destroyEntityManager()
-	}
-
 	def listAll = {
 <%
     out << g.sub_listAll_clear(2)

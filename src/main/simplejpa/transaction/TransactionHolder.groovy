@@ -14,6 +14,8 @@
  * limitations under the License.
  */
 
+
+
 package simplejpa.transaction
 
 import org.codehaus.groovy.runtime.StackTraceUtils
@@ -36,12 +38,6 @@ class TransactionHolder {
         this.isRollback = false
     }
 
-    public TransactionHolder(EntityManager em, TransactionHolder another) {
-        this.em = em
-        this.resumeLevel = another.resumeLevel
-        this.isRollback = another.isRollback
-    }
-
     public boolean isInTransaction() {
         return resumeLevel > 0
     }
@@ -51,7 +47,7 @@ class TransactionHolder {
         em.transaction
     }
 
-    public void debug(String message) {
+    public void debug(String message, Exception ex = null) {
         if (LOG.isDebugEnabled()) {
             StackTraceElement[] traces = Thread.currentThread().getStackTrace()
             StackTraceElement caller
@@ -65,14 +61,13 @@ class TransactionHolder {
                     break
                 }
             }
-            LOG.debug("${caller?:traces[0]}: $message")
+            LOG.debug("${caller?:traces[0]}: $message", ex)
         }
     }
 
-    public boolean beginTransaction(boolean resume = true) {
-        assert em != null
+    public boolean beginTransaction(boolean propagate = true) {
         if (resumeLevel > 0) {
-            if (!resume) {
+            if (!propagate) {
                 debug "Commiting transaction."
                 em.transaction.commit()
                 debug "Starting new transaction."
@@ -97,7 +92,7 @@ class TransactionHolder {
     }
 
     public boolean commitTransaction() {
-        debug "Trying to ${isRollback?'rollback':'commit'} from tr [$resumeLevel] from thread ${Thread.currentThread().id}"
+        debug "Trying to ${isRollback?'rollback':'commit'} from tr [$resumeLevel]"
         if (resumeLevel>0) {
             boolean commit = false
             if (resumeLevel==1) {
@@ -108,9 +103,10 @@ class TransactionHolder {
                 debug "Commiting transaction..."
                 try {
                     em.transaction.commit()
+                    em.close()
                     commit = true
                 } catch (Exception ex) {
-                    debug "Exception while committing!", ex
+                    LOG.error "Exception while committing!", ex
                     throw ex
                 }
                 finally {
@@ -137,6 +133,7 @@ class TransactionHolder {
             debug "Rollback transaction..."
             try {
                 em.transaction.rollback()
+                em.close()
             } finally {
                 resumeLevel = 0
                 debug "Now in [no transaction]."

@@ -14,6 +14,8 @@
  * limitations under the License.
  */
 
+
+
 package simplejpa.transaction
 
 import org.codehaus.griffon.ast.AbstractASTTransformation
@@ -132,15 +134,6 @@ public class TransactionTransformation extends AbstractASTTransformation {
         value? Transaction.Policy.valueOf(value.getPropertyAsString()): Transaction.Policy.NORMAL
     }
 
-    private static boolean isResume(AnnotationNode annotation) {
-        return getPolicy(annotation) != Transaction.Policy.SKIP_PROPAGATION
-    }
-
-    private static boolean isNewSession(AnnotationNode annotation) {
-        ConstantExpression value = (ConstantExpression) annotation.getMember("newSession")
-        value?.getValue()?:false
-    }
-
     private static void wrapStatements(MethodNode method, AnnotatedNode node, AnnotationNode annotation) {
         log.debug "Transforming method..."
         Statement code = method.getCode()
@@ -206,15 +199,11 @@ public class TransactionTransformation extends AbstractASTTransformation {
         tryCatchStatement.addCatch(new CatchStatement(new Parameter(new ClassNode(Exception.class), "ex"),
             catchGenericBlock))
 
-        List beginTransactionParams = []
-        beginTransactionParams << new ConstantExpression(isResume(annotation))
-        beginTransactionParams << new ConstantExpression(isNewSession(annotation))
-
         newBlock.addStatement(new ExpressionStatement(new DeclarationExpression(
             new VariableExpression("__transactionError__", new ClassNode(Boolean)), Token.newSymbol("=", 1,1),
             new ConstantExpression(Boolean.FALSE))));
         MethodCallExpression beginTransactionCall = new MethodCallExpression(new VariableExpression("this"),
-                "beginTransaction", new ArgumentListExpression(beginTransactionParams))
+            "beginTransaction", ArgumentListExpression.EMPTY_ARGUMENTS)
         newBlock.addStatement(new ExpressionStatement(beginTransactionCall))
         newBlock.addStatement(tryCatchStatement)
 

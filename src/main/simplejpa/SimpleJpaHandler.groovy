@@ -1,5 +1,5 @@
 /*
- * Copyright 2013 Jocki Hendry.
+ * Copyright 2015 Jocki Hendry.
  *
  * Licensed under the Apache License, Version 2.0 (the 'License');
  * you may not use this file except in compliance with the License.
@@ -60,13 +60,11 @@ final class SimpleJpaHandler {
     final Validator validator
     final boolean alwaysExcludeSoftDeleted
     final boolean alwaysAllowDuplicate
-    final EntityManagerLifespan entityManagerLifespan
     final FlushModeType defaultFlushMode
     final NameConverter nameConverter
-
     final ConcurrentReaderHashMap mapEntityList = new ConcurrentReaderHashMap()
     private boolean convertEmptyStringToNull
-    final ConcurrentReaderHashMap mapTransactionHolder = new ConcurrentReaderHashMap()
+    ThreadLocal<TransactionHolder> transactions = new ThreadLocal<>()
 
     WithTransactionHandler withTransactionHandler
 
@@ -81,8 +79,6 @@ final class SimpleJpaHandler {
         // Initialize fields from related configurations
         //
         griffon.core.GriffonApplication app = griffon.util.ApplicationHolder.application
-        this.entityManagerLifespan = ConfigUtils.getConfigValue(app.config,
-            'griffon.simplejpa.entityManager.lifespan', 'TRANSACTION').toUpperCase()
         this.defaultFlushMode = ConfigUtils.getConfigValue(app.config,
             'griffon.simplejpa.entityManager.defaultFlushMode', 'AUTO').toUpperCase()
         this.prefix = ConfigUtils.getConfigValueAsString(app.config, 'griffon.simplejpa.finders.prefix', '')
@@ -96,7 +92,6 @@ final class SimpleJpaHandler {
 
         if (LOG.isDebugEnabled()) {
             LOG.debug "SimpleJpaHandler initializd with the following configuration: \n" +
-                "griffon.simplejpa.entityManager.lifespan = $entityManagerLifespan\n" +
                 "griffon.simplejpa.entityManager.defaultFlushMode = $defaultFlushMode\n" +
                 "griffon.simplejpa.method.prefix = $prefix\n" +
                 "griffon.simplejpa.domain.package = $domainClassPackage\n" +
@@ -117,47 +112,94 @@ final class SimpleJpaHandler {
 
     }
 
-    private void debugEntityManager() {
-        if (LOG.isDebugEnabled()) {
-            def result = mapTransactionHolder.collect{k,v -> "${k.id}=$v"}.join('\n')
-            LOG.debug "List of cached EntityManager:\n$result"
-        }
-    }
-
-    def getEntityManager = {
-        LOG.debug "Retrieving current EntityManager from thread ${Thread.currentThread().id}..."
-        EntityManager em = mapTransactionHolder.get(Thread.currentThread())?.em
-        debugEntityManager()
-        em
-    }
-
-    def createEntityManager = { TransactionHolder copy = null ->
-        TransactionHolder th
-        if (copy) {
-            LOG.debug "Creating a new entity manager based on $copy..."
-            th = new TransactionHolder(emf.createEntityManager(), copy)
-        } else {
-            LOG.debug "Creating a new entity manager..."
-            EntityManager em = emf.createEntityManager()
-            em.setFlushMode(defaultFlushMode)
-            th = new TransactionHolder(em)
-        }
-        mapTransactionHolder.put(Thread.currentThread(), th)
-        debugEntityManager()
+    TransactionHolder createNewTransactionHolder() {
+        LOG.debug "Create new TransactionHolder and EntityManager."
+        EntityManager em = emf.createEntityManager()
+        em.setFlushMode(defaultFlushMode)
+        TransactionHolder th = new TransactionHolder(em)
+        transactions.set(th)
         ApplicationHolder.application.event("simpleJpaCreateEntityManager", [th])
         th
     }
 
-    def destroyEntityManager = {
-        LOG.debug "Destroying all entity managers..."
-        mapTransactionHolder.each { Thread k, TransactionHolder v ->
-            if (v.em.isOpen()) {
-                v.em.close()
+    def getEntityManager = {
+        LOG.debug "Get EntityManager."
+        TransactionHolder th = transactions.get()
+        if (th == null) {
+            th = createNewTransactionHolder()
+        }
+        th.em
+    }
+
+    def beginTransaction = {
+        LOG.debug "Begin transaction."
+        TransactionHolder th = transactions.get()
+        if (!th || (th.resumeLevel == 0)) {
+            th = createNewTransactionHolder()
+        }
+        if (th.beginTransaction()) {
+            ApplicationHolder.application.event("simpleJpaNewTransaction", [th])
+        }
+    }
+
+    def commitTransaction = {
+        LOG.debug "Commit transaction."
+        TransactionHolder th = transactions.get()
+        if (th) {
+            if (th.commitTransaction() && (th.resumeLevel == 0)) {
+                ApplicationHolder.application.event("simpleJpaCommitTransaction", [th])
+                transactions.remove()
+            }
+        } else {
+            LOG.warn "Not in transaction. Commit was cancelled!"
+        }
+    }
+
+    def rollbackTransaction = {
+        LOG.debug "Rollback transaction."
+        TransactionHolder th = transactions.get()
+        if (!th) {
+            LOG.warn "Not in transaction. Commit was cancelled!"
+        } else if (th.rollbackTransaction()) {
+            ApplicationHolder.application.event("simpleJpaRollbackTransaction", [th])
+            transactions.remove()
+        }
+    }
+
+    def withTransaction = { Closure action ->
+        action.delegate = withTransactionHandler
+        action.setResolveStrategy(Closure.DELEGATE_FIRST)
+        executeInsideTransaction(action)
+    }
+
+    def executeInsideTransaction(Closure action) {
+        boolean insideTransaction = true
+        boolean isError = false
+        def result
+        if (!getEntityManager()?.transaction?.isActive()) {
+            insideTransaction = false
+            ApplicationHolder.application.event("simpleJpaBeforeAutoCreateTransaction")
+            beginTransaction()
+        }
+        LOG.debug "Auto Create Transaction: Active [${!insideTransaction}]"
+        try {
+            result = action()
+        } catch (Exception ex) {
+            LOG.error "Auto Create Transaction: Active [${!insideTransaction}] Exception is raised", ex
+            if (!insideTransaction) {
+                isError = true
+                rollbackTransaction()
+            }
+            throw ex
+        } finally {
+            LOG.debug "Auto Create Transaction: Active [${!insideTransaction}] Finally..."
+            if (!insideTransaction && !isError) {
+                LOG.debug "Auto Create Transaction: Active [${!insideTransaction}] Commiting transaction..."
+                commitTransaction()
             }
         }
-        mapTransactionHolder.clear()
-        debugEntityManager()
-        ApplicationHolder.application.event("simpleJpaDestroyEntityManagers")
+        LOG.debug "Auto Create Transaction: Active [${!insideTransaction}] Done"
+        return result
     }
 
     private configureCriteria(CriteriaBuilder cb, CriteriaQuery c, Root model, Map config) {
@@ -260,115 +302,6 @@ final class SimpleJpaHandler {
             if (value instanceof GString) value = value.toString()
             query.setParameter(parameter, value)
         }
-    }
-
-    def beginTransaction = { boolean resume = true, boolean newSession = false ->
-        LOG.debug "Begin transaction from thread ${Thread.currentThread().id} (resume=$resume) (newSession=$newSession)..."
-        if (newSession) {
-            LOG.debug "Start a new session..."
-            destroyEntityManager()
-        }
-
-        TransactionHolder th
-        if (entityManagerLifespan==EntityManagerLifespan.TRANSACTION) {
-            // always create new EntityManager for each transaction
-            th = mapTransactionHolder.get(Thread.currentThread())
-            if (th == null || th.resumeLevel==0) {
-                th = createEntityManager()
-            }
-        } else if (entityManagerLifespan==EntityManagerLifespan.MANUAL) {
-            // reuse previous EntityManager if possible
-            th = mapTransactionHolder.get(Thread.currentThread())
-            if (!th) {
-                th = createEntityManager()
-            }
-        }
-        if (th.beginTransaction(resume)) {
-            ApplicationHolder.application.event("simpleJpaNewTransaction", [th])
-        }
-    }
-
-    def closeAndRemoveCurrentEntityManager = {
-        LOG.debug "Close EntityManager: Searching for TransactionHolder for thread ${Thread.currentThread()}"
-        TransactionHolder th = mapTransactionHolder.get(Thread.currentThread())
-        LOG.debug "Close EntityManager: Associated with TransactionHolder $th..."
-        if (th) {
-            ApplicationHolder.application.event("simpleJpaBeforeCloseEntityManager", [th])
-            th.em.close()
-            LOG.debug "Close EntityManager: EntityManager for $th is closed!"
-            mapTransactionHolder.remove(Thread.currentThread())
-            LOG.debug "Close EntityManager: EntityManager for thread ${Thread.currentThread()} is removed!"
-        }
-    }
-
-    def commitTransaction = {
-        LOG.debug "Commit Transaction: From thread ${Thread.currentThread()} (${Thread.currentThread().id})..."
-        TransactionHolder th = mapTransactionHolder.get(Thread.currentThread())
-        if (th?.commitTransaction()) {
-            if (entityManagerLifespan==EntityManagerLifespan.TRANSACTION && th.resumeLevel==0) {
-                LOG.debug "Commit Transaction: Closing EntityManager..."
-                closeAndRemoveCurrentEntityManager()
-            }
-            ApplicationHolder.application.event("simpleJpaCommitTransaction", [th])
-        } else {
-            if (LOG.isWarnEnabled()) LOG.warn "Commit Transaction: TransactionHolder is null for ${Thread.currentThread()}!"
-        }
-    }
-
-    def rollbackTransaction = {
-        LOG.debug "Rollback Transaction: From thread ${Thread.currentThread()} (${Thread.currentThread().id})..."
-        TransactionHolder th = mapTransactionHolder.get(Thread.currentThread())
-        if (th) {
-            LOG.debug "Rollback Transaction: Clearing EntityManager..."
-            th.em.clear()
-            if (th.rollbackTransaction()) {
-                LOG.debug "Rollback Transaction: Closing EntityManager..."
-                closeAndRemoveCurrentEntityManager()
-                if (entityManagerLifespan==EntityManagerLifespan.MANUAL) {
-                    LOG.debug "Rollback Transaction: Creating a new EntityManager..."
-                    createEntityManager(th)
-                }
-                ApplicationHolder.application.event("simpleJpaRollbackTransaction", [th])
-            }
-        } else {
-            if (LOG.isWarnEnabled()) LOG.warn "Rollback Transaction: TransactionHolder is null for ${Thread.currentThread()}!"
-        }
-    }
-
-    def withTransaction = { Closure action ->
-        action.delegate = withTransactionHandler
-        action.setResolveStrategy(Closure.DELEGATE_FIRST)
-        executeInsideTransaction(action)
-    }
-
-    def executeInsideTransaction(Closure action) {
-        boolean insideTransaction = true
-        boolean isError = false
-        def result
-        if (!getEntityManager()?.transaction?.isActive()) {
-            insideTransaction = false
-            ApplicationHolder.application.event("simpleJpaBeforeAutoCreateTransaction")
-            beginTransaction()
-        }
-        LOG.debug "Auto Create Transaction: Active [${!insideTransaction}]"
-        try {
-            result = action()
-        } catch (Exception ex) {
-            LOG.error "Auto Create Transaction: Active [${!insideTransaction}] Exception is raised", ex
-            if (!insideTransaction) {
-                isError = true
-                rollbackTransaction()
-            }
-            throw ex
-        } finally {
-            LOG.debug "Auto Create Transaction: Active [${!insideTransaction}] Finally..."
-            if (!insideTransaction && !isError) {
-                LOG.debug "Auto Create Transaction: Active [${!insideTransaction}] Commiting transaction..."
-                commitTransaction()
-            }
-        }
-        LOG.debug "Auto Create Transaction: Active [${!insideTransaction}] Done"
-        return result
     }
 
     def returnFailed = {
