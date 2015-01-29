@@ -387,13 +387,466 @@ span.icon > [class^="icon-"], span.icon > [class*=" icon-"] { cursor: default; }
 <div class="sect1">
 <h2 id="_validation">Validation</h2>
 <div class="sectionbody">
+<div class="paragraph">
+<p>simple-jpa uses Bean Validation API (JSR 303) for validation.  By default, it uses Hibernate Validator as Bean Validation
+ API implementation.  The following are some of common annotations supported by Hibernate Validator:</p>
+</div>
+<table class="tableblock frame-all grid-all" style="width: 100%;">
+<caption class="title">Table 1. Bean Validation Constraints</caption>
+<colgroup>
+<col style="width: 25%;">
+<col style="width: 75%;">
+</colgroup>
+<thead>
+<tr>
+<th class="tableblock halign-left valign-top">Annotation</th>
+<th class="tableblock halign-left valign-top">Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>@NotNull</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Checks that the annotated value is not null</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>@NotBlank</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Checks that the annotated character sequence is not null and the trimmed length is greater than 0.</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>@NotEmpty</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Can be used for Collection to check whether the annotated element is not null or empty.</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>@Size(min,max)</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Checks if the annotated element&#8217;s size is between min and max (inclusive).</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>@Max(value)</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Checks whether the annotated value is less than or equal to the specified maximum.</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>@Min(value)</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Checks whether the annotated value is higher than or equal to the specified minimum.</p></td>
+</tr>
+</tbody>
+</table>
+<div class="paragraph">
+<p>These annotations can be added to properties of domain class, for example:</p>
+</div>
+<div class="listingblock">
+<div class="title">Invoice.groovy</div>
+<div class="content">
+<pre class="highlight"><code class="groovy language-groovy">@Canonical(excludes='lineItems')
+class Invoice {
 
+    @NotBlank @Size(min=10, max=10)
+    String number
+
+    @NotNull @Type(type="org.jadira.usertype.dateandtime.joda.PersistentLocalDate")
+    LocalDate date
+
+    @ElementCollection @OrderColumn @NotEmpty
+    List&lt;ItemFaktur&gt; lineItems = []
+
+}</code></pre>
+</div>
+</div>
+<div class="sect2">
+<h3 id="_validation_method">Validation Method</h3>
+<div class="paragraph">
+<p>You can use <code>validate()</code> method from injection enhanced artifact to validate an object.  The first argument for this
+ method is an object that will be validated.  It is the only required argument.  <code>validate()</code> returns <code>true</code> if requested
+ object is successfully validated or <code>false</code> if it failed.</p>
+</div>
+<div class="paragraph">
+<p>For example, the following code will print error message to console if invoice object is not valid:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlight"><code class="groovy language-groovy">// The following code assumes that controller is injection enhanced.
+// You can also choose to enabled injection to other artifact such as repository.
+if (controller.validate(invoice)) {
+   println "invoice is valid."
+} else {
+   println "invoice is not valid."
+}</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>The second parameter for <code>validate()</code> determine what validation group is in effect.  The default value is <code>Default</code> group.
+To use a different group, you can pass the group class to <code>validate()</code>, for example:</p>
+</div>
+<div class="listingblock">
+<div class="title">Invoice.groovy</div>
+<div class="content">
+<pre class="highlight"><code class="groovy language-groovy">@Canonical(excludes='lineItems')
+class Invoice {
+
+    @NotBlank(groups=[FirstStep,SecondStep])
+    @Size(min=10, max=10, groups=[FirstStep,SecondStep])
+    String number
+
+    @NotNull(groups=[FirstStep,SecondStep])
+    @Type(type="org.jadira.usertype.dateandtime.joda.PersistentLocalDate")
+    LocalDate date
+
+    @ElementCollection @OrderColumn @NotEmpty(groups=[SecondStep])
+    List&lt;ItemFaktur&gt; lineItems = []
+
+}</code></pre>
+</div>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlight"><code class="groovy language-groovy">// empty line items is acceptable and treated as valid
+if (!controller.validate(invoice, FirstStep)) {
+    println "first step validation for invoice is not valid!"
+}
+
+// now, empty line items is not valid
+if (!controller.validate(invoice, SecondStep)) {
+   println "second step validation for invoice is not valid!"
+}</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>The third parameter accepts an instance of view model (Griffon&#8217;s model).  Use this to present error in presentation
+ layer by highlighting related view&#8217;s component.  See the next section for more information about error notification.</p>
+</div>
+</div>
+<div class="sect2">
+<h3 id="_notification_in_view">Notification In View</h3>
+<div class="paragraph">
+<p>To help you in displaying information about failed validation, simple-jpa injects the following members to all view
+models (model in MVC group):</p>
+</div>
+<table class="tableblock frame-all grid-all" style="width: 100%;">
+<caption class="title">Table 2. Validation Members Available in View Model</caption>
+<colgroup>
+<col style="width: 50%;">
+<col style="width: 50%;">
+</colgroup>
+<thead>
+<tr>
+<th class="tableblock halign-left valign-top">Members Declaration</th>
+<th class="tableblock halign-left valign-top">Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>def errors = new ConcurrentHashMap()</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">This is a bindable map that stores validation messages.</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>boolean hasError()</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Return <code>true</code> if <code>errors</code> is not empty.</p></td>
+</tr>
+</tbody>
+</table>
+<div class="paragraph">
+<p>All builder&#8217;s nodes also has a special <code>errorPath</code> attribute that can be used to represent associated validation path
+(like property name of validated objects).  If <code>errors</code> contains key equals to <code>errorPath</code>, the respective
+ component will be highlighted.</p>
+</div>
+<div class="paragraph">
+<p>For example, the following code will highlight the first <code>JTextField</code>:</p>
+</div>
+<div class="listingblock">
+<div class="title">MyView.groovy</div>
+<div class="content">
+<pre class="highlight"><code class="groovy language-groovy">application(pack: true) {
+    flowLayout()
+    textField(columns: 20, errorPath: 'firstName')
+    textField(columns: 20, errorPath: 'lastName')
+}</code></pre>
+</div>
+</div>
+<div class="listingblock">
+<div class="title">MyController.groovy</div>
+<div class="content">
+<pre class="highlight"><code class="groovy language-groovy">class MyController {
+
+    def model
+    def view
+
+    void mvcGroupInit(Map args) {
+       model.errors['firstName'] = 'First name is not valid!'
+    }
+
+}</code></pre>
+</div>
+</div>
+<div class="imageblock">
+<div class="content">
+<img src="highlight_component_on_error.PNG" alt="highlight component on error">
+</div>
+</div>
+<div class="paragraph">
+<p>When you start typing on the highlighted <code>JTextField</code>, its red background will disappear.  This also remove existing
+ entry in <code>model.errors</code>.</p>
+</div>
+<div class="paragraph">
+<p>By default, simple-jpa use red background to notify failed validation.  You can also create your own notification method by
+ extending <code>ErrorNotification</code>.  For example, the following implementation of <code>ErrorNotification</code> will highlight
+ border on error:</p>
+</div>
+<div class="listingblock">
+<div class="title">MyErrorNotification.groovy</div>
+<div class="content">
+<pre class="highlight"><code class="groovy language-groovy">package main
+
+import java.awt.Color
+import javax.swing.*
+import javax.swing.border.*
+import simplejpa.validation.*
+
+class MyErrorNotification extends ErrorNotification {
+
+  Border highlightBorder = BorderFactory.createLineBorder(Color.RED)
+  Border normalBorder
+
+  public MyErrorNotification(JComponent node, ObservableMap errors, String errorPath) {
+    super(node, errors, errorPath)
+    normalBorder = node.getBorder()
+  }
+
+  void performNotification() {
+    if (errors[errorPath]) {
+      node.setBorder(highlightBorder)
+    } else {
+      node.setBorder(normalBorder)
+    }
+  }
+
+}</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>To assign <code>MyErrorNotification</code> to a single component, you can use <code>errorNotification</code> attribute:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlight"><code class="groovy language-groovy">textField(columns: 20, errorPath: 'firstName', errorNotification: main.MyErrorNotification)</code></pre>
+</div>
+</div>
+<div class="imageblock">
+<div class="content">
+<img src="border_component_on_error.PNG" alt="border component on error">
+</div>
+</div>
+<div class="paragraph">
+<p>To use <code>MyErrorNotification</code> on all components, add the following line to <code>Config.groovy</code>:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlight"><code class="groovy language-groovy">griffon.simplejpa.validation.defaultErrorNotificationClass = 'main.MyErrorNotification'</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>The component responsible for removing error message is called <code>ErrorCleaner</code>.  The following table lists all
+  implementations of <code>ErrorCleaner</code> by default:</p>
+</div>
+<table class="tableblock frame-all grid-all" style="width: 100%;">
+<caption class="title">Table 3. Default Implementation of ErrorCleaner</caption>
+<colgroup>
+<col style="width: 33%;">
+<col style="width: 33%;">
+<col style="width: 33%;">
+</colgroup>
+<thead>
+<tr>
+<th class="tableblock halign-left valign-top">Component</th>
+<th class="tableblock halign-left valign-top">Implementation</th>
+<th class="tableblock halign-left valign-top">Activation Condition</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>JTextField</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>JTextFieldErrorCleaner</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">When user typed in text box.</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>JComboBox</code>, <code>JCheckBox</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>JComboBoxErrorCleaner</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">When user changed selection.</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>JButton</code>, <code>JRadioButton</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>JRadioButton</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">When user clicked the button.</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>JXDatePicker</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>JXDatePickerErrorCleaner</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">When user changes date.</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>simplejpa.swing.DateTimePicker</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>DateTimePickerErrorCleaner</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">When user changes selection.</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>simplejpa.swing.TagChooser</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>TagChooserErrorCleaner</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">When user changes selection.</p></td>
+</tr>
+</tbody>
+</table>
+<div class="paragraph">
+<p>You can create your own implementation by creating a new class that implements <code>ErrorCleaner</code>.  For example, the following
+  implementation removes error notification after one second:</p>
+</div>
+<div class="listingblock">
+<div class="title">MyErrorCleaner.groovy</div>
+<div class="content">
+<pre class="highlight"><code class="groovy language-groovy">package main
+
+import simplejpa.validation.*
+import javax.swing.*
+import java.awt.event.ActionListener
+
+class MyErrorCleaner implements ErrorCleaner {
+
+    void addErrorCleaning(JComponent component, ObservableMap errors, String errorPath) {
+        new Timer(1000, {
+            errors.remove(errorPath)
+        } as ActionListener).start()
+    }
+
+}</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>To register this <code>ErrorCleaner</code> for all <code>JTextField</code>, you can add the following line to <code>Config.groovy</code>:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlight"><code class="groovy language-groovy">griffon.simplejpa.validation.errorCleaners = [
+  'javax.swing.JTextField': 'main.MyErrorCleaner'
+]</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>If you want to apply the new <code>ErrorCleaner</code> to all components, use <code>'*'</code> instead of <code>'javax.swing.JTextField</code> as key:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlight"><code class="groovy language-groovy">griffon.simplejpa.validation.errorCleaners = [
+  '*': 'main.MyErrorCleaner'
+]</code></pre>
+</div>
+</div>
+</div>
+<div class="sect2">
+<h3 id="_validation_message">Validation Message</h3>
+<div class="paragraph">
+<p>If validation is failed, simple-jpa stores validation message for the failed paths in <code>model.errors</code>.  You can use values
+ stored in <code>model.errors</code> to determine which paths have been failed and what are their corresponding messages. You can
+ also change the default validation message by editing <code>griffon-app\i18n\ValidationMessage.properties</code>.</p>
+</div>
+<div class="paragraph">
+<p>The following code shows how to retrieve validation messages:</p>
+</div>
+<div class="listingblock">
+<div class="title">MyModel.groovy</div>
+<div class="content">
+<pre class="highlight"><code class="groovy language-groovy">import groovy.beans.Bindable
+import org.hibernate.validator.constraints.NotBlank
+
+class MyModel {
+
+   @NotBlank String firstName
+
+   String lastName
+
+}</code></pre>
+</div>
+</div>
+<div class="listingblock">
+<div class="title">MyView.groovy</div>
+<div class="content">
+<pre class="highlight"><code class="groovy language-groovy">application(pack: true) {
+    flowLayout()
+    textField(columns: 20, text: bind('firstName', target: model), errorPath: 'firstName')
+    textField(columns: 20, text: bind('lastName', target: model), errorPath: 'lastName')
+    button('Save', actionPerformed: controller.save)
+}</code></pre>
+</div>
+</div>
+<div class="listingblock">
+<div class="title">MyController.groovy</div>
+<div class="content">
+<pre class="highlight"><code class="groovy language-groovy">class MyController {
+
+    def model
+    def view
+
+    def save = {
+        if (validate(model)) {
+            println 'Your input have been validated and passed.'
+        } else {
+            println 'Validation failed!'
+            model.errors.each { k, v -&gt;
+                println "$k $v"
+            }
+            // This will display the following error message
+            // if first name is blank:
+            //
+            // Validation failed!
+            // firstName may not be empty
+            //
+        }
+    }
+
+}</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>If you want to display validation mesage as <code>JLabel</code> in view, you can use <code>errorLabel()</code> node.  For example, you can
+ change the previous view into:</p>
+</div>
+<div class="listingblock">
+<div class="title">MyView.groovy</div>
+<div class="content">
+<pre class="highlight"><code class="groovy language-groovy">application(pack: true) {
+    flowLayout()
+    textField(columns: 20, text: bind('firstName', target: model), errorPath: 'firstName')
+    errorLabel(path: 'firstName')
+    textField(columns: 20, text: bind('lastName', target: model), errorPath: 'lastName')
+    errorLabel(path: 'lastName')
+    button('Save', actionPerformed: controller.save)
+}</code></pre>
+</div>
+</div>
+<div class="imageblock">
+<div class="content">
+<img src="error_label.PNG" alt="error label">
+</div>
+</div>
+<div class="paragraph">
+<p><code>errorLabel()</code> is only visible if <code>model.errors</code> contains a key equals to its <code>errorPath</code>.</p>
+</div>
+</div>
+<div class="sect2">
+<h3 id="_miscellaneous">Miscellaneous</h3>
+<div class="paragraph">
+<p>In some cases, validation may be failed because <code>JTextField</code> value in model is an empty <code>String</code> rather than null
+value. To ensure consistent behaviour, simple-jpa can be configured to translate all empty <code>String</code> into null value
+before performing validation. This feature is disabled by default. To enable it, add the following line to <code>Config.groovy</code>:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlight"><code class="groovy language-groovy">griffon.simplejpa.validation.convertEmptyStringToNull = true</code></pre>
+</div>
+</div>
+</div>
 </div>
 </div>
 </div>
 <div id="footer">
 <div id="footer-text">
-Last updated 2014-07-29 23:32:00 ICT
+Last updated 2015-01-29 23:26:30 ICT
 </div>
 </div>
 </body>

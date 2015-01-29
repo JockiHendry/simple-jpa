@@ -5,10 +5,400 @@
 <article xmlns="http://docbook.org/ns/docbook" xmlns:xlink="http://www.w3.org/1999/xlink" version="5.0" lang="en">
 <info>
 <title>Untitled</title>
-<date>2014-07-29</date>
+<date>2015-01-29</date>
 </info>
 <section xml:id="_validation">
 <title>Validation</title>
+<simpara>simple-jpa uses Bean Validation API (JSR 303) for validation.  By default, it uses Hibernate Validator as Bean Validation
+ API implementation.  The following are some of common annotations supported by Hibernate Validator:</simpara>
+<table frame="all" rowsep="1" colsep="1">
+<title>Bean Validation Constraints</title>
+<tgroup cols="2">
+<colspec colname="col_1" colwidth="25*"/>
+<colspec colname="col_2" colwidth="75*"/>
+<thead>
+<row>
+<entry align="left" valign="top">Annotation</entry>
+<entry align="left" valign="top">Description</entry>
+</row>
+</thead>
+<tbody>
+<row>
+<entry align="left" valign="top"><simpara><literal>@NotNull</literal></simpara></entry>
+<entry align="left" valign="top"><simpara>Checks that the annotated value is not null</simpara></entry>
+</row>
+<row>
+<entry align="left" valign="top"><simpara><literal>@NotBlank</literal></simpara></entry>
+<entry align="left" valign="top"><simpara>Checks that the annotated character sequence is not null and the trimmed length is greater than 0.</simpara></entry>
+</row>
+<row>
+<entry align="left" valign="top"><simpara><literal>@NotEmpty</literal></simpara></entry>
+<entry align="left" valign="top"><simpara>Can be used for Collection to check whether the annotated element is not null or empty.</simpara></entry>
+</row>
+<row>
+<entry align="left" valign="top"><simpara><literal>@Size(min,max)</literal></simpara></entry>
+<entry align="left" valign="top"><simpara>Checks if the annotated element&#8217;s size is between min and max (inclusive).</simpara></entry>
+</row>
+<row>
+<entry align="left" valign="top"><simpara><literal>@Max(value)</literal></simpara></entry>
+<entry align="left" valign="top"><simpara>Checks whether the annotated value is less than or equal to the specified maximum.</simpara></entry>
+</row>
+<row>
+<entry align="left" valign="top"><simpara><literal>@Min(value)</literal></simpara></entry>
+<entry align="left" valign="top"><simpara>Checks whether the annotated value is higher than or equal to the specified minimum.</simpara></entry>
+</row>
+</tbody>
+</tgroup>
+</table>
+<simpara>These annotations can be added to properties of domain class, for example:</simpara>
+<formalpara>
+<title>Invoice.groovy</title>
+<para>
+<programlisting language="groovy" linenumbering="unnumbered">@Canonical(excludes='lineItems')
+class Invoice {
 
+    @NotBlank @Size(min=10, max=10)
+    String number
+
+    @NotNull @Type(type="org.jadira.usertype.dateandtime.joda.PersistentLocalDate")
+    LocalDate date
+
+    @ElementCollection @OrderColumn @NotEmpty
+    List&lt;ItemFaktur&gt; lineItems = []
+
+}</programlisting>
+</para>
+</formalpara>
+<section xml:id="_validation_method">
+<title>Validation Method</title>
+<simpara>You can use <literal>validate()</literal> method from injection enhanced artifact to validate an object.  The first argument for this
+ method is an object that will be validated.  It is the only required argument.  <literal>validate()</literal> returns <literal>true</literal> if requested
+ object is successfully validated or <literal>false</literal> if it failed.</simpara>
+<simpara>For example, the following code will print error message to console if invoice object is not valid:</simpara>
+<programlisting language="groovy" linenumbering="unnumbered">// The following code assumes that controller is injection enhanced.
+// You can also choose to enabled injection to other artifact such as repository.
+if (controller.validate(invoice)) {
+   println "invoice is valid."
+} else {
+   println "invoice is not valid."
+}</programlisting>
+<simpara>The second parameter for <literal>validate()</literal> determine what validation group is in effect.  The default value is <literal>Default</literal> group.
+To use a different group, you can pass the group class to <literal>validate()</literal>, for example:</simpara>
+<formalpara>
+<title>Invoice.groovy</title>
+<para>
+<programlisting language="groovy" linenumbering="unnumbered">@Canonical(excludes='lineItems')
+class Invoice {
+
+    @NotBlank(groups=[FirstStep,SecondStep])
+    @Size(min=10, max=10, groups=[FirstStep,SecondStep])
+    String number
+
+    @NotNull(groups=[FirstStep,SecondStep])
+    @Type(type="org.jadira.usertype.dateandtime.joda.PersistentLocalDate")
+    LocalDate date
+
+    @ElementCollection @OrderColumn @NotEmpty(groups=[SecondStep])
+    List&lt;ItemFaktur&gt; lineItems = []
+
+}</programlisting>
+</para>
+</formalpara>
+<programlisting language="groovy" linenumbering="unnumbered">// empty line items is acceptable and treated as valid
+if (!controller.validate(invoice, FirstStep)) {
+    println "first step validation for invoice is not valid!"
+}
+
+// now, empty line items is not valid
+if (!controller.validate(invoice, SecondStep)) {
+   println "second step validation for invoice is not valid!"
+}</programlisting>
+<simpara>The third parameter accepts an instance of view model (Griffon&#8217;s model).  Use this to present error in presentation
+ layer by highlighting related view&#8217;s component.  See the next section for more information about error notification.</simpara>
+</section>
+<section xml:id="_notification_in_view">
+<title>Notification In View</title>
+<simpara>To help you in displaying information about failed validation, simple-jpa injects the following members to all view
+models (model in MVC group):</simpara>
+<table frame="all" rowsep="1" colsep="1">
+<title>Validation Members Available in View Model</title>
+<tgroup cols="2">
+<colspec colname="col_1" colwidth="50*"/>
+<colspec colname="col_2" colwidth="50*"/>
+<thead>
+<row>
+<entry align="left" valign="top">Members Declaration</entry>
+<entry align="left" valign="top">Description</entry>
+</row>
+</thead>
+<tbody>
+<row>
+<entry align="left" valign="top"><simpara><literal>def errors = new ConcurrentHashMap()</literal></simpara></entry>
+<entry align="left" valign="top"><simpara>This is a bindable map that stores validation messages.</simpara></entry>
+</row>
+<row>
+<entry align="left" valign="top"><simpara><literal>boolean hasError()</literal></simpara></entry>
+<entry align="left" valign="top"><simpara>Return <literal>true</literal> if <literal>errors</literal> is not empty.</simpara></entry>
+</row>
+</tbody>
+</tgroup>
+</table>
+<simpara>All builder&#8217;s nodes also has a special <literal>errorPath</literal> attribute that can be used to represent associated validation path
+(like property name of validated objects).  If <literal>errors</literal> contains key equals to <literal>errorPath</literal>, the respective
+ component will be highlighted.</simpara>
+<simpara>For example, the following code will highlight the first <literal>JTextField</literal>:</simpara>
+<formalpara>
+<title>MyView.groovy</title>
+<para>
+<programlisting language="groovy" linenumbering="unnumbered">application(pack: true) {
+    flowLayout()
+    textField(columns: 20, errorPath: 'firstName')
+    textField(columns: 20, errorPath: 'lastName')
+}</programlisting>
+</para>
+</formalpara>
+<formalpara>
+<title>MyController.groovy</title>
+<para>
+<programlisting language="groovy" linenumbering="unnumbered">class MyController {
+
+    def model
+    def view
+
+    void mvcGroupInit(Map args) {
+       model.errors['firstName'] = 'First name is not valid!'
+    }
+
+}</programlisting>
+</para>
+</formalpara>
+<figure>
+<mediaobject>
+<imageobject>
+<imagedata fileref="highlight_component_on_error.PNG"/>
+</imageobject>
+<textobject><phrase>highlight component on error</phrase></textobject>
+</mediaobject>
+</figure>
+<simpara>When you start typing on the highlighted <literal>JTextField</literal>, its red background will disappear.  This also remove existing
+ entry in <literal>model.errors</literal>.</simpara>
+<simpara>By default, simple-jpa use red background to notify failed validation.  You can also create your own notification method by
+ extending <literal>ErrorNotification</literal>.  For example, the following implementation of <literal>ErrorNotification</literal> will highlight
+ border on error:</simpara>
+<formalpara>
+<title>MyErrorNotification.groovy</title>
+<para>
+<programlisting language="groovy" linenumbering="unnumbered">package main
+
+import java.awt.Color
+import javax.swing.*
+import javax.swing.border.*
+import simplejpa.validation.*
+
+class MyErrorNotification extends ErrorNotification {
+
+  Border highlightBorder = BorderFactory.createLineBorder(Color.RED)
+  Border normalBorder
+
+  public MyErrorNotification(JComponent node, ObservableMap errors, String errorPath) {
+    super(node, errors, errorPath)
+    normalBorder = node.getBorder()
+  }
+
+  void performNotification() {
+    if (errors[errorPath]) {
+      node.setBorder(highlightBorder)
+    } else {
+      node.setBorder(normalBorder)
+    }
+  }
+
+}</programlisting>
+</para>
+</formalpara>
+<simpara>To assign <literal>MyErrorNotification</literal> to a single component, you can use <literal>errorNotification</literal> attribute:</simpara>
+<programlisting language="groovy" linenumbering="unnumbered">textField(columns: 20, errorPath: 'firstName', errorNotification: main.MyErrorNotification)</programlisting>
+<figure>
+<mediaobject>
+<imageobject>
+<imagedata fileref="border_component_on_error.PNG"/>
+</imageobject>
+<textobject><phrase>border component on error</phrase></textobject>
+</mediaobject>
+</figure>
+<simpara>To use <literal>MyErrorNotification</literal> on all components, add the following line to <literal>Config.groovy</literal>:</simpara>
+<programlisting language="groovy" linenumbering="unnumbered">griffon.simplejpa.validation.defaultErrorNotificationClass = 'main.MyErrorNotification'</programlisting>
+<simpara>The component responsible for removing error message is called <literal>ErrorCleaner</literal>.  The following table lists all
+  implementations of <literal>ErrorCleaner</literal> by default:</simpara>
+<table frame="all" rowsep="1" colsep="1">
+<title>Default Implementation of ErrorCleaner</title>
+<tgroup cols="3">
+<colspec colname="col_1" colwidth="33*"/>
+<colspec colname="col_2" colwidth="33*"/>
+<colspec colname="col_3" colwidth="33*"/>
+<thead>
+<row>
+<entry align="left" valign="top">Component</entry>
+<entry align="left" valign="top">Implementation</entry>
+<entry align="left" valign="top">Activation Condition</entry>
+</row>
+</thead>
+<tbody>
+<row>
+<entry align="left" valign="top"><simpara><literal>JTextField</literal></simpara></entry>
+<entry align="left" valign="top"><simpara><literal>JTextFieldErrorCleaner</literal></simpara></entry>
+<entry align="left" valign="top"><simpara>When user typed in text box.</simpara></entry>
+</row>
+<row>
+<entry align="left" valign="top"><simpara><literal>JComboBox</literal>, <literal>JCheckBox</literal></simpara></entry>
+<entry align="left" valign="top"><simpara><literal>JComboBoxErrorCleaner</literal></simpara></entry>
+<entry align="left" valign="top"><simpara>When user changed selection.</simpara></entry>
+</row>
+<row>
+<entry align="left" valign="top"><simpara><literal>JButton</literal>, <literal>JRadioButton</literal></simpara></entry>
+<entry align="left" valign="top"><simpara><literal>JRadioButton</literal></simpara></entry>
+<entry align="left" valign="top"><simpara>When user clicked the button.</simpara></entry>
+</row>
+<row>
+<entry align="left" valign="top"><simpara><literal>JXDatePicker</literal></simpara></entry>
+<entry align="left" valign="top"><simpara><literal>JXDatePickerErrorCleaner</literal></simpara></entry>
+<entry align="left" valign="top"><simpara>When user changes date.</simpara></entry>
+</row>
+<row>
+<entry align="left" valign="top"><simpara><literal>simplejpa.swing.DateTimePicker</literal></simpara></entry>
+<entry align="left" valign="top"><simpara><literal>DateTimePickerErrorCleaner</literal></simpara></entry>
+<entry align="left" valign="top"><simpara>When user changes selection.</simpara></entry>
+</row>
+<row>
+<entry align="left" valign="top"><simpara><literal>simplejpa.swing.TagChooser</literal></simpara></entry>
+<entry align="left" valign="top"><simpara><literal>TagChooserErrorCleaner</literal></simpara></entry>
+<entry align="left" valign="top"><simpara>When user changes selection.</simpara></entry>
+</row>
+</tbody>
+</tgroup>
+</table>
+<simpara>You can create your own implementation by creating a new class that implements <literal>ErrorCleaner</literal>.  For example, the following
+  implementation removes error notification after one second:</simpara>
+<formalpara>
+<title>MyErrorCleaner.groovy</title>
+<para>
+<programlisting language="groovy" linenumbering="unnumbered">package main
+
+import simplejpa.validation.*
+import javax.swing.*
+import java.awt.event.ActionListener
+
+class MyErrorCleaner implements ErrorCleaner {
+
+    void addErrorCleaning(JComponent component, ObservableMap errors, String errorPath) {
+        new Timer(1000, {
+            errors.remove(errorPath)
+        } as ActionListener).start()
+    }
+
+}</programlisting>
+</para>
+</formalpara>
+<simpara>To register this <literal>ErrorCleaner</literal> for all <literal>JTextField</literal>, you can add the following line to <literal>Config.groovy</literal>:</simpara>
+<programlisting language="groovy" linenumbering="unnumbered">griffon.simplejpa.validation.errorCleaners = [
+  'javax.swing.JTextField': 'main.MyErrorCleaner'
+]</programlisting>
+<simpara>If you want to apply the new <literal>ErrorCleaner</literal> to all components, use <literal>'*'</literal> instead of <literal>'javax.swing.JTextField</literal> as key:</simpara>
+<programlisting language="groovy" linenumbering="unnumbered">griffon.simplejpa.validation.errorCleaners = [
+  '*': 'main.MyErrorCleaner'
+]</programlisting>
+</section>
+<section xml:id="_validation_message">
+<title>Validation Message</title>
+<simpara>If validation is failed, simple-jpa stores validation message for the failed paths in <literal>model.errors</literal>.  You can use values
+ stored in <literal>model.errors</literal> to determine which paths have been failed and what are their corresponding messages. You can
+ also change the default validation message by editing <literal>griffon-app\i18n\ValidationMessage.properties</literal>.</simpara>
+<simpara>The following code shows how to retrieve validation messages:</simpara>
+<formalpara>
+<title>MyModel.groovy</title>
+<para>
+<programlisting language="groovy" linenumbering="unnumbered">import groovy.beans.Bindable
+import org.hibernate.validator.constraints.NotBlank
+
+class MyModel {
+
+   @NotBlank String firstName
+
+   String lastName
+
+}</programlisting>
+</para>
+</formalpara>
+<formalpara>
+<title>MyView.groovy</title>
+<para>
+<programlisting language="groovy" linenumbering="unnumbered">application(pack: true) {
+    flowLayout()
+    textField(columns: 20, text: bind('firstName', target: model), errorPath: 'firstName')
+    textField(columns: 20, text: bind('lastName', target: model), errorPath: 'lastName')
+    button('Save', actionPerformed: controller.save)
+}</programlisting>
+</para>
+</formalpara>
+<formalpara>
+<title>MyController.groovy</title>
+<para>
+<programlisting language="groovy" linenumbering="unnumbered">class MyController {
+
+    def model
+    def view
+
+    def save = {
+        if (validate(model)) {
+            println 'Your input have been validated and passed.'
+        } else {
+            println 'Validation failed!'
+            model.errors.each { k, v -&gt;
+                println "$k $v"
+            }
+            // This will display the following error message
+            // if first name is blank:
+            //
+            // Validation failed!
+            // firstName may not be empty
+            //
+        }
+    }
+
+}</programlisting>
+</para>
+</formalpara>
+<simpara>If you want to display validation mesage as <literal>JLabel</literal> in view, you can use <literal>errorLabel()</literal> node.  For example, you can
+ change the previous view into:</simpara>
+<formalpara>
+<title>MyView.groovy</title>
+<para>
+<programlisting language="groovy" linenumbering="unnumbered">application(pack: true) {
+    flowLayout()
+    textField(columns: 20, text: bind('firstName', target: model), errorPath: 'firstName')
+    errorLabel(path: 'firstName')
+    textField(columns: 20, text: bind('lastName', target: model), errorPath: 'lastName')
+    errorLabel(path: 'lastName')
+    button('Save', actionPerformed: controller.save)
+}</programlisting>
+</para>
+</formalpara>
+<figure>
+<mediaobject>
+<imageobject>
+<imagedata fileref="error_label.PNG"/>
+</imageobject>
+<textobject><phrase>error label</phrase></textobject>
+</mediaobject>
+</figure>
+<simpara><literal>errorLabel()</literal> is only visible if <literal>model.errors</literal> contains a key equals to its <literal>errorPath</literal>.</simpara>
+</section>
+<section xml:id="_miscellaneous">
+<title>Miscellaneous</title>
+<simpara>In some cases, validation may be failed because <literal>JTextField</literal> value in model is an empty <literal>String</literal> rather than null
+value. To ensure consistent behaviour, simple-jpa can be configured to translate all empty <literal>String</literal> into null value
+before performing validation. This feature is disabled by default. To enable it, add the following line to <literal>Config.groovy</literal>:</simpara>
+<programlisting language="groovy" linenumbering="unnumbered">griffon.simplejpa.validation.convertEmptyStringToNull = true</programlisting>
+</section>
 </section>
 </article>

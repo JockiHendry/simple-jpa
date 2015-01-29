@@ -189,17 +189,6 @@ duplicate entities, add the following line:
 griffon.simplejpa.finders.alwaysAllowDuplicate = true
 ----
 
-=== Validation
-
-In some cases, validation may be failed because the empty JTextField value in model is an empty String and not a null
-value. To create a consistent behaviour, simple-jpa can translate all empty String into a null value before performing
-validation. This feature is disabled by default. To enable it, add the following configuration line:
-
-[source,groovy]
-----
-griffon.simplejpa.validation.convertEmptyStringToNull = true
-----
-
 === Auditing
 
 To display a login dialog at startup time, set a service name for `griffon.simplejpa.auditing.loginService`.  This service must be an

@@ -1,1 +1,377 @@
 == Validation
+
+simple-jpa uses Bean Validation API (JSR 303) for validation.  By default, it uses Hibernate Validator as Bean Validation
+ API implementation.  The following are some of common annotations supported by Hibernate Validator:
+
+[cols="1,3"]
+.Bean Validation Constraints
+|===
+|Annotation | Description
+
+|`@NotNull`
+|Checks that the annotated value is not null
+
+|`@NotBlank`
+|Checks that the annotated character sequence is not null and the trimmed length is greater than 0.
+
+|`@NotEmpty`
+|Can be used for Collection to check whether the annotated element is not null or empty.
+
+|`@Size(min,max)`
+|Checks if the annotated element's size is between min and max (inclusive).
+
+|`@Max(value)`
+|Checks whether the annotated value is less than or equal to the specified maximum.
+
+|`@Min(value)`
+|Checks whether the annotated value is higher than or equal to the specified minimum.
+|===
+
+These annotations can be added to properties of domain class, for example:
+
+[source,groovy]
+.Invoice.groovy
+----
+@Canonical(excludes='lineItems')
+class Invoice {
+
+    @NotBlank @Size(min=10, max=10)
+    String number
+
+    @NotNull @Type(type="org.jadira.usertype.dateandtime.joda.PersistentLocalDate")
+    LocalDate date
+
+    @ElementCollection @OrderColumn @NotEmpty
+    List<ItemFaktur> lineItems = []
+
+}
+----
+
+=== Validation Method
+
+You can use `validate()` method from injection enhanced artifact to validate an object.  The first argument for this
+ method is an object that will be validated.  It is the only required argument.  `validate()` returns `true` if requested
+ object is successfully validated or `false` if it failed.
+
+For example, the following code will print error message to console if invoice object is not valid:
+
+[source,groovy]
+----
+// The following code assumes that controller is injection enhanced.
+// You can also choose to enabled injection to other artifact such as repository.
+if (controller.validate(invoice)) {
+   println "invoice is valid."
+} else {
+   println "invoice is not valid."
+}
+----
+
+The second parameter for `validate()` determine what validation group is in effect.  The default value is `Default` group.
+To use a different group, you can pass the group class to `validate()`, for example:
+
+[source,groovy]
+.Invoice.groovy
+----
+@Canonical(excludes='lineItems')
+class Invoice {
+
+    @NotBlank(groups=[FirstStep,SecondStep])
+    @Size(min=10, max=10, groups=[FirstStep,SecondStep])
+    String number
+
+    @NotNull(groups=[FirstStep,SecondStep])
+    @Type(type="org.jadira.usertype.dateandtime.joda.PersistentLocalDate")
+    LocalDate date
+
+    @ElementCollection @OrderColumn @NotEmpty(groups=[SecondStep])
+    List<ItemFaktur> lineItems = []
+
+}
+----
+
+[source,groovy]
+----
+// empty line items is acceptable and treated as valid
+if (!controller.validate(invoice, FirstStep)) {
+    println "first step validation for invoice is not valid!"
+}
+
+// now, empty line items is not valid
+if (!controller.validate(invoice, SecondStep)) {
+   println "second step validation for invoice is not valid!"
+}
+----
+
+The third parameter accepts an instance of view model (Griffon's model).  Use this to present error in presentation
+ layer by highlighting related view's component.  See the next section for more information about error notification.
+
+=== Notification In View
+
+To help you in displaying information about failed validation, simple-jpa injects the following members to all view
+models (model in MVC group):
+
+.Validation Members Available in View Model
+|===
+|Members Declaration | Description
+
+|`def errors = new ConcurrentHashMap()`
+|This is a bindable map that stores validation messages.
+
+|`boolean hasError()`
+|Return `true` if `errors` is not empty.
+|===
+
+All builder's nodes also has a special `errorPath` attribute that can be used to represent associated validation path
+(like property name of validated objects).  If `errors` contains key equals to `errorPath`, the respective
+ component will be highlighted.
+
+For example, the following code will highlight the first `JTextField`:
+
+[source,groovy]
+.MyView.groovy
+----
+application(pack: true) {
+    flowLayout()
+    textField(columns: 20, errorPath: 'firstName')
+    textField(columns: 20, errorPath: 'lastName')
+}
+----
+
+[source,groovy]
+.MyController.groovy
+----
+class MyController {
+
+    def model
+    def view
+
+    void mvcGroupInit(Map args) {
+       model.errors['firstName'] = 'First name is not valid!'
+    }
+
+}
+----
+
+image::highlight_component_on_error.PNG[]
+
+When you start typing on the highlighted `JTextField`, its red background will disappear.  This also remove existing
+ entry in `model.errors`.
+
+By default, simple-jpa use red background to notify failed validation.  You can also create your own notification method by
+ extending `ErrorNotification`.  For example, the following implementation of `ErrorNotification` will highlight
+ border on error:
+
+[source,groovy]
+.MyErrorNotification.groovy
+----
+package main
+
+import java.awt.Color
+import javax.swing.*
+import javax.swing.border.*
+import simplejpa.validation.*
+
+class MyErrorNotification extends ErrorNotification {
+
+  Border highlightBorder = BorderFactory.createLineBorder(Color.RED)
+  Border normalBorder
+
+  public MyErrorNotification(JComponent node, ObservableMap errors, String errorPath) {
+    super(node, errors, errorPath)
+    normalBorder = node.getBorder()
+  }
+
+  void performNotification() {
+    if (errors[errorPath]) {
+      node.setBorder(highlightBorder)
+    } else {
+      node.setBorder(normalBorder)
+    }
+  }
+
+}
+----
+
+To assign `MyErrorNotification` to a single component, you can use `errorNotification` attribute:
+
+[source,groovy]
+----
+textField(columns: 20, errorPath: 'firstName', errorNotification: main.MyErrorNotification)
+----
+
+image::border_component_on_error.PNG[]
+
+To use `MyErrorNotification` on all components, add the following line to `Config.groovy`:
+
+[source,groovy]
+----
+griffon.simplejpa.validation.defaultErrorNotificationClass = 'main.MyErrorNotification'
+----
+
+The component responsible for removing error message is called `ErrorCleaner`.  The following table lists all
+  implementations of `ErrorCleaner` by default:
+
+.Default Implementation of ErrorCleaner
+|===
+|Component | Implementation | Activation Condition
+
+|`JTextField`
+|`JTextFieldErrorCleaner`
+|When user typed in text box.
+
+|`JComboBox`, `JCheckBox`
+|`JComboBoxErrorCleaner`
+|When user changed selection.
+
+|`JButton`, `JRadioButton`
+|`JRadioButton`
+|When user clicked the button.
+
+|`JXDatePicker`
+|`JXDatePickerErrorCleaner`
+|When user changes date.
+
+|`simplejpa.swing.DateTimePicker`
+|`DateTimePickerErrorCleaner`
+|When user changes selection.
+
+|`simplejpa.swing.TagChooser`
+|`TagChooserErrorCleaner`
+|When user changes selection.
+|===
+
+You can create your own implementation by creating a new class that implements `ErrorCleaner`.  For example, the following
+  implementation removes error notification after one second:
+
+[source,groovy]
+.MyErrorCleaner.groovy
+----
+package main
+
+import simplejpa.validation.*
+import javax.swing.*
+import java.awt.event.ActionListener
+
+class MyErrorCleaner implements ErrorCleaner {
+
+    void addErrorCleaning(JComponent component, ObservableMap errors, String errorPath) {
+        new Timer(1000, {
+            errors.remove(errorPath)
+        } as ActionListener).start()
+    }
+
+}
+----
+
+To register this `ErrorCleaner` for all `JTextField`, you can add the following line to `Config.groovy`:
+
+[source,groovy]
+----
+griffon.simplejpa.validation.errorCleaners = [
+  'javax.swing.JTextField': 'main.MyErrorCleaner'
+]
+----
+
+If you want to apply the new `ErrorCleaner` to all components, use `'*'` instead of `'javax.swing.JTextField` as key:
+
+[source,groovy]
+----
+griffon.simplejpa.validation.errorCleaners = [
+  '*': 'main.MyErrorCleaner'
+]
+----
+
+=== Validation Message
+
+If validation is failed, simple-jpa stores validation message for the failed paths in `model.errors`.  You can use values
+ stored in `model.errors` to determine which paths have been failed and what are their corresponding messages. You can
+ also change the default validation message by editing `griffon-app\i18n\ValidationMessage.properties`.
+
+The following code shows how to retrieve validation messages:
+
+[source,groovy]
+.MyModel.groovy
+----
+import groovy.beans.Bindable
+import org.hibernate.validator.constraints.NotBlank
+
+class MyModel {
+
+   @NotBlank String firstName
+
+   String lastName
+
+}
+----
+
+[source,groovy]
+.MyView.groovy
+----
+application(pack: true) {
+    flowLayout()
+    textField(columns: 20, text: bind('firstName', target: model), errorPath: 'firstName')
+    textField(columns: 20, text: bind('lastName', target: model), errorPath: 'lastName')
+    button('Save', actionPerformed: controller.save)
+}
+----
+
+[source,groovy]
+.MyController.groovy
+----
+class MyController {
+
+    def model
+    def view
+
+    def save = {
+        if (validate(model)) {
+            println 'Your input have been validated and passed.'
+        } else {
+            println 'Validation failed!'
+            model.errors.each { k, v ->
+                println "$k $v"
+            }
+            // This will display the following error message
+            // if first name is blank:
+            //
+            // Validation failed!
+            // firstName may not be empty
+            //
+        }
+    }
+
+}
+----
+
+If you want to display validation mesage as `JLabel` in view, you can use `errorLabel()` node.  For example, you can
+ change the previous view into:
+
+[source,groovy]
+.MyView.groovy
+----
+application(pack: true) {
+    flowLayout()
+    textField(columns: 20, text: bind('firstName', target: model), errorPath: 'firstName')
+    errorLabel(path: 'firstName')
+    textField(columns: 20, text: bind('lastName', target: model), errorPath: 'lastName')
+    errorLabel(path: 'lastName')
+    button('Save', actionPerformed: controller.save)
+}
+----
+
+image::error_label.PNG[]
+
+`errorLabel()` is only visible if `model.errors` contains a key equals to its `errorPath`.
+
+=== Miscellaneous
+
+In some cases, validation may be failed because `JTextField` value in model is an empty `String` rather than null
+value. To ensure consistent behaviour, simple-jpa can be configured to translate all empty `String` into null value
+before performing validation. This feature is disabled by default. To enable it, add the following line to `Config.groovy`:
+
+[source,groovy]
+----
+griffon.simplejpa.validation.convertEmptyStringToNull = true
+----
+
+
