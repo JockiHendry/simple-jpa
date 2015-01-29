@@ -5,7 +5,7 @@
 <article xmlns="http://docbook.org/ns/docbook" xmlns:xlink="http://www.w3.org/1999/xlink" version="5.0" lang="en">
 <info>
 <title>Untitled</title>
-<date>2014-07-29</date>
+<date>2015-01-29</date>
 </info>
 <section xml:id="_introduction">
 <title>Introduction</title>
@@ -69,5 +69,9 @@ dateTimePicker.</simpara>
 </listitem>
 </varlistentry>
 </variablelist>
+<tip>
+<simpara>This version is not compatible with Griffon 2.0.  You will need Griffon 1.5 and upgrade its Groovy version to at
+least Groovy 2.3.7.</simpara>
+</tip>
 </section>
 </article>

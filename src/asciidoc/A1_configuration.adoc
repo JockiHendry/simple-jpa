@@ -200,55 +200,6 @@ validation. This feature is disabled by default. To enable it, add the following
 griffon.simplejpa.validation.convertEmptyStringToNull = true
 ----
 
-=== Scaffolding
-
-To enable automatic scaffolding when compiling classes, add the following configuration line:
-
-[source,groovy]
-----
-griffon.simplejpa.scaffolding.auto = true
-----
-
-Another scaffolding related configurations are:
-
-.Scaffolding Configuration
-|===
-|Key |Expected Value |Description
-
-|`griffon.simplejpa.scaffolding.generator`
-|A string.
-|The full class name that is instance of `Generator`.  Default value is `simplejpa.scaffolding.generator.basic
-.BasicGenerator`.
-
-|`griffon.simplejpa.scaffolding.generatedPackage`
-|A string.
-|The location of target package for MVC artifacts.  Default value is `project`.
-
-|`griffon.simplejpa.scaffolding.startupGroup`
-|A string.
-|The name of startup group.  If it is not defined, no startup group will be generated.
-
-|`griffon.simplejpa.scaffolding.ignoreLazy`
-|`true` or `false`.
-|If `true`, lazy attributes will be included in generated code.  Default value is `true`.
-
-|`griffon.simplejpa.scaffolding.forceOverwrite`
-|`true or `false`.
-|If `true`, existing files will be overwritten.  Default value is `false`.
-
-|`griffon.simplejpa.scaffolding.skipExcel`
-|`true` or `false`
-|If `true`, not Excel file (for integration testing) will be created.  Default value is `false`.
-
-|`griffon.simplejpa.scaffolding.dateTimeStyle`
-|`'DEFAULT'`, `'SHORT'`, `'MEDIUM'`, `'LONG'`, or `'FULL'`.
-|Represent formatting styles for auditing properties that are instances of `java.util.Date`.
-
-|`griffon.simplejpa.scaffolding.target`
-|A string that consists of domain class names or `'*'`.
-|List of domain classes to generate.  If `'*'`, all domain classes will be generated.  Default value is `'*'`.
-|===
-
 === Auditing
 
 To display a login dialog at startup time, set a service name for `griffon.simplejpa.auditing.loginService`.  This service must be an
