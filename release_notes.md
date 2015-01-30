@@ -172,3 +172,4 @@ First release into griffon artifacts portal.
 1. Don't execute String in templateRenderer node using SimpleTemplateEngine but treats it as property/function lookup (use closure for more complex expression).
 1. Add default popup menu for `glazedTable()` to copy a cell value and print table's content.
 1. Allow using `menuItem()` inside `glazedTable()` to define menu items for popup menu.
+1. Add `exp` as synonym for `expression` in `glazedColumn()`.

@@ -1,5 +1,5 @@
 /*
- * Copyright 2013 Jocki Hendry.
+ * Copyright 2015 Jocki Hendry.
  *
  * Licensed under the Apache License, Version 2.0 (the 'License');
  * you may not use this file except in compliance with the License.
@@ -31,7 +31,7 @@ class GlazedColumnFactory extends AbstractFactory {
         } else {
             result = new GlazedColumn()
         }
-        if (attributes.width) {
+        if (attributes.containsKey('width')) {
             if (attributes.width instanceof Collection) {
                 def (min, pref, max) = attributes.width
                 if (min) result.minWidth = min
@@ -43,6 +43,10 @@ class GlazedColumnFactory extends AbstractFactory {
                 result.maxWidth = attributes.width
             }
             attributes.remove('width')
+        }
+        if (attributes.containsKey('exp')) {
+            result.expression = attributes.exp
+            attributes.remove('exp')
         }
         result
     }
