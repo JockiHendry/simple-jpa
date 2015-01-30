@@ -108,10 +108,21 @@ the startup group's name as its value.  For example, the following command will 
 griffon generate-all -startupGroup=MainGroup
 ....
 
-The generated startup group's view has a toolbar to launch domain class based MVC groups as shown in the following
-result:
+The generated startup group's view has a toolbar to launch domain class based MVC groups.  It uses `MainTabbedPane` to display
+ selected MVC group.
 
 image::default_startup_group.PNG[]
+
+You can add a new tab to main group from any MVC group by using code like:
+
+[source,groovy]
+----
+MainGroupView mainView = app.getMvcGroupManager()['mainGroup'].view
+mainView.mainTab.addMVCTab('mvcGroupName', [arg1: param1], "Tab Caption")
+----
+
+`addMVCTab()` always create new MVC group and display it in a new tab.  This means you can have multiple unrelated instances of the
+same MVC group.
 
 Domain class based MVC group generation and startup group generation can also be combined in a single command execution.
 For example:

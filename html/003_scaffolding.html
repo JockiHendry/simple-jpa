@@ -540,13 +540,26 @@ the startup group&#8217;s name as its value.  For example, the following command
 </div>
 </div>
 <div class="paragraph">
-<p>The generated startup group&#8217;s view has a toolbar to launch domain class based MVC groups as shown in the following
-result:</p>
+<p>The generated startup group&#8217;s view has a toolbar to launch domain class based MVC groups.  It uses <code>MainTabbedPane</code> to display
+ selected MVC group.</p>
 </div>
 <div class="imageblock">
 <div class="content">
 <img src="default_startup_group.PNG" alt="default startup group">
 </div>
+</div>
+<div class="paragraph">
+<p>You can add a new tab to main group from any MVC group by using code like:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlight"><code class="groovy language-groovy">MainGroupView mainView = app.getMvcGroupManager()['mainGroup'].view
+mainView.mainTab.addMVCTab('mvcGroupName', [arg1: param1], "Tab Caption")</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p><code>addMVCTab()</code> always create new MVC group and display it in a new tab.  This means you can have multiple unrelated instances of the
+same MVC group.</p>
 </div>
 <div class="paragraph">
 <p>Domain class based MVC group generation and startup group generation can also be combined in a single command execution.
@@ -1288,7 +1301,7 @@ class MyGenerator extends BasicGenerator {
 </div>
 <div id="footer">
 <div id="footer-text">
-Last updated 2015-01-29 23:35:56 ICT
+Last updated 2015-01-30 22:57:24 ICT
 </div>
 </div>
 </body>

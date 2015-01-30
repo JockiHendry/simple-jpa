@@ -5,7 +5,7 @@
 <article xmlns="http://docbook.org/ns/docbook" xmlns:xlink="http://www.w3.org/1999/xlink" version="5.0" lang="en">
 <info>
 <title>Untitled</title>
-<date>2015-01-29</date>
+<date>2015-01-30</date>
 </info>
 <section xml:id="_scaffolding">
 <title>Scaffolding</title>
@@ -100,8 +100,8 @@ based MVC groups.  To generate a dedicated startup group, <literal>-startupGroup
 the startup group&#8217;s name as its value.  For example, the following command will generate <literal>mainGroup</literal> MVC group and set
  it as startup group:</simpara>
 <literallayout class="monospaced">griffon generate-all -startupGroup=MainGroup</literallayout>
-<simpara>The generated startup group&#8217;s view has a toolbar to launch domain class based MVC groups as shown in the following
-result:</simpara>
+<simpara>The generated startup group&#8217;s view has a toolbar to launch domain class based MVC groups.  It uses <literal>MainTabbedPane</literal> to display
+ selected MVC group.</simpara>
 <figure>
 <mediaobject>
 <imageobject>
@@ -110,6 +110,11 @@ result:</simpara>
 <textobject><phrase>default startup group</phrase></textobject>
 </mediaobject>
 </figure>
+<simpara>You can add a new tab to main group from any MVC group by using code like:</simpara>
+<programlisting language="groovy" linenumbering="unnumbered">MainGroupView mainView = app.getMvcGroupManager()['mainGroup'].view
+mainView.mainTab.addMVCTab('mvcGroupName', [arg1: param1], "Tab Caption")</programlisting>
+<simpara><literal>addMVCTab()</literal> always create new MVC group and display it in a new tab.  This means you can have multiple unrelated instances of the
+same MVC group.</simpara>
 <simpara>Domain class based MVC group generation and startup group generation can also be combined in a single command execution.
 For example:</simpara>
 <literallayout class="monospaced">griffon generate-all Teacher -startupGroup=MainGroup</literallayout>
