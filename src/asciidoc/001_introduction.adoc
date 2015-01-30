@@ -43,5 +43,5 @@ simple-jpa is using dbUnit in integration testing to fill database with predefin
 [TIP]
 ====
 This version is not compatible with Griffon 2.0.  You will need Griffon 1.5 and upgrade its Groovy version to at
-least Groovy 2.3.7.
+least Groovy 2.3.
 ====

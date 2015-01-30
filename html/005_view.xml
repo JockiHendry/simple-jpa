@@ -1,0 +1,937 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?asciidoc-toc?>
+<?asciidoc-numbered?>
+<article xmlns="http://docbook.org/ns/docbook" xmlns:xlink="http://www.w3.org/1999/xlink" version="5.0" lang="en">
+<info>
+<title>Untitled</title>
+<date>2015-01-30</date>
+</info>
+<section xml:id="_view">
+<title>View</title>
+<simpara>To assist you in building presentation layer, simple-jpa provides several custom nodes that are typically
+used in business application.  They can only be used if your presentation layer is Swing based and you are using
+Groovy&#8217;s SwingBuilder (default in Griffon).</simpara>
+<section xml:id="_custom_text_fields">
+<title>Custom Text Fields</title>
+<simpara>Use <literal>numberTextField()</literal> to bind text component with numeric property in view model.  For example:</simpara>
+<formalpara>
+<title>MyModel.groovy</title>
+<para>
+<programlisting language="groovy" linenumbering="unnumbered">class MyModel {
+
+   @Bindable Long amount
+
+}</programlisting>
+</para>
+</formalpara>
+<formalpara>
+<title>MyView.groovy</title>
+<para>
+<programlisting language="groovy" linenumbering="unnumbered">application(pack: true) {
+    flowLayout()
+    numberTextField(columns: 20, bindTo: 'amount')
+    button('Process', actionPerformed: { println model.amount })
+}</programlisting>
+</para>
+</formalpara>
+<simpara>If you want to bind to a <literal>BigDecimal</literal> property in view model, you need to use <literal>decimalTextField()</literal>.  For example:</simpara>
+<formalpara>
+<title>MyModel.groovy</title>
+<para>
+<programlisting language="groovy" linenumbering="unnumbered">class MyModel {
+
+   @Bindable Long amount
+
+}</programlisting>
+</para>
+</formalpara>
+<formalpara>
+<title>MyView.groovy</title>
+<para>
+<programlisting language="groovy" linenumbering="unnumbered">application(pack: true) {
+    flowLayout()
+    decimalTextField(columns: 20, bindTo: 'amount')
+    button('Process', actionPerformed: { println model.amount })
+}</programlisting>
+</para>
+</formalpara>
+<simpara>Both <literal>numberTextField()</literal> and <literal>decimalTextField()</literal> generates a <literal>JFormattedTextField</literal>.  The default formatter used by
+ them is <literal>DecimalFormat.getNumberInstance()</literal>.  You can use different formatter by using one of <literal>'currency'</literal>, <literal>'percent'</literal>,
+  or <literal>'integer'</literal> as value for <literal>type</literal> attribute.  For example:</simpara>
+<formalpara>
+<title>MyView.groovy</title>
+<para>
+<programlisting language="groovy" linenumbering="unnumbered">application(pack: true) {
+    flowLayout()
+    label('Default')
+    decimalTextField(columns: 20, bindTo: 'amount')
+    label('Currency')
+    decimalTextField(columns: 20, bindTo: 'amount', type: 'currency')
+    label('Percent')
+    decimalTextField(columns: 20, bindTo: 'amount', type: 'percent')
+    label('Integer')
+    decimalTextField(columns: 20, bindTo: 'amount', type: 'integer')
+    button('Process', actionPerformed: { println model.amount })
+}</programlisting>
+</para>
+</formalpara>
+<figure>
+<mediaobject>
+<imageobject>
+<imagedata fileref="number_format.PNG"/>
+</imageobject>
+<textobject><phrase>number format</phrase></textobject>
+</mediaobject>
+</figure>
+<simpara>You can also change the property of current formatter by using attribute name that starts with <literal>nf</literal> and followed by
+formatter&#8217;s property name, for example:</simpara>
+<formalpara>
+<title>MyView.groovy</title>
+<para>
+<programlisting language="groovy" linenumbering="unnumbered">application(pack: true) {
+    flowLayout()
+    label('Default')
+    decimalTextField(columns: 20, bindTo: 'amount')
+    label('Custom Formatter')
+    decimalTextField(columns: 20, bindTo: 'amount',
+      nfMinimumFractionDigits: 3, nfMinimumIntegerDigits: 5)
+    button('Process', actionPerformed: { println model.amount })
+}</programlisting>
+</para>
+</formalpara>
+<figure>
+<mediaobject>
+<imageobject>
+<imagedata fileref="custom_formatter.PNG"/>
+</imageobject>
+<textobject><phrase>custom formatter</phrase></textobject>
+</mediaobject>
+</figure>
+<simpara>If you want a <literal>MaskFormatter</literal>, you can use <literal>maskTextField()</literal>:</simpara>
+<formalpara>
+<title>MyView.groovy</title>
+<para>
+<programlisting language="groovy" linenumbering="unnumbered">application(pack: true) {
+    flowLayout()
+    label('Default')
+    maskTextField(columns: 20, mask: 'AAA-#####-##', bindTo: 'identifier')
+    button('Process', actionPerformed: { println model.identifier })
+}</programlisting>
+</para>
+</formalpara>
+<figure>
+<mediaobject>
+<imageobject>
+<imagedata fileref="mask_text_field.PNG"/>
+</imageobject>
+<textobject><phrase>mask text field</phrase></textobject>
+</mediaobject>
+</figure>
+<simpara>In the sample above, mask <literal>'AAA-####-##'</literal> allows user to input number of letter for the first three characters.  The rests
+ should be number.</simpara>
+</section>
+<section xml:id="_date_time_picker">
+<title>Date Time Picker</title>
+<simpara>You can use <literal>dateTimePicker()</literal> to allow user to input date or time (or both).  This component should be binded to date
+data type from Joda Time library.  If you don&#8217;t need time input or binding to property that uses Joda Time type, you can
+just use <literal>JXDatePicker</literal> from SwingX instead of this component.</simpara>
+<simpara><literal>dateVisible</literal> or <literal>timeVisible</literal> of this component determine which input is visible.  By default, both values are <literal>true</literal>.</simpara>
+<formalpara>
+<title>MyView.groovy</title>
+<para>
+<programlisting language="groovy" linenumbering="unnumbered">application(pack: true) {
+    flowLayout()
+    label('Date Only: ')
+    dateTimePicker(dateVisible: true, timeVisible: false)
+    label('Time Only:')
+    dateTimePicker(dateVisible: false, timeVisible: true)
+    label('Both:')
+    dateTimePicker()
+}</programlisting>
+</para>
+</formalpara>
+<figure>
+<mediaobject>
+<imageobject>
+<imagedata fileref="date_time_picker.PNG"/>
+</imageobject>
+<textobject><phrase>date time picker</phrase></textobject>
+</mediaobject>
+</figure>
+<simpara><literal>dateTimePicker()</literal> offers several bindable properties:</simpara>
+<table frame="all" rowsep="1" colsep="1">
+<title>Bindable Properties In <literal>dateTimePicker()</literal></title>
+<tgroup cols="2">
+<colspec colname="col_1" colwidth="50*"/>
+<colspec colname="col_2" colwidth="50*"/>
+<thead>
+<row>
+<entry align="left" valign="top">Property Name</entry>
+<entry align="left" valign="top">Description</entry>
+</row>
+</thead>
+<tbody>
+<row>
+<entry align="left" valign="top"><simpara><literal>localDate</literal></simpara></entry>
+<entry align="left" valign="top"><simpara>Current value as <literal>LocalDate</literal>.</simpara></entry>
+</row>
+<row>
+<entry align="left" valign="top"><simpara><literal>localDateTime</literal></simpara></entry>
+<entry align="left" valign="top"><simpara>Current value as <literal>LocalDateTime</literal>.</simpara></entry>
+</row>
+<row>
+<entry align="left" valign="top"><simpara><literal>dateTime</literal></simpara></entry>
+<entry align="left" valign="top"><simpara>Current value as <literal>DateTime</literal>.</simpara></entry>
+</row>
+<row>
+<entry align="left" valign="top"><simpara><literal>dateMidnight</literal></simpara></entry>
+<entry align="left" valign="top"><simpara>Current value as <literal>DateMidnight</literal>.</simpara></entry>
+</row>
+<row>
+<entry align="left" valign="top"><simpara><literal>localTime</literal></simpara></entry>
+<entry align="left" valign="top"><simpara>Current value as <literal>LocalTime</literal>.</simpara></entry>
+</row>
+</tbody>
+</tgroup>
+</table>
+<simpara>In most cases, you will need only one of those properties, but you can also bind to multiple properties to get the same
+ value in different types:</simpara>
+<formalpara>
+<title>MyModel.groovy</title>
+<para>
+<programlisting language="groovy" linenumbering="unnumbered">import org.joda.time.*
+
+class MyModel {
+
+   @Bindable LocalDate myLocalDate
+   @Bindable LocalDateTime myLocalDateTime
+   @Bindable DateMidnight myDateMidnight
+
+}</programlisting>
+</para>
+</formalpara>
+<formalpara>
+<title>MyView.groovy</title>
+<para>
+<programlisting language="groovy" linenumbering="unnumbered">application(pack: true) {
+    flowLayout()
+    dateTimePicker(
+      localDate: bind('myLocalDate', target: model),
+      localDateTime: bind('myLocalDateTime', target: model),
+      dateMidnight: bind('myDateMidnight', target: model)
+    )
+    label('myLocalDate is ')
+    label(text: bind {model.myLocalDate})
+    label('myLocalDateTime is ')
+    label(text: bind {model.myLocalDateTime})
+    label('myDateMidnight is ')
+    label(text: bind {model.myDateMidnight})
+}</programlisting>
+</para>
+</formalpara>
+<figure>
+<mediaobject>
+<imageobject>
+<imagedata fileref="date_time_picker_binding.PNG"/>
+</imageobject>
+<textobject><phrase>date time picker binding</phrase></textobject>
+</mediaobject>
+</figure>
+<simpara><literal>dateTimePicker()</literal> internally uses <literal>JXDatePicker</literal> for date entry and <literal>JSpinner</literal> time entry.  They are exposed as properties
+ called <literal>datePicker</literal> and <literal>timeSpinner</literal>.</simpara>
+<simpara>If you want to perform a code everytime date or time is changed, you can add a closure to <literal>selectedValueChanged</literal> property:</simpara>
+<formalpara>
+<title>MyView.groovy</title>
+<para>
+<programlisting language="groovy" linenumbering="unnumbered">application(pack: true) {
+    flowLayout()
+    dateTimePicker(
+      localDateTime: bind('myLocalDateTime', target: model),
+      selectedValueChanged: {
+          println "Current value is ${model.myLocalDateTime.toString('dd-MM-YYYY hh:mm')}"
+      }
+    )
+}</programlisting>
+</para>
+</formalpara>
+</section>
+<section xml:id="_table">
+<title>Table</title>
+<simpara>Table is one of the most important components in business application.  That is why simple-jpa provides its own custom
+<literal>JTable</literal> called <literal>glazedTable()</literal>.  It is designed to be binded to <literal>EventList</literal> from Glazed Lists library.  If you don&#8217;t use
+Glazed Lists, you can just use the default <literal>table()</literal> instead of <literal>glazedTable()</literal>.</simpara>
+<simpara><literal>glazedTable()</literal> should contains one or more <literal>glazedColumn()</literal> to represent every columns in table.  Every <literal>glazedColumn()</literal>
+will display property or execute method of the object contained in the binded <literal>EventList</literal>.</simpara>
+<simpara>For example, lets assume you have created the following domain classes:</simpara>
+<formalpara>
+<title>Invoice.groovy</title>
+<para>
+<programlisting language="groovy" linenumbering="unnumbered">package domain
+
+// import statements...
+
+@DomainClass @Entity @Canonical
+class Invoice {
+
+	@NotEmpty @Size(min=5, max=5)
+	String number
+
+
+	@NotNull @Type(type="org.jadira.usertype.dateandtime.joda.PersistentLocalDate")
+	LocalDate date
+
+	@ElementCollection @OrderColumn @NotEmpty
+	List&lt;LineItem&gt; items = []
+
+	void add(LineItem item) {
+		items &lt;&lt; item
+	}
+
+	BigDecimal total() {
+		items.sum { it.total() }
+	}
+
+}</programlisting>
+</para>
+</formalpara>
+<formalpara>
+<title>LineItem.groovy</title>
+<para>
+<programlisting language="groovy" linenumbering="unnumbered">package domain
+
+// import statements...
+
+@Embeddable @Canonical
+class LineItem {
+
+	@NotEmpty @Size(min=2, max=50)
+	String name
+
+	@NotNull @Min(0l)
+	BigDecimal price
+
+	@NotNull @Min(1l)
+	BigDecimal qty
+
+	BigDecimal total() {
+		price * qty
+	}
+
+}</programlisting>
+</para>
+</formalpara>
+<simpara>A very simple use case of <literal>glazedTable()</literal> will be:</simpara>
+<formalpara>
+<title>MyModel.groovy</title>
+<para>
+<programlisting language="groovy" linenumbering="unnumbered">import org.joda.time.*
+import ca.odell.glazedlists.BasicEventList
+
+class MyModel {
+
+   BasicEventList myTable = new BasicEventList()
+
+}</programlisting>
+</para>
+</formalpara>
+<formalpara>
+<title>MyController.groovy</title>
+<para>
+<programlisting language="groovy" linenumbering="unnumbered">import domain.*
+import org.joda.time.*
+
+class MyController {
+
+    def model
+    def view
+
+    void mvcGroupInit(Map args) {
+        Invoice invoice1 = new Invoice('INV01', LocalDate.parse('2015-01-01'))
+        invoice1.add(new LineItem('Product1', 100, 1))
+        invoice1.add(new LineItem('Product2', 200, 2))
+
+        Invoice invoice2 = new Invoice('INV02', LocalDate.parse('2015-01-02'))
+        invoice2.add(new LineItem('Product3', 300, 3))
+        invoice2.add(new LineItem('Product4', 400, 4))
+
+        execInsideUISync {
+            model.myTable &lt;&lt; invoice1
+            model.myTable &lt;&lt; invoice2
+        }
+    }
+
+}</programlisting>
+</para>
+</formalpara>
+<formalpara>
+<title>MyView.groovy</title>
+<para>
+<programlisting language="groovy" linenumbering="unnumbered">application(pack: true) {
+    borderLayout()
+    scrollPane(constraints: CENTER) {
+      glazedTable(list: model.myTable) {
+        glazedColumn(name: 'Invoice Number', property: 'number')
+        glazedColumn(name: 'Date', property: 'date')
+      }
+    }
+}</programlisting>
+</para>
+</formalpara>
+<figure>
+<mediaobject>
+<imageobject>
+<imagedata fileref="simple_glazed_table.PNG"/>
+</imageobject>
+<textobject><phrase>simple glazed table</phrase></textobject>
+</mediaobject>
+</figure>
+<simpara>As you can see, <literal>name</literal> attribute of <literal>glazedColumn()</literal> set column&#8217;s caption and <literal>property</literal> attribute determine the
+column&#8217;s value.  The following table lists all attributes for <literal>glazedColumn()</literal>:</simpara>
+<table frame="all" rowsep="1" colsep="1">
+<title>Attributes for <literal>glazedColumn()</literal></title>
+<tgroup cols="2">
+<colspec colname="col_1" colwidth="50*"/>
+<colspec colname="col_2" colwidth="50*"/>
+<thead>
+<row>
+<entry align="left" valign="top">Name</entry>
+<entry align="left" valign="top">Description</entry>
+</row>
+</thead>
+<tbody>
+<row>
+<entry align="left" valign="top"><simpara><literal>name</literal></simpara></entry>
+<entry align="left" valign="top"><simpara>Set column caption.</simpara></entry>
+</row>
+<row>
+<entry align="left" valign="top"><simpara><literal>expression</literal> or <literal>exp</literal></simpara></entry>
+<entry align="left" valign="top"><simpara>A closure that will be executed to evaluate every row in this column.</simpara></entry>
+</row>
+<row>
+<entry align="left" valign="top"><simpara><literal>property</literal></simpara></entry>
+<entry align="left" valign="top"><simpara>A string to represent property that will be displayed for every row in this column.</simpara></entry>
+</row>
+<row>
+<entry align="left" valign="top"><simpara><literal>columnClass</literal></simpara></entry>
+<entry align="left" valign="top"><simpara>A <literal>Class</literal> to represent the columns&#8217; class.</simpara></entry>
+</row>
+<row>
+<entry align="left" valign="top"><simpara><literal>comparator</literal></simpara></entry>
+<entry align="left" valign="top"><simpara>A <literal>Comparator</literal> to determine how sorting was done for this column.</simpara></entry>
+</row>
+<row>
+<entry align="left" valign="top"><simpara><literal>visible</literal></simpara></entry>
+<entry align="left" valign="top"><simpara>A boolean value to determine if this column should be displayed or not.  This attribute is bindable.</simpara></entry>
+</row>
+</tbody>
+</tgroup>
+</table>
+<simpara><literal>glazedColumn()</literal> is an instance of <literal>TableColumn</literal>.  This means you can also set all of <literal>TableColumn</literal> public properties
+such as <literal>modelIndex</literal>, <literal>width</literal>, <literal>cellEditor</literal>, and <literal>cellRenderer</literal> in <literal>glazedColumn()</literal>.</simpara>
+<simpara>To retrieve column&#8217;s value based on custom calculation rather than property name, you can set a closure for <literal>expression</literal>
+attribute.  You can also use short name <literal>exp</literal> instead of <literal>expression</literal>.  Inside this closure, <literal>it</literal> refer to the object
+ for current row.</simpara>
+<simpara>For example, you can add third column which values are retrieved from <literal>Invoice.total()</literal> method:</simpara>
+<formalpara>
+<title>MyView.groovy</title>
+<para>
+<programlisting language="groovy" linenumbering="unnumbered">application(pack: true) {
+    borderLayout()
+    scrollPane(constraints: CENTER) {
+      glazedTable(list: model.myTable) {
+        glazedColumn(name: 'Invoice Number', property: 'number')
+        glazedColumn(name: 'Date', property: 'date')
+        glazedColumn(name: 'Total', exp: { it.total() })
+      }
+    }
+}</programlisting>
+</para>
+</formalpara>
+<figure>
+<mediaobject>
+<imageobject>
+<imagedata fileref="glazed_column_expression.PNG"/>
+</imageobject>
+<textobject><phrase>glazed column expression</phrase></textobject>
+</mediaobject>
+</figure>
+<simpara>You can change the size of a column by using its <literal>width</literal> property.  If you pass a number to <literal>width</literal>, it will set <literal>minWidth</literal>,
+ <literal>preferredWidth</literal> and <literal>maxWidth</literal> of current <literal>TableColumn</literal> to the same value.  This means user won&#8217;t be able to resize
+ the column.  You can set the value for each of <literal>minWidth</literal>, <literal>preferredWidth</literal> and <literal>maxWidth</literal> by passing a <literal>List</literal> to <literal>width</literal>.</simpara>
+<formalpara>
+<title>MyView.groovy</title>
+<para>
+<programlisting language="groovy" linenumbering="unnumbered">application(pack: true) {
+    borderLayout()
+    scrollPane(constraints: CENTER) {
+      glazedTable(list: model.myTable) {
+        glazedColumn(name: 'Invoice Number', property: 'number', width: 50)
+        glazedColumn(name: 'Date', property: 'date', width: [50, 100])
+        glazedColumn(name: 'Total', exp: { it.total() }, width: [50, 100, 200])
+      }
+    }
+}</programlisting>
+</para>
+</formalpara>
+<figure>
+<mediaobject>
+<imageobject>
+<imagedata fileref="glazed_column_width.PNG"/>
+</imageobject>
+<textobject><phrase>glazed column width</phrase></textobject>
+</mediaobject>
+</figure>
+<simpara>In the table above, first column is fixed and can&#8217;t be resized.  The second column can be resized to a minimum 50 pixel and
+ there is no limit for its maximum size.  The third column can&#8217;t be resized to a size more than 200 pixels.</simpara>
+<simpara><literal>glazedColumn()</literal> can accept instance of <literal>DefaultTableHeaderRenderer</literal>, <literal>TableCellRenderer</literal> or <literal>TableCellEditor</literal> as child nodes.
+ The common use case is to pass a <literal>TableCellRenderer</literal> to <literal>glazedColumn()</literal> in order to format the presentation of this column.
+ You can use <literal>templateRenderer()</literal> to create an instance of <literal>TableCellRenderer</literal> that supports simple-jpa template renderer
+ expression.  See <xref linkend="template-renderer"/> for more information about template renderer expression.</simpara>
+<simpara>For example, you can add uppercase format to the first column, date format to the second column and currency format to
+the third column as in the following view:</simpara>
+<formalpara>
+<title>MyView.groovy</title>
+<para>
+<programlisting language="groovy" linenumbering="unnumbered">application(pack: true) {
+    borderLayout()
+    scrollPane(constraints: CENTER) {
+      glazedTable(list: model.myTable) {
+        glazedColumn(name: 'Invoice Number', property: 'number') {
+          templateRenderer('this:upperCase')
+        }
+        glazedColumn(name: 'Date', property: 'date') {
+          templateRenderer(exp: {it?.toString('dd-MM')?:'-'})
+        }
+        glazedColumn(name: 'Total', exp: { it.total() }) {
+          templateRenderer('this:currencyFormat')
+        }
+      }
+    }
+}</programlisting>
+</para>
+</formalpara>
+<figure>
+<mediaobject>
+<imageobject>
+<imagedata fileref="glazed_column_renderer.PNG"/>
+</imageobject>
+<textobject><phrase>glazed column renderer</phrase></textobject>
+</mediaobject>
+</figure>
+<tip>
+<simpara>Why add <literal>templateRenderer</literal> while you can convert all of your column to string by using <literal>exp</literal> in <literal>glazedColumn</literal>?
+ Converting all values to string is simpler, but you will loose natural ordering when sorting a column.  If you use
+ <literal>templateRenderer</literal>, sorting a column is not performed by comparing formatted value but instead it is based on the original
+ (unformatted) value.</simpara>
+</tip>
+<simpara>Because <literal>templateRenderer()</literal> generates an instance of <literal>JLabel</literal>, you can set public properties of resulting <literal>JLabel</literal> by
+using their name as attribute in <literal>templateRenderer()</literal>.  For example, to right align the third column, you can use the following code:</simpara>
+<formalpara>
+<title>MyView.groovy</title>
+<para>
+<programlisting language="groovy" linenumbering="unnumbered">import static javax.swing.SwingConstants.*
+
+application(pack: true) {
+    borderLayout()
+    scrollPane(constraints: CENTER) {
+      glazedTable(list: model.myTable) {
+        glazedColumn(name: 'Invoice Number', property: 'number')
+        glazedColumn(name: 'Date', property: 'date') {
+          templateRenderer(exp: {it?.toString('dd-MM-YYYY')?:'-'})
+        }
+        glazedColumn(name: 'Total', exp: { it.total() }, columnClass: Integer) { <co xml:id="CO1-1"/>
+          templateRenderer('this:currencyFormat', horizontalAlignment: RIGHT)    <co xml:id="CO1-2"/>
+        }
+      }
+    }
+}</programlisting>
+</para>
+</formalpara>
+<calloutlist>
+<callout arearefs="CO1-1">
+<para>This causes column header to be right aligned.</para>
+</callout>
+<callout arearefs="CO1-2">
+<para>Right align every cell for this column.</para>
+</callout>
+</calloutlist>
+<figure>
+<mediaobject>
+<imageobject>
+<imagedata fileref="glazed_column_alignment.PNG"/>
+</imageobject>
+<textobject><phrase>glazed column alignment</phrase></textobject>
+</mediaobject>
+</figure>
+<simpara><literal>templateRenderer</literal> also supports custom condition that set its property based on some conditions.  For example, the
+following view will set font color for third column to red if its value is less than $1000:</simpara>
+<formalpara>
+<title>MyView.groovy</title>
+<para>
+<programlisting language="groovy" linenumbering="unnumbered">import static javax.swing.SwingConstants.*
+import java.awt.Color
+
+application(pack: true) {
+    borderLayout()
+    scrollPane(constraints: CENTER) {
+      glazedTable(list: model.myTable) {
+        glazedColumn(name: 'Invoice Number', property: 'number')
+        glazedColumn(name: 'Date', property: 'date') {
+          templateRenderer(exp: {it?.toString('dd-MM-YYYY')?:'-'})
+        }
+        glazedColumn(name: 'Total', exp: { it.total() }, columnClass: Integer) {
+          templateRenderer('this:currencyFormat', horizontalAlignment: RIGHT) {
+            condition(if_: {it &lt; 1000}, then_property_: 'foreground', is_: Color.RED, else_is_: Color.BLACK)
+            condition(if_: {isSelected}, then_property_: 'foreground', is_: Color.WHITE)
+          }
+        }
+      }
+    }
+}</programlisting>
+</para>
+</formalpara>
+<figure>
+<mediaobject>
+<imageobject>
+<imagedata fileref="glazed_column_conditional.PNG"/>
+</imageobject>
+<textobject><phrase>glazed column conditional</phrase></textobject>
+</mediaobject>
+</figure>
+<tip>
+<simpara>Using <literal>condition()</literal> inside <literal>templateRenderer()</literal> is useful for simple condition.  If you have a complex rendering
+ calculation, consider creating your own implementation of <literal>TableCellRenderer</literal>.</simpara>
+</tip>
+<simpara>In addition to <literal>glazedColumn()</literal>, <literal>glazedTable()</literal> also accepts <literal>menuItem()</literal> as child node.  This will add new menu when
+ user right click on the table.  By default, popup menu for <literal>glazedTable()</literal> consists of only two menu items: copy cell and
+ print.  The following is a sample view that add new popup menus:</simpara>
+<formalpara>
+<title>MyView.groovy</title>
+<para>
+<programlisting language="groovy" linenumbering="unnumbered">import static javax.swing.SwingConstants.*
+
+actions {
+  action(id: 'menu1', name: 'Menu 1', closure: { println 'Menu1 is selected' })
+  action(id: 'menu2', name: 'Menu 2', closure: { println 'Menu2 is selected' })
+}
+
+application(pack: true) {
+    borderLayout()
+    scrollPane(constraints: CENTER) {
+      glazedTable(list: model.myTable) {
+        glazedColumn(name: 'Invoice Number', property: 'number')
+        glazedColumn(name: 'Date', property: 'date') {
+          templateRenderer(exp: {it?.toString('dd-MM-YYYY')?:'-'})
+        }
+        glazedColumn(name: 'Total', exp: { it.total() }, columnClass: Integer) {
+          templateRenderer('this:currencyFormat', horizontalAlignment: RIGHT)
+        }
+        menuItem(action: menu1)
+        menuItem(action: menu2)
+      }
+    }
+}</programlisting>
+</para>
+</formalpara>
+<figure>
+<mediaobject>
+<imageobject>
+<imagedata fileref="glazed_table_popupmenu.png"/>
+</imageobject>
+<textobject><phrase>glazed table popupmenu</phrase></textobject>
+</mediaobject>
+</figure>
+<simpara>The following table lists attributes that can be used in <literal>glazedTable()</literal>:</simpara>
+<table frame="all" rowsep="1" colsep="1">
+<title>Attributes for <literal>glazedTable()</literal></title>
+<tgroup cols="3">
+<colspec colname="col_1" colwidth="33*"/>
+<colspec colname="col_2" colwidth="33*"/>
+<colspec colname="col_3" colwidth="33*"/>
+<thead>
+<row>
+<entry align="left" valign="top">Name</entry>
+<entry align="left" valign="top">Type</entry>
+<entry align="left" valign="top">Description</entry>
+</row>
+</thead>
+<tbody>
+<row>
+<entry align="left" valign="top"><simpara><literal>list</literal></simpara></entry>
+<entry align="left" valign="top"><simpara><literal>EventList</literal></simpara></entry>
+<entry align="left" valign="top"><simpara>Source value for this table.</simpara></entry>
+</row>
+<row>
+<entry align="left" valign="top"><simpara><literal>sortingStrategy</literal></simpara></entry>
+<entry align="left" valign="top"><simpara><literal>ca.odell.glazedlists.impl.gui.SortingStrategy</literal></simpara></entry>
+<entry align="left" valign="top"><simpara>Sorting strategy for this table.  If <literal>list</literal> is not a <literal>SortedList</literal> and <literal>sortingStrategy</literal> is not defined, <literal>list</literal> will
+ be converted into a <literal>SortedList</literal>.</simpara></entry>
+</row>
+<row>
+<entry align="left" valign="top"><simpara><literal>onValueChanged</literal></simpara></entry>
+<entry align="left" valign="top"><simpara>Closure</simpara></entry>
+<entry align="left" valign="top"><simpara>This closure will be executed if table selection is changed.</simpara></entry>
+</row>
+<row>
+<entry align="left" valign="top"><simpara><literal>isRowSelected</literal></simpara></entry>
+<entry align="left" valign="top"><simpara>Boolean</simpara></entry>
+<entry align="left" valign="top"><simpara><literal>true</literal> is row in table is selected.  This property is bindable.</simpara></entry>
+</row>
+<row>
+<entry align="left" valign="top"><simpara><literal>isNotRowSelected</literal></simpara></entry>
+<entry align="left" valign="top"><simpara>Boolean</simpara></entry>
+<entry align="left" valign="top"><simpara><literal>true</literal> is nothing is selected in table.  This property is bindable.</simpara></entry>
+</row>
+<row>
+<entry align="left" valign="top"><simpara><literal>tableFormat</literal></simpara></entry>
+<entry align="left" valign="top"><simpara><literal>GlazedTableFormat</literal></simpara></entry>
+<entry align="left" valign="top"><simpara><literal>GlazedTableFormat</literal> used by <literal>TableModel</literal> in this table.</simpara></entry>
+</row>
+<row>
+<entry align="left" valign="top"><simpara><literal>doubleClickAction</literal></simpara></entry>
+<entry align="left" valign="top"><simpara><literal>Action</literal></simpara></entry>
+<entry align="left" valign="top"><simpara>Action that will be triggered when user double click a row in this table.</simpara></entry>
+</row>
+<row>
+<entry align="left" valign="top"><simpara><literal>enterKeyAction</literal></simpara></entry>
+<entry align="left" valign="top"><simpara><literal>Action</literal></simpara></entry>
+<entry align="left" valign="top"><simpara>Action that will be triggered when user press Enter key while row is selected in this table.</simpara></entry>
+</row>
+</tbody>
+</tgroup>
+</table>
+<simpara><literal>glazedTable()</literal> creates an instance of <literal>JTable</literal> so you can also set any public properties of <literal>JTable</literal> as attribute in
+ <literal>glazedTable()</literal>.</simpara>
+</section>
+<section xml:id="_template_renderer">
+<title>Template Renderer</title>
+<simpara>simple-jpa a new <literal>templateRenderer</literal> attribute to <literal>comboBox()</literal> and <literal>list()</literal> node to allow you customize renderer without
+creating a new renderer class for every components.  <literal>templateRenderer()</literal> in <literal>glazedColumn()</literal> also uses the same thing.</simpara>
+<simpara><literal>templateRenderer</literal> attribute accepts a closure or string.  If <literal>templateRenderer</literal> is a closure, it will be executed
+  and the result is displayed.  Inside the closure, <literal>it</literal> refers to original value.  You can also call the following
+  built-in functions from inside this closure:</simpara>
+<table frame="all" rowsep="1" colsep="1">
+<title>Built-in functions in <literal>templateRenderer</literal></title>
+<tgroup cols="2">
+<colspec colname="col_1" colwidth="50*"/>
+<colspec colname="col_2" colwidth="50*"/>
+<thead>
+<row>
+<entry align="left" valign="top">Function</entry>
+<entry align="left" valign="top">Description</entry>
+</row>
+</thead>
+<tbody>
+<row>
+<entry align="left" valign="top"><simpara><literal>floatFormat(v, d)</literal></simpara></entry>
+<entry align="left" valign="top"><simpara>Format a number using number style and limit fraction digits to <literal>d</literal> digits.</simpara></entry>
+</row>
+<row>
+<entry align="left" valign="top"><simpara><literal>numberFormat(v)</literal></simpara></entry>
+<entry align="left" valign="top"><simpara>Format a number using number style.</simpara></entry>
+</row>
+<row>
+<entry align="left" valign="top"><simpara><literal>percentFormat(v)</literal></simpara></entry>
+<entry align="left" valign="top"><simpara>Format a number using percent style.</simpara></entry>
+</row>
+<row>
+<entry align="left" valign="top"><simpara><literal>currencyFormat(v)</literal></simpara></entry>
+<entry align="left" valign="top"><simpara>Format a number using currency style.</simpara></entry>
+</row>
+<row>
+<entry align="left" valign="top"><simpara><literal>lowerCase(v)</literal></simpara></entry>
+<entry align="left" valign="top"><simpara>Change string to lower case.</simpara></entry>
+</row>
+<row>
+<entry align="left" valign="top"><simpara><literal>upperCase(v)</literal></simpara></entry>
+<entry align="left" valign="top"><simpara>Change string to upper case.</simpara></entry>
+</row>
+<row>
+<entry align="left" valign="top"><simpara><literal>titleCase(v)</literal></simpara></entry>
+<entry align="left" valign="top"><simpara>Change string to title case.</simpara></entry>
+</row>
+</tbody>
+</tgroup>
+</table>
+<simpara>For example, the following code show how objects are displayed in <literal>JComboBox</literal> and <literal>JList</literal> without using <literal>templateRenderer</literal>:</simpara>
+<formalpara>
+<title>MyModel.groovy</title>
+<para>
+<programlisting language="groovy" linenumbering="unnumbered">import ca.odell.glazedlists.*
+import ca.odell.glazedlists.swing.*
+
+class LatihanModel {
+
+   BasicEventList myList = new BasicEventList()
+   DefaultEventComboBoxModel listModel = new DefaultEventComboBoxModel(myList)
+
+}</programlisting>
+</para>
+</formalpara>
+<formalpara>
+<title>MyController.groovy</title>
+<para>
+<programlisting language="groovy" linenumbering="unnumbered">import domain.*
+import org.joda.time.*
+
+class LatihanController {
+
+    def model
+    def view
+
+    void mvcGroupInit(Map args) {
+        Invoice invoice1 = new Invoice('inv01', LocalDate.parse('2015-01-01'))
+        invoice1.add(new LineItem('Product1', 100, 1))
+        invoice1.add(new LineItem('Product2', 200, 2))
+
+        Invoice invoice2 = new Invoice('inv02', LocalDate.parse('2015-01-02'))
+        invoice2.add(new LineItem('Product3', 300, 3))
+        invoice2.add(new LineItem('Product4', 400, 4))
+
+        execInsideUISync {
+            model.myList &lt;&lt; invoice1
+            model.myList &lt;&lt; invoice2
+        }
+    }
+
+}</programlisting>
+</para>
+</formalpara>
+<formalpara>
+<title>MyView.groovy</title>
+<para>
+<programlisting language="groovy" linenumbering="unnumbered">application(pack: true) {
+    flowLayout()
+    comboBox(model: model.listModel)
+    list(model: model.listModel)
+}</programlisting>
+</para>
+</formalpara>
+<figure>
+<mediaobject>
+<imageobject>
+<imagedata fileref="normal_combobox_and_list.PNG"/>
+</imageobject>
+<textobject><phrase>normal combobox and list</phrase></textobject>
+</mediaobject>
+</figure>
+<simpara>Here is what it looks like after adding <literal>templateRenderer</literal> in view:</simpara>
+<formalpara>
+<title>MyView.groovy</title>
+<para>
+<programlisting language="groovy" linenumbering="unnumbered">application(pack: true) {
+    flowLayout()
+    comboBox(model: model.listModel, templateRenderer: { it.number })
+    list(model: model.listModel, templateRenderer: { "${it.number} Qty: ${it.items.size()}" })
+}</programlisting>
+</para>
+</formalpara>
+<figure>
+<mediaobject>
+<imageobject>
+<imagedata fileref="combobox_and_list_with_template_renderer.PNG"/>
+</imageobject>
+<textobject><phrase>combobox and list with template renderer</phrase></textobject>
+</mediaobject>
+</figure>
+<simpara>You can also pass a string to <literal>templateRenderer</literal>.  The string can be a property name or method call.  If it is a method call,
+ it should be starts with <literal>'#'</literal> character.  You can also call built-in functions by adding <literal>':'</literal> followed by  a function name.</simpara>
+<formalpara>
+<title>MyView.groovy</title>
+<para>
+<programlisting language="groovy" linenumbering="unnumbered">import static javax.swing.SwingConstants.*
+
+application(pack: true) {
+    borderLayout()
+    scrollPane(constraints: CENTER) {
+      list(model: model.listModel, templateRenderer: "#total:currencyFormat")
+    }
+}</programlisting>
+</para>
+</formalpara>
+<figure>
+<mediaobject>
+<imageobject>
+<imagedata fileref="combobox_and_list_with_string_template_renderer.PNG"/>
+</imageobject>
+<textobject><phrase>combobox and list with string template renderer</phrase></textobject>
+</mediaobject>
+</figure>
+</section>
+<section xml:id="_dialog_utils">
+<title>Dialog Utils</title>
+<simpara>simple-jpa provides <literal>mvcPopupButton()</literal> as a helper node to create a <literal>JButton</literal> that will display a modal dialog if it is
+clicked.  The following steps will be performed if <literal>mvcPopupButton()</literal> is clicked:</simpara>
+<itemizedlist>
+<listitem>
+<simpara>Create a new temporary MVC group specified by its <literal>mvcGroup</literal> attribute.  If <literal>args</literal> is closure, execute <literal>args</literal> and pass it
+as arguments for the new MVC group.</simpara>
+</listitem>
+<listitem>
+<simpara>If <literal>onBeforeDisplay</literal> is specified, call it.  The generated button and <literal>args</literal> will be passed as arguments for <literal>onBeforeDisplay</literal>.</simpara>
+</listitem>
+<listitem>
+<simpara>Find a <literal>JPanel</literal> called <literal>mainPanel</literal> in view and display it in a modal dialog.  It is a convension that all main panel should
+be named <literal>mainPanel</literal>.</simpara>
+</listitem>
+<listitem>
+<simpara>If <literal>onFinish</literal> is specified, when user closed the modal dialog, <literal>onFinish</literal> will be executed.  Temporary model, view, and
+controller is passed as arguments for <literal>onFinish</literal>.</simpara>
+</listitem>
+</itemizedlist>
+<simpara>The following code show how to use <literal>mvcPopupButton()</literal>:</simpara>
+<programlisting language="groovy" linenumbering="unnumbered">mvcPopupButton(text: 'Click Me!', mvcGroup: 'anotherMVCGroup', dialogProperties:
+  [title: 'New Dialog', size: new Dimension(900,420)], onFinish: { m, v, c -&gt;
+     println m.result
+  }
+)</programlisting>
+<simpara><literal>mvcPopupButton()</literal> relies to <literal>DialogUtils</literal> to create modal dialog.  The following is lists of all available methods in <literal>DialogUtils</literal>:</simpara>
+<itemizedlist>
+<listitem>
+<simpara><literal>showMVCGroup(MVCGroup mvcGroup, GriffonView view, Map dialogProperties = [:], LayerUI layerUI = null, Closure onFinish = null)</literal></simpara>
+<simpara>Use this method to display view from existing MVC group instance in modal dialog.</simpara>
+</listitem>
+<listitem>
+<simpara><literal>showMVCGroup(String mvcGroupName, Map args = [:], GriffonView view, Map dialogProperties = [:], LayerUI layerUI, Closure onFinish = null)</literal></simpara>
+<simpara>This method creates a temporary MVC group instance and display its view in modal dialog.  Use this method if you need to pass an <literal>LayerUI</literal>.</simpara>
+</listitem>
+<listitem>
+<simpara><literal>showMVCGroup(String mvcGroupName, Map args = [:], GriffonView view, Map dialogProperties = [:], Closure onFinish = null)</literal></simpara>
+<simpara>This method creates a temporary MVC group instance and display its view in modal dialog.</simpara>
+<simpara>Example:</simpara>
+<programlisting language="groovy" linenumbering="unnumbered">def args = [parentList: model.items]
+def props = [title: 'Items']
+DialogUtils.showMVCGroup('lineItemAsChild', args, view, props) { m, v, c -&gt;
+  model.items.clear()
+  model.items.addAll(m.lineItemList)
+}</programlisting>
+</listitem>
+<listitem>
+<simpara><literal>showAndReuseMVCGroup(String mvcGroupName, Map args = [:], GriffonView view, Map dialogProperties = [:], LayerUI layerUI = null, Closure onFinish = null)</literal></simpara>
+<simpara>This method creates a new MVC group instance and display its view in modal dialog.  The created MVC group instance won&#8217;t be destroyed.</simpara>
+</listitem>
+<listitem>
+<simpara><literal>confirm(Component parent, String message, String title, int messageType = JOptionPane.QUESTION_MESSAGE)</literal></simpara>
+<simpara>Display a confirmation message and returns <literal>true</literal> if user confirms the dialog.  This method always run in EDT.</simpara>
+<simpara>Example:</simpara>
+<programlisting language="groovy" linenumbering="unnumbered">if (!DialogUtils.confirm(view.mainPanel, 'Do you want to continue?', 'Delete Confirmation')) {
+    return
+}</programlisting>
+</listitem>
+<listitem>
+<simpara><literal>message(Component parent, String message, String title, int messageType = JOptionPane.INFORMATION_MESSAGE)</literal></simpara>
+<simpara>Display message dialog.  This method always run in EDT.</simpara>
+<simpara>Example:</simpara>
+<programlisting language="groovy" linenumbering="unnumbered">DialogUtils.message(null, errorMessage, 'Error', JOptionPane.ERROR_MESSAGE)</programlisting>
+</listitem>
+<listitem>
+<simpara><literal>input(Component parent, String message, String title, int messageType = JOptionPane.QUESTION_MESSAGE)</literal></simpara>
+<simpara>Display input dialog and return user input as string.  This method always run in EDT.</simpara>
+<simpara>Example:</simpara>
+<programlisting language="groovy" linenumbering="unnumbered">String updatedScore = DialogUtils.input(view.mainPanel, 'Please Enter your new score:', 'New Score')</programlisting>
+</listitem>
+</itemizedlist>
+</section>
+</section>
+</article>

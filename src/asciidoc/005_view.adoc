@@ -1,0 +1,807 @@
+== View
+
+To assist you in building presentation layer, simple-jpa provides several custom nodes that are typically
+used in business application.  They can only be used if your presentation layer is Swing based and you are using
+Groovy's SwingBuilder (default in Griffon).
+
+=== Custom Text Fields
+
+Use `numberTextField()` to bind text component with numeric property in view model.  For example:
+
+[source,groovy]
+.MyModel.groovy
+----
+class MyModel {
+
+   @Bindable Long amount
+
+}
+----
+
+[source,groovy]
+.MyView.groovy
+----
+application(pack: true) {
+    flowLayout()
+    numberTextField(columns: 20, bindTo: 'amount')
+    button('Process', actionPerformed: { println model.amount })
+}
+----
+
+If you want to bind to a `BigDecimal` property in view model, you need to use `decimalTextField()`.  For example:
+
+[source,groovy]
+.MyModel.groovy
+----
+class MyModel {
+
+   @Bindable Long amount
+
+}
+----
+
+[source,groovy]
+.MyView.groovy
+----
+application(pack: true) {
+    flowLayout()
+    decimalTextField(columns: 20, bindTo: 'amount')
+    button('Process', actionPerformed: { println model.amount })
+}
+----
+
+Both `numberTextField()` and `decimalTextField()` generates a `JFormattedTextField`.  The default formatter used by
+ them is `DecimalFormat.getNumberInstance()`.  You can use different formatter by using one of `'currency'`, `'percent'`,
+  or `'integer'` as value for `type` attribute.  For example:
+
+[source,groovy]
+.MyView.groovy
+----
+application(pack: true) {
+    flowLayout()
+    label('Default')
+    decimalTextField(columns: 20, bindTo: 'amount')
+    label('Currency')
+    decimalTextField(columns: 20, bindTo: 'amount', type: 'currency')
+    label('Percent')
+    decimalTextField(columns: 20, bindTo: 'amount', type: 'percent')
+    label('Integer')
+    decimalTextField(columns: 20, bindTo: 'amount', type: 'integer')
+    button('Process', actionPerformed: { println model.amount })
+}
+----
+
+image::number_format.PNG[]
+
+You can also change the property of current formatter by using attribute name that starts with `nf` and followed by
+formatter's property name, for example:
+
+[source,groovy]
+.MyView.groovy
+----
+application(pack: true) {
+    flowLayout()
+    label('Default')
+    decimalTextField(columns: 20, bindTo: 'amount')
+    label('Custom Formatter')
+    decimalTextField(columns: 20, bindTo: 'amount',
+      nfMinimumFractionDigits: 3, nfMinimumIntegerDigits: 5)
+    button('Process', actionPerformed: { println model.amount })
+}
+----
+
+image::custom_formatter.PNG[]
+
+If you want a `MaskFormatter`, you can use `maskTextField()`:
+
+[source,groovy]
+.MyView.groovy
+----
+application(pack: true) {
+    flowLayout()
+    label('Default')
+    maskTextField(columns: 20, mask: 'AAA-#####-##', bindTo: 'identifier')
+    button('Process', actionPerformed: { println model.identifier })
+}
+----
+
+image::mask_text_field.PNG[]
+
+In the sample above, mask `'AAA-####-##'` allows user to input number of letter for the first three characters.  The rests
+ should be number.
+
+=== Date Time Picker
+
+You can use `dateTimePicker()` to allow user to input date or time (or both).  This component should be binded to date
+data type from Joda Time library.  If you don't need time input or binding to property that uses Joda Time type, you can
+just use `JXDatePicker` from SwingX instead of this component.
+
+`dateVisible` or `timeVisible` of this component determine which input is visible.  By default, both values are `true`.
+
+[source,groovy]
+.MyView.groovy
+----
+application(pack: true) {
+    flowLayout()
+    label('Date Only: ')
+    dateTimePicker(dateVisible: true, timeVisible: false)
+    label('Time Only:')
+    dateTimePicker(dateVisible: false, timeVisible: true)
+    label('Both:')
+    dateTimePicker()
+}
+----
+
+image::date_time_picker.PNG[]
+
+`dateTimePicker()` offers several bindable properties:
+
+.Bindable Properties In `dateTimePicker()`
+|===
+|Property Name | Description
+
+|`localDate`
+|Current value as `LocalDate`.
+
+|`localDateTime`
+|Current value as `LocalDateTime`.
+
+|`dateTime`
+|Current value as `DateTime`.
+
+|`dateMidnight`
+|Current value as `DateMidnight`.
+
+|`localTime`
+|Current value as `LocalTime`.
+|===
+
+In most cases, you will need only one of those properties, but you can also bind to multiple properties to get the same
+ value in different types:
+
+[source,groovy]
+.MyModel.groovy
+----
+import org.joda.time.*
+
+class MyModel {
+
+   @Bindable LocalDate myLocalDate
+   @Bindable LocalDateTime myLocalDateTime
+   @Bindable DateMidnight myDateMidnight
+
+}
+----
+
+[source,groovy]
+.MyView.groovy
+----
+application(pack: true) {
+    flowLayout()
+    dateTimePicker(
+      localDate: bind('myLocalDate', target: model),
+      localDateTime: bind('myLocalDateTime', target: model),
+      dateMidnight: bind('myDateMidnight', target: model)
+    )
+    label('myLocalDate is ')
+    label(text: bind {model.myLocalDate})
+    label('myLocalDateTime is ')
+    label(text: bind {model.myLocalDateTime})
+    label('myDateMidnight is ')
+    label(text: bind {model.myDateMidnight})
+}
+----
+
+image::date_time_picker_binding.PNG[]
+
+`dateTimePicker()` internally uses `JXDatePicker` for date entry and `JSpinner` time entry.  They are exposed as properties
+ called `datePicker` and `timeSpinner`.
+
+If you want to perform a code everytime date or time is changed, you can add a closure to `selectedValueChanged` property:
+
+[source,groovy]
+.MyView.groovy
+----
+application(pack: true) {
+    flowLayout()
+    dateTimePicker(
+      localDateTime: bind('myLocalDateTime', target: model),
+      selectedValueChanged: {
+          println "Current value is ${model.myLocalDateTime.toString('dd-MM-YYYY hh:mm')}"
+      }
+    )
+}
+----
+
+=== Table
+
+Table is one of the most important components in business application.  That is why simple-jpa provides its own custom
+`JTable` called `glazedTable()`.  It is designed to be binded to `EventList` from Glazed Lists library.  If you don't use
+Glazed Lists, you can just use the default `table()` instead of `glazedTable()`.
+
+`glazedTable()` should contains one or more `glazedColumn()` to represent every columns in table.  Every `glazedColumn()`
+will display property or execute method of the object contained in the binded `EventList`.
+
+For example, lets assume you have created the following domain classes:
+
+[source,groovy]
+.Invoice.groovy
+----
+package domain
+
+// import statements...
+
+@DomainClass @Entity @Canonical
+class Invoice {
+
+	@NotEmpty @Size(min=5, max=5)
+	String number
+
+
+	@NotNull @Type(type="org.jadira.usertype.dateandtime.joda.PersistentLocalDate")
+	LocalDate date
+
+	@ElementCollection @OrderColumn @NotEmpty
+	List<LineItem> items = []
+
+	void add(LineItem item) {
+		items << item
+	}
+
+	BigDecimal total() {
+		items.sum { it.total() }
+	}
+
+}
+----
+
+[source,groovy]
+.LineItem.groovy
+----
+package domain
+
+// import statements...
+
+@Embeddable @Canonical
+class LineItem {
+
+	@NotEmpty @Size(min=2, max=50)
+	String name
+
+	@NotNull @Min(0l)
+	BigDecimal price
+
+	@NotNull @Min(1l)
+	BigDecimal qty
+
+	BigDecimal total() {
+		price * qty
+	}
+
+}
+----
+
+A very simple use case of `glazedTable()` will be:
+
+[source,groovy]
+.MyModel.groovy
+----
+import org.joda.time.*
+import ca.odell.glazedlists.BasicEventList
+
+class MyModel {
+
+   BasicEventList myTable = new BasicEventList()
+
+}
+----
+
+[source,groovy]
+.MyController.groovy
+----
+import domain.*
+import org.joda.time.*
+
+class MyController {
+
+    def model
+    def view
+
+    void mvcGroupInit(Map args) {
+        Invoice invoice1 = new Invoice('INV01', LocalDate.parse('2015-01-01'))
+        invoice1.add(new LineItem('Product1', 100, 1))
+        invoice1.add(new LineItem('Product2', 200, 2))
+
+        Invoice invoice2 = new Invoice('INV02', LocalDate.parse('2015-01-02'))
+        invoice2.add(new LineItem('Product3', 300, 3))
+        invoice2.add(new LineItem('Product4', 400, 4))
+
+        execInsideUISync {
+            model.myTable << invoice1
+            model.myTable << invoice2
+        }
+    }
+
+}
+----
+
+[source,groovy]
+.MyView.groovy
+----
+application(pack: true) {
+    borderLayout()
+    scrollPane(constraints: CENTER) {
+      glazedTable(list: model.myTable) {
+        glazedColumn(name: 'Invoice Number', property: 'number')
+        glazedColumn(name: 'Date', property: 'date')
+      }
+    }
+}
+----
+
+image::simple_glazed_table.PNG[]
+
+As you can see, `name` attribute of `glazedColumn()` set column's caption and `property` attribute determine the
+column's value.  The following table lists all attributes for `glazedColumn()`:
+
+.Attributes for `glazedColumn()`
+|===
+|Name | Description
+
+|`name`
+|Set column caption.
+
+|`expression` or `exp`
+|A closure that will be executed to evaluate every row in this column.
+
+|`property`
+|A string to represent property that will be displayed for every row in this column.
+
+|`columnClass`
+|A `Class` to represent the columns' class.
+
+|`comparator`
+|A `Comparator` to determine how sorting was done for this column.
+
+|`visible`
+|A boolean value to determine if this column should be displayed or not.  This attribute is bindable.
+|===
+
+`glazedColumn()` is an instance of `TableColumn`.  This means you can also set all of `TableColumn` public properties
+such as `modelIndex`, `width`, `cellEditor`, and `cellRenderer` in `glazedColumn()`.
+
+To retrieve column's value based on custom calculation rather than property name, you can set a closure for `expression`
+attribute.  You can also use short name `exp` instead of `expression`.  Inside this closure, `it` refer to the object
+ for current row.
+
+For example, you can add third column which values are retrieved from `Invoice.total()` method:
+
+[source,groovy]
+.MyView.groovy
+----
+application(pack: true) {
+    borderLayout()
+    scrollPane(constraints: CENTER) {
+      glazedTable(list: model.myTable) {
+        glazedColumn(name: 'Invoice Number', property: 'number')
+        glazedColumn(name: 'Date', property: 'date')
+        glazedColumn(name: 'Total', exp: { it.total() })
+      }
+    }
+}
+----
+
+image::glazed_column_expression.PNG[]
+
+You can change the size of a column by using its `width` property.  If you pass a number to `width`, it will set `minWidth`,
+ `preferredWidth` and `maxWidth` of current `TableColumn` to the same value.  This means user won't be able to resize
+ the column.  You can set the value for each of `minWidth`, `preferredWidth` and `maxWidth` by passing a `List` to `width`.
+
+[source,groovy]
+.MyView.groovy
+----
+application(pack: true) {
+    borderLayout()
+    scrollPane(constraints: CENTER) {
+      glazedTable(list: model.myTable) {
+        glazedColumn(name: 'Invoice Number', property: 'number', width: 50)
+        glazedColumn(name: 'Date', property: 'date', width: [50, 100])
+        glazedColumn(name: 'Total', exp: { it.total() }, width: [50, 100, 200])
+      }
+    }
+}
+----
+
+image::glazed_column_width.PNG[]
+
+In the table above, first column is fixed and can't be resized.  The second column can be resized to a minimum 50 pixel and
+ there is no limit for its maximum size.  The third column can't be resized to a size more than 200 pixels.
+
+`glazedColumn()` can accept instance of `DefaultTableHeaderRenderer`, `TableCellRenderer` or `TableCellEditor` as child nodes.
+ The common use case is to pass a `TableCellRenderer` to `glazedColumn()` in order to format the presentation of this column.
+ You can use `templateRenderer()` to create an instance of `TableCellRenderer` that supports simple-jpa template renderer
+ expression.  See <<template-renderer>> for more information about template renderer expression.
+
+For example, you can add uppercase format to the first column, date format to the second column and currency format to
+the third column as in the following view:
+
+[source,groovy]
+.MyView.groovy
+----
+application(pack: true) {
+    borderLayout()
+    scrollPane(constraints: CENTER) {
+      glazedTable(list: model.myTable) {
+        glazedColumn(name: 'Invoice Number', property: 'number') {
+          templateRenderer('this:upperCase')
+        }
+        glazedColumn(name: 'Date', property: 'date') {
+          templateRenderer(exp: {it?.toString('dd-MM')?:'-'})
+        }
+        glazedColumn(name: 'Total', exp: { it.total() }) {
+          templateRenderer('this:currencyFormat')
+        }
+      }
+    }
+}
+----
+
+image::glazed_column_renderer.PNG[]
+
+TIP:  Why add `templateRenderer` while you can convert all of your column to string by using `exp` in `glazedColumn`?
+ Converting all values to string is simpler, but you will loose natural ordering when sorting a column.  If you use
+ `templateRenderer`, sorting a column is not performed by comparing formatted value but instead it is based on the original
+ (unformatted) value.
+
+Because `templateRenderer()` generates an instance of `JLabel`, you can set public properties of resulting `JLabel` by
+using their name as attribute in `templateRenderer()`.  For example, to right align the third column, you can use the following code:
+
+[source,groovy]
+.MyView.groovy
+----
+import static javax.swing.SwingConstants.*
+
+application(pack: true) {
+    borderLayout()
+    scrollPane(constraints: CENTER) {
+      glazedTable(list: model.myTable) {
+        glazedColumn(name: 'Invoice Number', property: 'number')
+        glazedColumn(name: 'Date', property: 'date') {
+          templateRenderer(exp: {it?.toString('dd-MM-YYYY')?:'-'})
+        }
+        glazedColumn(name: 'Total', exp: { it.total() }, columnClass: Integer) { // <1>
+          templateRenderer('this:currencyFormat', horizontalAlignment: RIGHT)    // <2>
+        }
+      }
+    }
+}
+----
+<1> This causes column header to be right aligned.
+<2> Right align every cell for this column.
+
+image::glazed_column_alignment.PNG[]
+
+`templateRenderer` also supports custom condition that set its property based on some conditions.  For example, the
+following view will set font color for third column to red if its value is less than $1000:
+
+[source,groovy]
+.MyView.groovy
+----
+import static javax.swing.SwingConstants.*
+import java.awt.Color
+
+application(pack: true) {
+    borderLayout()
+    scrollPane(constraints: CENTER) {
+      glazedTable(list: model.myTable) {
+        glazedColumn(name: 'Invoice Number', property: 'number')
+        glazedColumn(name: 'Date', property: 'date') {
+          templateRenderer(exp: {it?.toString('dd-MM-YYYY')?:'-'})
+        }
+        glazedColumn(name: 'Total', exp: { it.total() }, columnClass: Integer) {
+          templateRenderer('this:currencyFormat', horizontalAlignment: RIGHT) {
+            condition(if_: {it < 1000}, then_property_: 'foreground', is_: Color.RED, else_is_: Color.BLACK)
+            condition(if_: {isSelected}, then_property_: 'foreground', is_: Color.WHITE)
+          }
+        }
+      }
+    }
+}
+----
+
+image::glazed_column_conditional.PNG[]
+
+TIP: Using `condition()` inside `templateRenderer()` is useful for simple condition.  If you have a complex rendering
+ calculation, consider creating your own implementation of `TableCellRenderer`.
+
+In addition to `glazedColumn()`, `glazedTable()` also accepts `menuItem()` as child node.  This will add new menu when
+ user right click on the table.  By default, popup menu for `glazedTable()` consists of only two menu items: copy cell and
+ print.  The following is a sample view that add new popup menus:
+
+[source,groovy]
+.MyView.groovy
+----
+import static javax.swing.SwingConstants.*
+
+actions {
+  action(id: 'menu1', name: 'Menu 1', closure: { println 'Menu1 is selected' })
+  action(id: 'menu2', name: 'Menu 2', closure: { println 'Menu2 is selected' })
+}
+
+application(pack: true) {
+    borderLayout()
+    scrollPane(constraints: CENTER) {
+      glazedTable(list: model.myTable) {
+        glazedColumn(name: 'Invoice Number', property: 'number')
+        glazedColumn(name: 'Date', property: 'date') {
+          templateRenderer(exp: {it?.toString('dd-MM-YYYY')?:'-'})
+        }
+        glazedColumn(name: 'Total', exp: { it.total() }, columnClass: Integer) {
+          templateRenderer('this:currencyFormat', horizontalAlignment: RIGHT)
+        }
+        menuItem(action: menu1)
+        menuItem(action: menu2)
+      }
+    }
+}
+----
+
+image::glazed_table_popupmenu.png[]
+
+The following table lists attributes that can be used in `glazedTable()`:
+
+.Attributes for `glazedTable()`
+|===
+|Name | Type | Description
+
+|`list`
+|`EventList`
+|Source value for this table.
+
+|`sortingStrategy`
+|`ca.odell.glazedlists.impl.gui.SortingStrategy`
+|Sorting strategy for this table.  If `list` is not a `SortedList` and `sortingStrategy` is not defined, `list` will
+ be converted into a `SortedList`.
+
+|`onValueChanged`
+|Closure
+|This closure will be executed if table selection is changed.
+
+|`isRowSelected`
+|Boolean
+|`true` is row in table is selected.  This property is bindable.
+
+|`isNotRowSelected`
+|Boolean
+|`true` is nothing is selected in table.  This property is bindable.
+
+|`tableFormat`
+|`GlazedTableFormat`
+|`GlazedTableFormat` used by `TableModel` in this table.
+
+|`doubleClickAction`
+|`Action`
+|Action that will be triggered when user double click a row in this table.
+
+|`enterKeyAction`
+|`Action`
+|Action that will be triggered when user press Enter key while row is selected in this table.
+|===
+
+`glazedTable()` creates an instance of `JTable` so you can also set any public properties of `JTable` as attribute in
+ `glazedTable()`.
+
+=== Template Renderer
+
+simple-jpa a new `templateRenderer` attribute to `comboBox()` and `list()` node to allow you customize renderer without
+creating a new renderer class for every components.  `templateRenderer()` in `glazedColumn()` also uses the same thing.
+
+`templateRenderer` attribute accepts a closure or string.  If `templateRenderer` is a closure, it will be executed
+  and the result is displayed.  Inside the closure, `it` refers to original value.  You can also call the following
+  built-in functions from inside this closure:
+
+.Built-in functions in `templateRenderer`
+|===
+|Function | Description
+
+|`floatFormat(v, d)`
+|Format a number using number style and limit fraction digits to `d` digits.
+
+|`numberFormat(v)`
+|Format a number using number style.
+
+|`percentFormat(v)`
+|Format a number using percent style.
+
+|`currencyFormat(v)`
+|Format a number using currency style.
+
+|`lowerCase(v)`
+|Change string to lower case.
+
+|`upperCase(v)`
+|Change string to upper case.
+
+|`titleCase(v)`
+|Change string to title case.
+|===
+
+For example, the following code show how objects are displayed in `JComboBox` and `JList` without using `templateRenderer`:
+
+[source,groovy]
+.MyModel.groovy
+----
+import ca.odell.glazedlists.*
+import ca.odell.glazedlists.swing.*
+
+class LatihanModel {
+
+   BasicEventList myList = new BasicEventList()
+   DefaultEventComboBoxModel listModel = new DefaultEventComboBoxModel(myList)
+
+}
+----
+
+[source,groovy]
+.MyController.groovy
+----
+import domain.*
+import org.joda.time.*
+
+class LatihanController {
+
+    def model
+    def view
+
+    void mvcGroupInit(Map args) {
+        Invoice invoice1 = new Invoice('inv01', LocalDate.parse('2015-01-01'))
+        invoice1.add(new LineItem('Product1', 100, 1))
+        invoice1.add(new LineItem('Product2', 200, 2))
+
+        Invoice invoice2 = new Invoice('inv02', LocalDate.parse('2015-01-02'))
+        invoice2.add(new LineItem('Product3', 300, 3))
+        invoice2.add(new LineItem('Product4', 400, 4))
+
+        execInsideUISync {
+            model.myList << invoice1
+            model.myList << invoice2
+        }
+    }
+
+}
+----
+
+[source,groovy]
+.MyView.groovy
+----
+application(pack: true) {
+    flowLayout()
+    comboBox(model: model.listModel)
+    list(model: model.listModel)
+}
+----
+
+image::normal_combobox_and_list.PNG[]
+
+Here is what it looks like after adding `templateRenderer` in view:
+
+[source,groovy]
+.MyView.groovy
+----
+application(pack: true) {
+    flowLayout()
+    comboBox(model: model.listModel, templateRenderer: { it.number })
+    list(model: model.listModel, templateRenderer: { "${it.number} Qty: ${it.items.size()}" })
+}
+----
+
+image::combobox_and_list_with_template_renderer.PNG[]
+
+You can also pass a string to `templateRenderer`.  The string can be a property name or method call.  If it is a method call,
+ it should be starts with `'#'` character.  You can also call built-in functions by adding `':'` followed by  a function name.
+
+[source,groovy]
+.MyView.groovy
+----
+import static javax.swing.SwingConstants.*
+
+application(pack: true) {
+    borderLayout()
+    scrollPane(constraints: CENTER) {
+      list(model: model.listModel, templateRenderer: "#total:currencyFormat")
+    }
+}
+----
+
+image::combobox_and_list_with_string_template_renderer.PNG[]
+
+=== Dialog Utils
+
+simple-jpa provides `mvcPopupButton()` as a helper node to create a `JButton` that will display a modal dialog if it is
+clicked.  The following steps will be performed if `mvcPopupButton()` is clicked:
+
+* Create a new temporary MVC group specified by its `mvcGroup` attribute.  If `args` is closure, execute `args` and pass it
+as arguments for the new MVC group.
+* If `onBeforeDisplay` is specified, call it.  The generated button and `args` will be passed as arguments for `onBeforeDisplay`.
+* Find a `JPanel` called `mainPanel` in view and display it in a modal dialog.  It is a convension that all main panel should
+ be named `mainPanel`.
+* If `onFinish` is specified, when user closed the modal dialog, `onFinish` will be executed.  Temporary model, view, and
+controller is passed as arguments for `onFinish`.
+
+The following code show how to use `mvcPopupButton()`:
+
+[source,groovy]
+----
+mvcPopupButton(text: 'Click Me!', mvcGroup: 'anotherMVCGroup', dialogProperties:
+  [title: 'New Dialog', size: new Dimension(900,420)], onFinish: { m, v, c ->
+     println m.result
+  }
+)
+----
+
+`mvcPopupButton()` relies to `DialogUtils` to create modal dialog.  The following is lists of all available methods in `DialogUtils`:
+
+* `showMVCGroup(MVCGroup mvcGroup, GriffonView view, Map dialogProperties = [:], LayerUI layerUI = null, Closure onFinish = null)`
++
+Use this method to display view from existing MVC group instance in modal dialog.
+
+* `showMVCGroup(String mvcGroupName, Map args = [:], GriffonView view, Map dialogProperties = [:], LayerUI layerUI, Closure onFinish = null)`
++
+This method creates a temporary MVC group instance and display its view in modal dialog.  Use this method if you need to pass an `LayerUI`.
+
+* `showMVCGroup(String mvcGroupName, Map args = [:], GriffonView view, Map dialogProperties = [:], Closure onFinish = null)`
++
+This method creates a temporary MVC group instance and display its view in modal dialog.
++
+Example:
++
+[source,groovy]
+----
+def args = [parentList: model.items]
+def props = [title: 'Items']
+DialogUtils.showMVCGroup('lineItemAsChild', args, view, props) { m, v, c ->
+  model.items.clear()
+  model.items.addAll(m.lineItemList)
+}
+----
+
+* `showAndReuseMVCGroup(String mvcGroupName, Map args = [:], GriffonView view, Map dialogProperties = [:], LayerUI layerUI = null, Closure onFinish = null)`
++
+This method creates a new MVC group instance and display its view in modal dialog.  The created MVC group instance won't be destroyed.
+
+* `confirm(Component parent, String message, String title, int messageType = JOptionPane.QUESTION_MESSAGE)`
++
+Display a confirmation message and returns `true` if user confirms the dialog.  This method always run in EDT.
++
+Example:
++
+[source,groovy]
+----
+if (!DialogUtils.confirm(view.mainPanel, 'Do you want to continue?', 'Delete Confirmation')) {
+    return
+}
+----
+
+* `message(Component parent, String message, String title, int messageType = JOptionPane.INFORMATION_MESSAGE)`
++
+Display message dialog.  This method always run in EDT.
++
+Example:
++
+[source,groovy]
+----
+DialogUtils.message(null, errorMessage, 'Error', JOptionPane.ERROR_MESSAGE)
+----
+
+* `input(Component parent, String message, String title, int messageType = JOptionPane.QUESTION_MESSAGE)`
++
+Display input dialog and return user input as string.  This method always run in EDT.
++
+Example:
++
+[source,groovy]
+----
+String updatedScore = DialogUtils.input(view.mainPanel, 'Please Enter your new score:', 'New Score')
+----
+
+
