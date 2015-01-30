@@ -1,0 +1,7 @@
+== Persistence
+
+By default, simple-jpa uses Hibernate JPA as persistence layer for your application.  You have to execute `create-simple-jpa`
+ to setup persistence layer in your application.  This is the first script you will need to execute when you start a
+ new project.
+
+

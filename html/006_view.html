@@ -1,0 +1,1420 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<!--[if IE]><meta http-equiv="X-UA-Compatible" content="IE=edge"><![endif]-->
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="generator" content="Asciidoctor 1.5.0.preview.7">
+<title>View</title>
+<style>
+/* Asciidoctor default stylesheet | MIT License | http://asciidoctor.org */
+article, aside, details, figcaption, figure, footer, header, hgroup, main, nav, section, summary { display: block; }
+audio, canvas, video { display: inline-block; }
+audio:not([controls]) { display: none; height: 0; }
+[hidden], template { display: none; }
+script { display: none !important; }
+html { font-family: sans-serif; -ms-text-size-adjust: 100%; -webkit-text-size-adjust: 100%; }
+body { margin: 0; }
+a { background: transparent; }
+a:focus { outline: thin dotted; }
+a:active, a:hover { outline: 0; }
+h1 { font-size: 2em; margin: 0.67em 0; }
+abbr[title] { border-bottom: 1px dotted; }
+b, strong { font-weight: bold; }
+dfn { font-style: italic; }
+hr { -moz-box-sizing: content-box; box-sizing: content-box; height: 0; }
+mark { background: #ff0; color: #000; }
+code, kbd, pre, samp { font-family: monospace, serif; font-size: 1em; }
+pre { white-space: pre-wrap; }
+q { quotes: "\201C" "\201D" "\2018" "\2019"; }
+small { font-size: 80%; }
+sub, sup { font-size: 75%; line-height: 0; position: relative; vertical-align: baseline; }
+sup { top: -0.5em; }
+sub { bottom: -0.25em; }
+img { border: 0; }
+svg:not(:root) { overflow: hidden; }
+figure { margin: 0; }
+fieldset { border: 1px solid #c0c0c0; margin: 0 2px; padding: 0.35em 0.625em 0.75em; }
+legend { border: 0; padding: 0; }
+button, input, select, textarea { font-family: inherit; font-size: 100%; margin: 0; }
+button, input { line-height: normal; }
+button, select { text-transform: none; }
+button, html input[type="button"], input[type="reset"], input[type="submit"] { -webkit-appearance: button; cursor: pointer; }
+button[disabled], html input[disabled] { cursor: default; }
+input[type="checkbox"], input[type="radio"] { box-sizing: border-box; padding: 0; }
+input[type="search"] { -webkit-appearance: textfield; -moz-box-sizing: content-box; -webkit-box-sizing: content-box; box-sizing: content-box; }
+input[type="search"]::-webkit-search-cancel-button, input[type="search"]::-webkit-search-decoration { -webkit-appearance: none; }
+button::-moz-focus-inner, input::-moz-focus-inner { border: 0; padding: 0; }
+textarea { overflow: auto; vertical-align: top; }
+table { border-collapse: collapse; border-spacing: 0; }
+meta.foundation-mq-small { font-family: "only screen and (min-width: 768px)"; width: 768px; }
+meta.foundation-mq-medium { font-family: "only screen and (min-width:1280px)"; width: 1280px; }
+meta.foundation-mq-large { font-family: "only screen and (min-width:1440px)"; width: 1440px; }
+*, *:before, *:after { -moz-box-sizing: border-box; -webkit-box-sizing: border-box; box-sizing: border-box; }
+html, body { font-size: 100%; }
+body { background: white; color: #222222; padding: 0; margin: 0; font-family: "Helvetica Neue", "Helvetica", Helvetica, Arial, sans-serif; font-weight: normal; font-style: normal; line-height: 1; position: relative; cursor: auto; }
+a:hover { cursor: pointer; }
+img, object, embed { max-width: 100%; height: auto; }
+object, embed { height: 100%; }
+img { -ms-interpolation-mode: bicubic; }
+#map_canvas img, #map_canvas embed, #map_canvas object, .map_canvas img, .map_canvas embed, .map_canvas object { max-width: none !important; }
+.left { float: left !important; }
+.right { float: right !important; }
+.text-left { text-align: left !important; }
+.text-right { text-align: right !important; }
+.text-center { text-align: center !important; }
+.text-justify { text-align: justify !important; }
+.hide { display: none; }
+.antialiased, body { -webkit-font-smoothing: antialiased; }
+img { display: inline-block; vertical-align: middle; }
+textarea { height: auto; min-height: 50px; }
+select { width: 100%; }
+p.lead, .paragraph.lead > p, #preamble > .sectionbody > .paragraph:first-of-type p { font-size: 1.21875em; line-height: 1.6; }
+.subheader, #content #toctitle, .admonitionblock td.content > .title, .exampleblock > .title, .imageblock > .title, .listingblock > .title, .literalblock > .title, .mathblock > .title, .openblock > .title, .paragraph > .title, .quoteblock > .title, .sidebarblock > .title, .tableblock > .title, .verseblock > .title, .videoblock > .title, .dlist > .title, .olist > .title, .ulist > .title, .qlist > .title, .hdlist > .title, .tableblock > caption { line-height: 1.4; color: #7a2518; font-weight: 300; margin-top: 0.2em; margin-bottom: 0.5em; }
+div, dl, dt, dd, ul, ol, li, h1, h2, h3, #toctitle, .sidebarblock > .content > .title, h4, h5, h6, pre, form, p, blockquote, th, td { margin: 0; padding: 0; direction: ltr; }
+a { color: #005498; text-decoration: underline; line-height: inherit; }
+a:hover, a:focus { color: #00467f; }
+a img { border: none; }
+p { font-family: inherit; font-weight: normal; font-size: 1em; line-height: 1.6; margin-bottom: 1.25em; text-rendering: optimizeLegibility; }
+p aside { font-size: 0.875em; line-height: 1.35; font-style: italic; }
+h1, h2, h3, #toctitle, .sidebarblock > .content > .title, h4, h5, h6 { font-family: Georgia, "URW Bookman L", Helvetica, Arial, sans-serif; font-weight: normal; font-style: normal; color: #ba3925; text-rendering: optimizeLegibility; margin-top: 1em; margin-bottom: 0.5em; line-height: 1.2125em; }
+h1 small, h2 small, h3 small, #toctitle small, .sidebarblock > .content > .title small, h4 small, h5 small, h6 small { font-size: 60%; color: #e99b8f; line-height: 0; }
+h1 { font-size: 2.125em; }
+h2 { font-size: 1.6875em; }
+h3, #toctitle, .sidebarblock > .content > .title { font-size: 1.375em; }
+h4 { font-size: 1.125em; }
+h5 { font-size: 1.125em; }
+h6 { font-size: 1em; }
+hr { border: solid #dddddd; border-width: 1px 0 0; clear: both; margin: 1.25em 0 1.1875em; height: 0; }
+em, i { font-style: italic; line-height: inherit; }
+strong, b { font-weight: bold; line-height: inherit; }
+small { font-size: 60%; line-height: inherit; }
+code { font-family: Consolas, "Liberation Mono", Courier, monospace; font-weight: normal; color: #6d180b; }
+ul, ol, dl { font-size: 1em; line-height: 1.6; margin-bottom: 1.25em; list-style-position: outside; font-family: inherit; }
+ul, ol { margin-left: 1.5em; }
+ul.no-bullet, ol.no-bullet { margin-left: 1.5em; }
+ul li ul, ul li ol { margin-left: 1.25em; margin-bottom: 0; font-size: 1em; }
+ul.square li ul, ul.circle li ul, ul.disc li ul { list-style: inherit; }
+ul.square { list-style-type: square; }
+ul.circle { list-style-type: circle; }
+ul.disc { list-style-type: disc; }
+ul.no-bullet { list-style: none; }
+ol li ul, ol li ol { margin-left: 1.25em; margin-bottom: 0; }
+dl dt { margin-bottom: 0.3125em; font-weight: bold; }
+dl dd { margin-bottom: 1.25em; }
+abbr, acronym { text-transform: uppercase; font-size: 90%; color: #222222; border-bottom: 1px dotted #dddddd; cursor: help; }
+abbr { text-transform: none; }
+blockquote { margin: 0 0 1.25em; padding: 0.5625em 1.25em 0 1.1875em; border-left: 1px solid #dddddd; }
+blockquote cite { display: block; font-size: inherit; color: #555555; }
+blockquote cite:before { content: "\2014 \0020"; }
+blockquote cite a, blockquote cite a:visited { color: #555555; }
+blockquote, blockquote p { line-height: 1.6; color: #6f6f6f; }
+.vcard { display: inline-block; margin: 0 0 1.25em 0; border: 1px solid #dddddd; padding: 0.625em 0.75em; }
+.vcard li { margin: 0; display: block; }
+.vcard .fn { font-weight: bold; font-size: 0.9375em; }
+.vevent .summary { font-weight: bold; }
+.vevent abbr { cursor: auto; text-decoration: none; font-weight: bold; border: none; padding: 0 0.0625em; }
+@media only screen and (min-width: 768px) { h1, h2, h3, #toctitle, .sidebarblock > .content > .title, h4, h5, h6 { line-height: 1.4; }
+  h1 { font-size: 2.75em; }
+  h2 { font-size: 2.3125em; }
+  h3, #toctitle, .sidebarblock > .content > .title { font-size: 1.6875em; }
+  h4 { font-size: 1.4375em; } }
+.print-only { display: none !important; }
+@media print { * { background: transparent !important; color: #000 !important; box-shadow: none !important; text-shadow: none !important; }
+  a, a:visited { text-decoration: underline; }
+  a[href]:after { content: " (" attr(href) ")"; }
+  abbr[title]:after { content: " (" attr(title) ")"; }
+  .ir a:after, a[href^="javascript:"]:after, a[href^="#"]:after { content: ""; }
+  pre, blockquote { border: 1px solid #999; page-break-inside: avoid; }
+  thead { display: table-header-group; }
+  tr, img { page-break-inside: avoid; }
+  img { max-width: 100% !important; }
+  @page { margin: 0.5cm; }
+  p, h2, h3, #toctitle, .sidebarblock > .content > .title { orphans: 3; widows: 3; }
+  h2, h3, #toctitle, .sidebarblock > .content > .title { page-break-after: avoid; }
+  .hide-on-print { display: none !important; }
+  .print-only { display: block !important; }
+  .hide-for-print { display: none !important; }
+  .show-for-print { display: inherit !important; } }
+table { background: white; margin-bottom: 1.25em; border: solid 1px #dddddd; }
+table thead, table tfoot { background: whitesmoke; font-weight: bold; }
+table thead tr th, table thead tr td, table tfoot tr th, table tfoot tr td { padding: 0.5em 0.625em 0.625em; font-size: inherit; color: #222222; text-align: left; }
+table tr th, table tr td { padding: 0.5625em 0.625em; font-size: inherit; color: #222222; }
+table tr.even, table tr.alt, table tr:nth-of-type(even) { background: #f9f9f9; }
+table thead tr th, table tfoot tr th, table tbody tr td, table tr td, table tfoot tr td { display: table-cell; line-height: 1.6; }
+.clearfix:before, .clearfix:after, .float-group:before, .float-group:after { content: " "; display: table; }
+.clearfix:after, .float-group:after { clear: both; }
+*:not(pre) > code { font-size: 0.9375em; padding: 1px 3px 0; white-space: nowrap; background-color: #f2f2f2; border: 1px solid #cccccc; -webkit-border-radius: 4px; border-radius: 4px; text-shadow: none; }
+pre, pre > code { line-height: 1.4; color: inherit; font-family: Consolas, "Liberation Mono", Courier, monospace; font-weight: normal; }
+.keyseq { color: #555555; }
+kbd:not(.keyseq) { display: inline-block; color: #222222; font-size: 0.75em; line-height: 1.4; background-color: #F7F7F7; border: 1px solid #ccc; -webkit-border-radius: 3px; border-radius: 3px; -webkit-box-shadow: 0 1px 0 rgba(0, 0, 0, 0.2), 0 0 0 2px white inset; box-shadow: 0 1px 0 rgba(0, 0, 0, 0.2), 0 0 0 2px white inset; margin: -0.15em 0.15em 0 0.15em; padding: 0.2em 0.6em 0.2em 0.5em; vertical-align: middle; white-space: nowrap; }
+.keyseq kbd:first-child { margin-left: 0; }
+.keyseq kbd:last-child { margin-right: 0; }
+.menuseq, .menu { color: #090909; }
+b.button:before, b.button:after { position: relative; top: -1px; font-weight: normal; }
+b.button:before { content: "["; padding: 0 3px 0 2px; }
+b.button:after { content: "]"; padding: 0 2px 0 3px; }
+p a > code:hover { color: #561309; }
+#header, #content, #footnotes, #footer { width: 100%; margin-left: auto; margin-right: auto; margin-top: 0; margin-bottom: 0; max-width: 62.5em; *zoom: 1; position: relative; padding-left: 0.9375em; padding-right: 0.9375em; }
+#header:before, #header:after, #content:before, #content:after, #footnotes:before, #footnotes:after, #footer:before, #footer:after { content: " "; display: table; }
+#header:after, #content:after, #footnotes:after, #footer:after { clear: both; }
+#header { margin-bottom: 2.5em; }
+#header > h1 { color: black; font-weight: normal; border-bottom: 1px solid #dddddd; margin-bottom: -28px; padding-bottom: 32px; }
+#header span { color: #6f6f6f; }
+#header #revnumber { text-transform: capitalize; }
+#header br { display: none; }
+#header br + span { padding-left: 3px; }
+#header br + span:before { content: "\2013 \0020"; }
+#header br + span.author { padding-left: 0; }
+#header br + span.author:before { content: ", "; }
+#toc { border-bottom: 3px double #ebebeb; padding-bottom: 1.25em; }
+#toc > ul { margin-left: 0.25em; }
+#toc ul.sectlevel0 > li > a { font-style: italic; }
+#toc ul.sectlevel0 ul.sectlevel1 { margin-left: 0; margin-top: 0.5em; margin-bottom: 0.5em; }
+#toc ul { list-style-type: none; }
+#toctitle { color: #7a2518; }
+@media only screen and (min-width: 768px) { body.toc2 { padding-left: 15em; padding-right: 0; }
+  #toc.toc2 { position: fixed; width: 15em; left: 0; top: 0; border-right: 1px solid #ebebeb; border-bottom: 0; z-index: 1000; padding: 1em; height: 100%; overflow: auto; }
+  #toc.toc2 #toctitle { margin-top: 0; font-size: 1.2em; }
+  #toc.toc2 > ul { font-size: .90em; }
+  #toc.toc2 ul ul { margin-left: 0; padding-left: 1em; }
+  #toc.toc2 ul.sectlevel0 ul.sectlevel1 { padding-left: 0; margin-top: 0.5em; margin-bottom: 0.5em; }
+  body.toc2.toc-right { padding-left: 0; padding-right: 15em; }
+  body.toc2.toc-right #toc.toc2 { border-right: 0; border-left: 1px solid #ebebeb; left: auto; right: 0; } }
+@media only screen and (min-width: 1280px) { body.toc2 { padding-left: 20em; padding-right: 0; }
+  #toc.toc2 { width: 20em; }
+  #toc.toc2 #toctitle { font-size: 1.375em; }
+  #toc.toc2 > ul { font-size: 0.95em; }
+  #toc.toc2 ul ul { padding-left: 1.25em; }
+  body.toc2.toc-right { padding-left: 0; padding-right: 20em; } }
+#content #toc { border-style: solid; border-width: 1px; border-color: #d9d9d9; margin-bottom: 1.25em; padding: 1.25em; background: #f2f2f2; border-width: 0; -webkit-border-radius: 4px; border-radius: 4px; }
+#content #toc > :first-child { margin-top: 0; }
+#content #toc > :last-child { margin-bottom: 0; }
+#content #toc a { text-decoration: none; }
+#content #toctitle { font-weight: bold; font-family: "Helvetica Neue", "Helvetica", Helvetica, Arial, sans-serif; font-size: 1em; padding-left: 0.125em; }
+#footer { max-width: 100%; background-color: #222222; padding: 1.25em; }
+#footer-text { color: #dddddd; line-height: 1.44; }
+.sect1 { padding-bottom: 1.25em; }
+.sect1 + .sect1 { border-top: 3px double #ebebeb; }
+#content h1 > a.anchor, h2 > a.anchor, h3 > a.anchor, #toctitle > a.anchor, .sidebarblock > .content > .title > a.anchor, h4 > a.anchor, h5 > a.anchor, h6 > a.anchor { position: absolute; width: 1em; margin-left: -1em; display: block; text-decoration: none; visibility: hidden; text-align: center; font-weight: normal; }
+#content h1 > a.anchor:before, h2 > a.anchor:before, h3 > a.anchor:before, #toctitle > a.anchor:before, .sidebarblock > .content > .title > a.anchor:before, h4 > a.anchor:before, h5 > a.anchor:before, h6 > a.anchor:before { content: '\00A7'; font-size: .85em; vertical-align: text-top; display: block; margin-top: 0.05em; }
+#content h1:hover > a.anchor, #content h1 > a.anchor:hover, h2:hover > a.anchor, h2 > a.anchor:hover, h3:hover > a.anchor, #toctitle:hover > a.anchor, .sidebarblock > .content > .title:hover > a.anchor, h3 > a.anchor:hover, #toctitle > a.anchor:hover, .sidebarblock > .content > .title > a.anchor:hover, h4:hover > a.anchor, h4 > a.anchor:hover, h5:hover > a.anchor, h5 > a.anchor:hover, h6:hover > a.anchor, h6 > a.anchor:hover { visibility: visible; }
+#content h1 > a.link, h2 > a.link, h3 > a.link, #toctitle > a.link, .sidebarblock > .content > .title > a.link, h4 > a.link, h5 > a.link, h6 > a.link { color: #ba3925; text-decoration: none; }
+#content h1 > a.link:hover, h2 > a.link:hover, h3 > a.link:hover, #toctitle > a.link:hover, .sidebarblock > .content > .title > a.link:hover, h4 > a.link:hover, h5 > a.link:hover, h6 > a.link:hover { color: #a53221; }
+.imageblock, .literalblock, .listingblock, .mathblock, .verseblock, .videoblock { margin-bottom: 1.25em; }
+.admonitionblock td.content > .title, .exampleblock > .title, .imageblock > .title, .listingblock > .title, .literalblock > .title, .mathblock > .title, .openblock > .title, .paragraph > .title, .quoteblock > .title, .sidebarblock > .title, .tableblock > .title, .verseblock > .title, .videoblock > .title, .dlist > .title, .olist > .title, .ulist > .title, .qlist > .title, .hdlist > .title { text-align: left; font-weight: bold; }
+.tableblock > caption { text-align: left; font-weight: bold; white-space: nowrap; overflow: visible; max-width: 0; }
+table.tableblock #preamble > .sectionbody > .paragraph:first-of-type p { font-size: inherit; }
+.admonitionblock > table { border: 0; background: none; width: 100%; }
+.admonitionblock > table td.icon { text-align: center; width: 80px; }
+.admonitionblock > table td.icon img { max-width: none; }
+.admonitionblock > table td.icon .title { font-weight: bold; text-transform: uppercase; }
+.admonitionblock > table td.content { padding-left: 1.125em; padding-right: 1.25em; border-left: 1px solid #dddddd; color: #6f6f6f; }
+.admonitionblock > table td.content > :last-child > :last-child { margin-bottom: 0; }
+.exampleblock > .content { border-style: solid; border-width: 1px; border-color: #e6e6e6; margin-bottom: 1.25em; padding: 1.25em; background: white; -webkit-border-radius: 4px; border-radius: 4px; }
+.exampleblock > .content > :first-child { margin-top: 0; }
+.exampleblock > .content > :last-child { margin-bottom: 0; }
+.exampleblock > .content h1, .exampleblock > .content h2, .exampleblock > .content h3, .exampleblock > .content #toctitle, .sidebarblock.exampleblock > .content > .title, .exampleblock > .content h4, .exampleblock > .content h5, .exampleblock > .content h6, .exampleblock > .content p { color: #333333; }
+.exampleblock > .content h1, .exampleblock > .content h2, .exampleblock > .content h3, .exampleblock > .content #toctitle, .sidebarblock.exampleblock > .content > .title, .exampleblock > .content h4, .exampleblock > .content h5, .exampleblock > .content h6 { line-height: 1; margin-bottom: 0.625em; }
+.exampleblock > .content h1.subheader, .exampleblock > .content h2.subheader, .exampleblock > .content h3.subheader, .exampleblock > .content .subheader#toctitle, .sidebarblock.exampleblock > .content > .subheader.title, .exampleblock > .content h4.subheader, .exampleblock > .content h5.subheader, .exampleblock > .content h6.subheader { line-height: 1.4; }
+.exampleblock.result > .content { -webkit-box-shadow: 0 1px 8px #d9d9d9; box-shadow: 0 1px 8px #d9d9d9; }
+.sidebarblock { border-style: solid; border-width: 1px; border-color: #d9d9d9; margin-bottom: 1.25em; padding: 1.25em; background: #f2f2f2; -webkit-border-radius: 4px; border-radius: 4px; }
+.sidebarblock > :first-child { margin-top: 0; }
+.sidebarblock > :last-child { margin-bottom: 0; }
+.sidebarblock h1, .sidebarblock h2, .sidebarblock h3, .sidebarblock #toctitle, .sidebarblock > .content > .title, .sidebarblock h4, .sidebarblock h5, .sidebarblock h6, .sidebarblock p { color: #333333; }
+.sidebarblock h1, .sidebarblock h2, .sidebarblock h3, .sidebarblock #toctitle, .sidebarblock > .content > .title, .sidebarblock h4, .sidebarblock h5, .sidebarblock h6 { line-height: 1; margin-bottom: 0.625em; }
+.sidebarblock h1.subheader, .sidebarblock h2.subheader, .sidebarblock h3.subheader, .sidebarblock .subheader#toctitle, .sidebarblock > .content > .subheader.title, .sidebarblock h4.subheader, .sidebarblock h5.subheader, .sidebarblock h6.subheader { line-height: 1.4; }
+.sidebarblock > .content > .title { color: #7a2518; margin-top: 0; line-height: 1.6; }
+.exampleblock > .content > :last-child > :last-child, .exampleblock > .content .olist > ol > li:last-child > :last-child, .exampleblock > .content .ulist > ul > li:last-child > :last-child, .exampleblock > .content .qlist > ol > li:last-child > :last-child, .sidebarblock > .content > :last-child > :last-child, .sidebarblock > .content .olist > ol > li:last-child > :last-child, .sidebarblock > .content .ulist > ul > li:last-child > :last-child, .sidebarblock > .content .qlist > ol > li:last-child > :last-child { margin-bottom: 0; }
+.literalblock pre:not([class]), .listingblock pre:not([class]) { background: none; }
+.literalblock pre, .literalblock pre[class], .listingblock pre, .listingblock pre[class] { border-width: 1px 0; border-style: dotted; border-color: #bfbfbf; -webkit-border-radius: 4px; border-radius: 4px; padding: 0.75em 0.75em 0.5em 0.75em; word-wrap: break-word; }
+.literalblock pre.nowrap, .literalblock pre[class].nowrap, .listingblock pre.nowrap, .listingblock pre[class].nowrap { overflow-x: auto; white-space: pre; word-wrap: normal; }
+.literalblock pre > code, .literalblock pre[class] > code, .listingblock pre > code, .listingblock pre[class] > code { display: block; }
+@media only screen { .literalblock pre, .literalblock pre[class], .listingblock pre, .listingblock pre[class] { font-size: 0.8em; } }
+@media only screen and (min-width: 768px) { .literalblock pre, .literalblock pre[class], .listingblock pre, .listingblock pre[class] { font-size: 0.9em; } }
+@media only screen and (min-width: 1280px) { .literalblock pre, .literalblock pre[class], .listingblock pre, .listingblock pre[class] { font-size: 1em; } }
+.listingblock pre.highlight { padding: 0; }
+.listingblock pre.highlight > code { padding: 0.75em 0.75em 0.5em 0.75em; }
+.listingblock > .content { position: relative; }
+.listingblock:hover code[class*=" language-"]:before { text-transform: uppercase; font-size: 0.9em; color: #999; position: absolute; top: 0.375em; right: 0.375em; }
+.listingblock:hover code.asciidoc:before { content: "asciidoc"; }
+.listingblock:hover code.clojure:before { content: "clojure"; }
+.listingblock:hover code.css:before { content: "css"; }
+.listingblock:hover code.groovy:before { content: "groovy"; }
+.listingblock:hover code.html:before { content: "html"; }
+.listingblock:hover code.java:before { content: "java"; }
+.listingblock:hover code.javascript:before { content: "javascript"; }
+.listingblock:hover code.python:before { content: "python"; }
+.listingblock:hover code.ruby:before { content: "ruby"; }
+.listingblock:hover code.sass:before { content: "sass"; }
+.listingblock:hover code.scss:before { content: "scss"; }
+.listingblock:hover code.xml:before { content: "xml"; }
+.listingblock:hover code.yaml:before { content: "yaml"; }
+.listingblock.terminal pre .command:before { content: attr(data-prompt); padding-right: 0.5em; color: #999; }
+.listingblock.terminal pre .command:not([data-prompt]):before { content: '$'; }
+table.pyhltable { border: 0; margin-bottom: 0; }
+table.pyhltable td { vertical-align: top; padding-top: 0; padding-bottom: 0; }
+table.pyhltable td.code { padding-left: .75em; padding-right: 0; }
+.highlight.pygments .lineno, table.pyhltable td:not(.code) { color: #999; padding-left: 0; padding-right: .5em; border-right: 1px solid #dddddd; }
+.highlight.pygments .lineno { display: inline-block; margin-right: .25em; }
+table.pyhltable .linenodiv { background-color: transparent !important; padding-right: 0 !important; }
+.quoteblock { margin: 0 0 1.25em; padding: 0.5625em 1.25em 0 1.1875em; border-left: 1px solid #dddddd; }
+.quoteblock blockquote { margin: 0 0 1.25em 0; padding: 0 0 0.5625em 0; border: 0; }
+.quoteblock blockquote > .paragraph:last-child p { margin-bottom: 0; }
+.quoteblock .attribution { margin-top: -.25em; padding-bottom: 0.5625em; font-size: inherit; color: #555555; }
+.quoteblock .attribution br { display: none; }
+.quoteblock .attribution cite { display: block; margin-bottom: 0.625em; }
+table thead th, table tfoot th { font-weight: bold; }
+table.tableblock.grid-all { border-collapse: separate; border-spacing: 1px; -webkit-border-radius: 4px; border-radius: 4px; border-top: 1px solid #dddddd; border-bottom: 1px solid #dddddd; }
+table.tableblock.frame-topbot, table.tableblock.frame-none { border-left: 0; border-right: 0; }
+table.tableblock.frame-sides, table.tableblock.frame-none { border-top: 0; border-bottom: 0; }
+table.tableblock td .paragraph:last-child p > p:last-child, table.tableblock th > p:last-child, table.tableblock td > p:last-child { margin-bottom: 0; }
+th.tableblock.halign-left, td.tableblock.halign-left { text-align: left; }
+th.tableblock.halign-right, td.tableblock.halign-right { text-align: right; }
+th.tableblock.halign-center, td.tableblock.halign-center { text-align: center; }
+th.tableblock.valign-top, td.tableblock.valign-top { vertical-align: top; }
+th.tableblock.valign-bottom, td.tableblock.valign-bottom { vertical-align: bottom; }
+th.tableblock.valign-middle, td.tableblock.valign-middle { vertical-align: middle; }
+tbody tr th { display: table-cell; line-height: 1.6; background: whitesmoke; }
+tbody tr th, tbody tr th p, tfoot tr th, tfoot tr th p { color: #222222; font-weight: bold; }
+td > div.verse { white-space: pre; }
+ol { margin-left: 1.75em; }
+ul li ol { margin-left: 1.5em; }
+dl dd { margin-left: 1.125em; }
+dl dd:last-child, dl dd:last-child > :last-child { margin-bottom: 0; }
+ol > li p, ul > li p, ul dd, ol dd, .olist .olist, .ulist .ulist, .ulist .olist, .olist .ulist { margin-bottom: 0.625em; }
+ul.unstyled, ol.unnumbered, ul.checklist, ul.none { list-style-type: none; }
+ul.unstyled, ol.unnumbered, ul.checklist { margin-left: 0.625em; }
+ul.checklist li > p:first-child > i[class^="icon-check"]:first-child, ul.checklist li > p:first-child > input[type="checkbox"]:first-child { margin-right: 0.25em; }
+ul.checklist li > p:first-child > input[type="checkbox"]:first-child { position: relative; top: 1px; }
+ul.inline { margin: 0 auto 0.625em auto; margin-left: -1.375em; margin-right: 0; padding: 0; list-style: none; overflow: hidden; }
+ul.inline > li { list-style: none; float: left; margin-left: 1.375em; display: block; }
+ul.inline > li > * { display: block; }
+.unstyled dl dt { font-weight: normal; font-style: normal; }
+ol.arabic { list-style-type: decimal; }
+ol.decimal { list-style-type: decimal-leading-zero; }
+ol.loweralpha { list-style-type: lower-alpha; }
+ol.upperalpha { list-style-type: upper-alpha; }
+ol.lowerroman { list-style-type: lower-roman; }
+ol.upperroman { list-style-type: upper-roman; }
+ol.lowergreek { list-style-type: lower-greek; }
+.hdlist > table, .colist > table { border: 0; background: none; }
+.hdlist > table > tbody > tr, .colist > table > tbody > tr { background: none; }
+td.hdlist1 { padding-right: .8em; font-weight: bold; }
+td.hdlist1, td.hdlist2 { vertical-align: top; }
+.literalblock + .colist, .listingblock + .colist { margin-top: -0.5em; }
+.colist > table tr > td:first-of-type { padding: 0 .8em; line-height: 1; }
+.colist > table tr > td:last-of-type { padding: 0.25em 0; }
+.qanda > ol > li > p > em:only-child { color: #00467f; }
+.thumb, .th { line-height: 0; display: inline-block; border: solid 4px white; -webkit-box-shadow: 0 0 0 1px #dddddd; box-shadow: 0 0 0 1px #dddddd; }
+.imageblock.left, .imageblock[style*="float: left"] { margin: 0.25em 0.625em 1.25em 0; }
+.imageblock.right, .imageblock[style*="float: right"] { margin: 0.25em 0 1.25em 0.625em; }
+.imageblock > .title { margin-bottom: 0; }
+.imageblock.thumb, .imageblock.th { border-width: 6px; }
+.imageblock.thumb > .title, .imageblock.th > .title { padding: 0 0.125em; }
+.image.left, .image.right { margin-top: 0.25em; margin-bottom: 0.25em; display: inline-block; line-height: 0; }
+.image.left { margin-right: 0.625em; }
+.image.right { margin-left: 0.625em; }
+a.image { text-decoration: none; }
+span.footnote, span.footnoteref { vertical-align: super; font-size: 0.875em; }
+span.footnote a, span.footnoteref a { text-decoration: none; }
+#footnotes { padding-top: 0.75em; padding-bottom: 0.75em; margin-bottom: 0.625em; }
+#footnotes hr { width: 20%; min-width: 6.25em; margin: -.25em 0 .75em 0; border-width: 1px 0 0 0; }
+#footnotes .footnote { padding: 0 0.375em; line-height: 1.3; font-size: 0.875em; margin-left: 1.2em; text-indent: -1.2em; margin-bottom: .2em; }
+#footnotes .footnote a:first-of-type { font-weight: bold; text-decoration: none; }
+#footnotes .footnote:last-of-type { margin-bottom: 0; }
+#content #footnotes { margin-top: -0.625em; margin-bottom: 0; padding: 0.75em 0; }
+.gist .file-data > table { border: none; background: #fff; width: 100%; margin-bottom: 0; }
+.gist .file-data > table td.line-data { width: 99%; }
+div.unbreakable { page-break-inside: avoid; }
+.big { font-size: larger; }
+.small { font-size: smaller; }
+.underline { text-decoration: underline; }
+.overline { text-decoration: overline; }
+.line-through { text-decoration: line-through; }
+.aqua { color: #00bfbf; }
+.aqua-background { background-color: #00fafa; }
+.black { color: black; }
+.black-background { background-color: black; }
+.blue { color: #0000bf; }
+.blue-background { background-color: #0000fa; }
+.fuchsia { color: #bf00bf; }
+.fuchsia-background { background-color: #fa00fa; }
+.gray { color: #606060; }
+.gray-background { background-color: #7d7d7d; }
+.green { color: #006000; }
+.green-background { background-color: #007d00; }
+.lime { color: #00bf00; }
+.lime-background { background-color: #00fa00; }
+.maroon { color: #600000; }
+.maroon-background { background-color: #7d0000; }
+.navy { color: #000060; }
+.navy-background { background-color: #00007d; }
+.olive { color: #606000; }
+.olive-background { background-color: #7d7d00; }
+.purple { color: #600060; }
+.purple-background { background-color: #7d007d; }
+.red { color: #bf0000; }
+.red-background { background-color: #fa0000; }
+.silver { color: #909090; }
+.silver-background { background-color: #bcbcbc; }
+.teal { color: #006060; }
+.teal-background { background-color: #007d7d; }
+.white { color: #bfbfbf; }
+.white-background { background-color: #fafafa; }
+.yellow { color: #bfbf00; }
+.yellow-background { background-color: #fafa00; }
+span.icon > [class^="icon-"], span.icon > [class*=" icon-"] { cursor: default; }
+.admonitionblock td.icon [class^="icon-"]:before { font-size: 2.5em; text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.5); cursor: default; }
+.admonitionblock td.icon .icon-note:before { content: "\f05a"; color: #005498; color: #003f72; }
+.admonitionblock td.icon .icon-tip:before { content: "\f0eb"; text-shadow: 1px 1px 2px rgba(155, 155, 0, 0.8); color: #111; }
+.admonitionblock td.icon .icon-warning:before { content: "\f071"; color: #bf6900; }
+.admonitionblock td.icon .icon-caution:before { content: "\f06d"; color: #bf3400; }
+.admonitionblock td.icon .icon-important:before { content: "\f06a"; color: #bf0000; }
+.conum { display: inline-block; color: white !important; background-color: #222222; -webkit-border-radius: 100px; border-radius: 100px; text-align: center; width: 20px; height: 20px; font-size: 12px; font-weight: bold; line-height: 20px; font-family: Arial, sans-serif; font-style: normal; position: relative; top: -2px; letter-spacing: -1px; }
+.conum * { color: white !important; }
+.conum + b { display: none; }
+.conum:after { content: attr(data-value); }
+.conum:not([data-value]):empty { display: none; }
+#toc.toc2 { background: white; }
+.literalblock > .content > pre, .listingblock > .content > pre { -webkit-border-radius: 0; border-radius: 0; }
+</style>
+</head>
+<body class="article">
+<div id="header">
+</div>
+<div id="content">
+<div class="sect1">
+<h2 id="_view">View</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>To assist you in building presentation layer, simple-jpa provides several custom nodes that are typically
+used in business application.  They can only be used if your presentation layer is Swing based and you are using
+Groovy&#8217;s SwingBuilder (default in Griffon).</p>
+</div>
+<div class="sect2">
+<h3 id="_custom_text_fields">Custom Text Fields</h3>
+<div class="paragraph">
+<p>Use <code>numberTextField()</code> to bind text component with numeric property in view model.  For example:</p>
+</div>
+<div class="listingblock">
+<div class="title">MyModel.groovy</div>
+<div class="content">
+<pre class="highlight"><code class="groovy language-groovy">class MyModel {
+
+   @Bindable Long amount
+
+}</code></pre>
+</div>
+</div>
+<div class="listingblock">
+<div class="title">MyView.groovy</div>
+<div class="content">
+<pre class="highlight"><code class="groovy language-groovy">application(pack: true) {
+    flowLayout()
+    numberTextField(columns: 20, bindTo: 'amount')
+    button('Process', actionPerformed: { println model.amount })
+}</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>If you want to bind to a <code>BigDecimal</code> property in view model, you need to use <code>decimalTextField()</code>.  For example:</p>
+</div>
+<div class="listingblock">
+<div class="title">MyModel.groovy</div>
+<div class="content">
+<pre class="highlight"><code class="groovy language-groovy">class MyModel {
+
+   @Bindable Long amount
+
+}</code></pre>
+</div>
+</div>
+<div class="listingblock">
+<div class="title">MyView.groovy</div>
+<div class="content">
+<pre class="highlight"><code class="groovy language-groovy">application(pack: true) {
+    flowLayout()
+    decimalTextField(columns: 20, bindTo: 'amount')
+    button('Process', actionPerformed: { println model.amount })
+}</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>Both <code>numberTextField()</code> and <code>decimalTextField()</code> generates a <code>JFormattedTextField</code>.  The default formatter used by
+ them is <code>DecimalFormat.getNumberInstance()</code>.  You can use different formatter by using one of <code>'currency'</code>, <code>'percent'</code>,
+  or <code>'integer'</code> as value for <code>type</code> attribute.  For example:</p>
+</div>
+<div class="listingblock">
+<div class="title">MyView.groovy</div>
+<div class="content">
+<pre class="highlight"><code class="groovy language-groovy">application(pack: true) {
+    flowLayout()
+    label('Default')
+    decimalTextField(columns: 20, bindTo: 'amount')
+    label('Currency')
+    decimalTextField(columns: 20, bindTo: 'amount', type: 'currency')
+    label('Percent')
+    decimalTextField(columns: 20, bindTo: 'amount', type: 'percent')
+    label('Integer')
+    decimalTextField(columns: 20, bindTo: 'amount', type: 'integer')
+    button('Process', actionPerformed: { println model.amount })
+}</code></pre>
+</div>
+</div>
+<div class="imageblock">
+<div class="content">
+<img src="number_format.PNG" alt="number format">
+</div>
+</div>
+<div class="paragraph">
+<p>You can also change the property of current formatter by using attribute name that starts with <code>nf</code> and followed by
+formatter&#8217;s property name, for example:</p>
+</div>
+<div class="listingblock">
+<div class="title">MyView.groovy</div>
+<div class="content">
+<pre class="highlight"><code class="groovy language-groovy">application(pack: true) {
+    flowLayout()
+    label('Default')
+    decimalTextField(columns: 20, bindTo: 'amount')
+    label('Custom Formatter')
+    decimalTextField(columns: 20, bindTo: 'amount',
+      nfMinimumFractionDigits: 3, nfMinimumIntegerDigits: 5)
+    button('Process', actionPerformed: { println model.amount })
+}</code></pre>
+</div>
+</div>
+<div class="imageblock">
+<div class="content">
+<img src="custom_formatter.PNG" alt="custom formatter">
+</div>
+</div>
+<div class="paragraph">
+<p>If you want a <code>MaskFormatter</code>, you can use <code>maskTextField()</code>:</p>
+</div>
+<div class="listingblock">
+<div class="title">MyView.groovy</div>
+<div class="content">
+<pre class="highlight"><code class="groovy language-groovy">application(pack: true) {
+    flowLayout()
+    label('Default')
+    maskTextField(columns: 20, mask: 'AAA-#####-##', bindTo: 'identifier')
+    button('Process', actionPerformed: { println model.identifier })
+}</code></pre>
+</div>
+</div>
+<div class="imageblock">
+<div class="content">
+<img src="mask_text_field.PNG" alt="mask text field">
+</div>
+</div>
+<div class="paragraph">
+<p>In the sample above, mask <code>'AAA-####-##'</code> allows user to input number of letter for the first three characters.  The rests
+ should be number.</p>
+</div>
+</div>
+<div class="sect2">
+<h3 id="_date_time_picker">Date Time Picker</h3>
+<div class="paragraph">
+<p>You can use <code>dateTimePicker()</code> to allow user to input date or time (or both).  This component should be binded to date
+data type from Joda Time library.  If you don&#8217;t need time input or binding to property that uses Joda Time type, you can
+just use <code>JXDatePicker</code> from SwingX instead of this component.</p>
+</div>
+<div class="paragraph">
+<p><code>dateVisible</code> or <code>timeVisible</code> of this component determine which input is visible.  By default, both values are <code>true</code>.</p>
+</div>
+<div class="listingblock">
+<div class="title">MyView.groovy</div>
+<div class="content">
+<pre class="highlight"><code class="groovy language-groovy">application(pack: true) {
+    flowLayout()
+    label('Date Only: ')
+    dateTimePicker(dateVisible: true, timeVisible: false)
+    label('Time Only:')
+    dateTimePicker(dateVisible: false, timeVisible: true)
+    label('Both:')
+    dateTimePicker()
+}</code></pre>
+</div>
+</div>
+<div class="imageblock">
+<div class="content">
+<img src="date_time_picker.PNG" alt="date time picker">
+</div>
+</div>
+<div class="paragraph">
+<p><code>dateTimePicker()</code> offers several bindable properties:</p>
+</div>
+<table class="tableblock frame-all grid-all" style="width: 100%;">
+<caption class="title">Table 1. Bindable Properties In <code>dateTimePicker()</code></caption>
+<colgroup>
+<col style="width: 50%;">
+<col style="width: 50%;">
+</colgroup>
+<thead>
+<tr>
+<th class="tableblock halign-left valign-top">Property Name</th>
+<th class="tableblock halign-left valign-top">Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>localDate</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Current value as <code>LocalDate</code>.</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>localDateTime</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Current value as <code>LocalDateTime</code>.</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>dateTime</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Current value as <code>DateTime</code>.</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>dateMidnight</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Current value as <code>DateMidnight</code>.</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>localTime</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Current value as <code>LocalTime</code>.</p></td>
+</tr>
+</tbody>
+</table>
+<div class="paragraph">
+<p>In most cases, you will need only one of those properties, but you can also bind to multiple properties to get the same
+ value in different types:</p>
+</div>
+<div class="listingblock">
+<div class="title">MyModel.groovy</div>
+<div class="content">
+<pre class="highlight"><code class="groovy language-groovy">import org.joda.time.*
+
+class MyModel {
+
+   @Bindable LocalDate myLocalDate
+   @Bindable LocalDateTime myLocalDateTime
+   @Bindable DateMidnight myDateMidnight
+
+}</code></pre>
+</div>
+</div>
+<div class="listingblock">
+<div class="title">MyView.groovy</div>
+<div class="content">
+<pre class="highlight"><code class="groovy language-groovy">application(pack: true) {
+    flowLayout()
+    dateTimePicker(
+      localDate: bind('myLocalDate', target: model),
+      localDateTime: bind('myLocalDateTime', target: model),
+      dateMidnight: bind('myDateMidnight', target: model)
+    )
+    label('myLocalDate is ')
+    label(text: bind {model.myLocalDate})
+    label('myLocalDateTime is ')
+    label(text: bind {model.myLocalDateTime})
+    label('myDateMidnight is ')
+    label(text: bind {model.myDateMidnight})
+}</code></pre>
+</div>
+</div>
+<div class="imageblock">
+<div class="content">
+<img src="date_time_picker_binding.PNG" alt="date time picker binding">
+</div>
+</div>
+<div class="paragraph">
+<p><code>dateTimePicker()</code> internally uses <code>JXDatePicker</code> for date entry and <code>JSpinner</code> time entry.  They are exposed as properties
+ called <code>datePicker</code> and <code>timeSpinner</code>.</p>
+</div>
+<div class="paragraph">
+<p>If you want to perform a code everytime date or time is changed, you can add a closure to <code>selectedValueChanged</code> property:</p>
+</div>
+<div class="listingblock">
+<div class="title">MyView.groovy</div>
+<div class="content">
+<pre class="highlight"><code class="groovy language-groovy">application(pack: true) {
+    flowLayout()
+    dateTimePicker(
+      localDateTime: bind('myLocalDateTime', target: model),
+      selectedValueChanged: {
+          println "Current value is ${model.myLocalDateTime.toString('dd-MM-YYYY hh:mm')}"
+      }
+    )
+}</code></pre>
+</div>
+</div>
+</div>
+<div class="sect2">
+<h3 id="_table">Table</h3>
+<div class="paragraph">
+<p>Table is one of the most important components in business application.  That is why simple-jpa provides its own custom
+<code>JTable</code> called <code>glazedTable()</code>.  It is designed to be binded to <code>EventList</code> from Glazed Lists library.  If you don&#8217;t use
+Glazed Lists, you can just use the default <code>table()</code> instead of <code>glazedTable()</code>.</p>
+</div>
+<div class="paragraph">
+<p><code>glazedTable()</code> should contains one or more <code>glazedColumn()</code> to represent every columns in table.  Every <code>glazedColumn()</code>
+will display property or execute method of the object contained in the binded <code>EventList</code>.</p>
+</div>
+<div class="paragraph">
+<p>For example, lets assume you have created the following domain classes:</p>
+</div>
+<div class="listingblock">
+<div class="title">Invoice.groovy</div>
+<div class="content">
+<pre class="highlight"><code class="groovy language-groovy">package domain
+
+// import statements...
+
+@DomainClass @Entity @Canonical
+class Invoice {
+
+	@NotEmpty @Size(min=5, max=5)
+	String number
+
+
+	@NotNull @Type(type="org.jadira.usertype.dateandtime.joda.PersistentLocalDate")
+	LocalDate date
+
+	@ElementCollection @OrderColumn @NotEmpty
+	List&lt;LineItem&gt; items = []
+
+	void add(LineItem item) {
+		items &lt;&lt; item
+	}
+
+	BigDecimal total() {
+		items.sum { it.total() }
+	}
+
+}</code></pre>
+</div>
+</div>
+<div class="listingblock">
+<div class="title">LineItem.groovy</div>
+<div class="content">
+<pre class="highlight"><code class="groovy language-groovy">package domain
+
+// import statements...
+
+@Embeddable @Canonical
+class LineItem {
+
+	@NotEmpty @Size(min=2, max=50)
+	String name
+
+	@NotNull @Min(0l)
+	BigDecimal price
+
+	@NotNull @Min(1l)
+	BigDecimal qty
+
+	BigDecimal total() {
+		price * qty
+	}
+
+}</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>A very simple use case of <code>glazedTable()</code> will be:</p>
+</div>
+<div class="listingblock">
+<div class="title">MyModel.groovy</div>
+<div class="content">
+<pre class="highlight"><code class="groovy language-groovy">import org.joda.time.*
+import ca.odell.glazedlists.BasicEventList
+
+class MyModel {
+
+   BasicEventList myTable = new BasicEventList()
+
+}</code></pre>
+</div>
+</div>
+<div class="listingblock">
+<div class="title">MyController.groovy</div>
+<div class="content">
+<pre class="highlight"><code class="groovy language-groovy">import domain.*
+import org.joda.time.*
+
+class MyController {
+
+    def model
+    def view
+
+    void mvcGroupInit(Map args) {
+        Invoice invoice1 = new Invoice('INV01', LocalDate.parse('2015-01-01'))
+        invoice1.add(new LineItem('Product1', 100, 1))
+        invoice1.add(new LineItem('Product2', 200, 2))
+
+        Invoice invoice2 = new Invoice('INV02', LocalDate.parse('2015-01-02'))
+        invoice2.add(new LineItem('Product3', 300, 3))
+        invoice2.add(new LineItem('Product4', 400, 4))
+
+        execInsideUISync {
+            model.myTable &lt;&lt; invoice1
+            model.myTable &lt;&lt; invoice2
+        }
+    }
+
+}</code></pre>
+</div>
+</div>
+<div class="listingblock">
+<div class="title">MyView.groovy</div>
+<div class="content">
+<pre class="highlight"><code class="groovy language-groovy">application(pack: true) {
+    borderLayout()
+    scrollPane(constraints: CENTER) {
+      glazedTable(list: model.myTable) {
+        glazedColumn(name: 'Invoice Number', property: 'number')
+        glazedColumn(name: 'Date', property: 'date')
+      }
+    }
+}</code></pre>
+</div>
+</div>
+<div class="imageblock">
+<div class="content">
+<img src="simple_glazed_table.PNG" alt="simple glazed table">
+</div>
+</div>
+<div class="paragraph">
+<p>As you can see, <code>name</code> attribute of <code>glazedColumn()</code> set column&#8217;s caption and <code>property</code> attribute determine the
+column&#8217;s value.  The following table lists all attributes for <code>glazedColumn()</code>:</p>
+</div>
+<table class="tableblock frame-all grid-all" style="width: 100%;">
+<caption class="title">Table 2. Attributes for <code>glazedColumn()</code></caption>
+<colgroup>
+<col style="width: 50%;">
+<col style="width: 50%;">
+</colgroup>
+<thead>
+<tr>
+<th class="tableblock halign-left valign-top">Name</th>
+<th class="tableblock halign-left valign-top">Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>name</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Set column caption.</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>expression</code> or <code>exp</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">A closure that will be executed to evaluate every row in this column.</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>property</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">A string to represent property that will be displayed for every row in this column.</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>columnClass</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">A <code>Class</code> to represent the columns&#8217; class.</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>comparator</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">A <code>Comparator</code> to determine how sorting was done for this column.</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>visible</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">A boolean value to determine if this column should be displayed or not.  This attribute is bindable.</p></td>
+</tr>
+</tbody>
+</table>
+<div class="paragraph">
+<p><code>glazedColumn()</code> is an instance of <code>TableColumn</code>.  This means you can also set all of <code>TableColumn</code> public properties
+such as <code>modelIndex</code>, <code>width</code>, <code>cellEditor</code>, and <code>cellRenderer</code> in <code>glazedColumn()</code>.</p>
+</div>
+<div class="paragraph">
+<p>To retrieve column&#8217;s value based on custom calculation rather than property name, you can set a closure for <code>expression</code>
+attribute.  You can also use short name <code>exp</code> instead of <code>expression</code>.  Inside this closure, <code>it</code> refer to the object
+ for current row.</p>
+</div>
+<div class="paragraph">
+<p>For example, you can add third column which values are retrieved from <code>Invoice.total()</code> method:</p>
+</div>
+<div class="listingblock">
+<div class="title">MyView.groovy</div>
+<div class="content">
+<pre class="highlight"><code class="groovy language-groovy">application(pack: true) {
+    borderLayout()
+    scrollPane(constraints: CENTER) {
+      glazedTable(list: model.myTable) {
+        glazedColumn(name: 'Invoice Number', property: 'number')
+        glazedColumn(name: 'Date', property: 'date')
+        glazedColumn(name: 'Total', exp: { it.total() })
+      }
+    }
+}</code></pre>
+</div>
+</div>
+<div class="imageblock">
+<div class="content">
+<img src="glazed_column_expression.PNG" alt="glazed column expression">
+</div>
+</div>
+<div class="paragraph">
+<p>You can change the size of a column by using its <code>width</code> property.  If you pass a number to <code>width</code>, it will set <code>minWidth</code>,
+ <code>preferredWidth</code> and <code>maxWidth</code> of current <code>TableColumn</code> to the same value.  This means user won&#8217;t be able to resize
+ the column.  You can set the value for each of <code>minWidth</code>, <code>preferredWidth</code> and <code>maxWidth</code> by passing a <code>List</code> to <code>width</code>.</p>
+</div>
+<div class="listingblock">
+<div class="title">MyView.groovy</div>
+<div class="content">
+<pre class="highlight"><code class="groovy language-groovy">application(pack: true) {
+    borderLayout()
+    scrollPane(constraints: CENTER) {
+      glazedTable(list: model.myTable) {
+        glazedColumn(name: 'Invoice Number', property: 'number', width: 50)
+        glazedColumn(name: 'Date', property: 'date', width: [50, 100])
+        glazedColumn(name: 'Total', exp: { it.total() }, width: [50, 100, 200])
+      }
+    }
+}</code></pre>
+</div>
+</div>
+<div class="imageblock">
+<div class="content">
+<img src="glazed_column_width.PNG" alt="glazed column width">
+</div>
+</div>
+<div class="paragraph">
+<p>In the table above, first column is fixed and can&#8217;t be resized.  The second column can be resized to a minimum 50 pixel and
+ there is no limit for its maximum size.  The third column can&#8217;t be resized to a size more than 200 pixels.</p>
+</div>
+<div class="paragraph">
+<p><code>glazedColumn()</code> can accept instance of <code>DefaultTableHeaderRenderer</code>, <code>TableCellRenderer</code> or <code>TableCellEditor</code> as child nodes.
+ The common use case is to pass a <code>TableCellRenderer</code> to <code>glazedColumn()</code> in order to format the presentation of this column.
+ You can use <code>templateRenderer()</code> to create an instance of <code>TableCellRenderer</code> that supports simple-jpa template renderer
+ expression.  See <a href="#template-renderer">[template-renderer]</a> for more information about template renderer expression.</p>
+</div>
+<div class="paragraph">
+<p>For example, you can add uppercase format to the first column, date format to the second column and currency format to
+the third column as in the following view:</p>
+</div>
+<div class="listingblock">
+<div class="title">MyView.groovy</div>
+<div class="content">
+<pre class="highlight"><code class="groovy language-groovy">application(pack: true) {
+    borderLayout()
+    scrollPane(constraints: CENTER) {
+      glazedTable(list: model.myTable) {
+        glazedColumn(name: 'Invoice Number', property: 'number') {
+          templateRenderer('this:upperCase')
+        }
+        glazedColumn(name: 'Date', property: 'date') {
+          templateRenderer(exp: {it?.toString('dd-MM')?:'-'})
+        }
+        glazedColumn(name: 'Total', exp: { it.total() }) {
+          templateRenderer('this:currencyFormat')
+        }
+      }
+    }
+}</code></pre>
+</div>
+</div>
+<div class="imageblock">
+<div class="content">
+<img src="glazed_column_renderer.PNG" alt="glazed column renderer">
+</div>
+</div>
+<div class="admonitionblock tip">
+<table>
+<tr>
+<td class="icon">
+<div class="title">Tip</div>
+</td>
+<td class="content">
+Why add <code>templateRenderer</code> while you can convert all of your column to string by using <code>exp</code> in <code>glazedColumn</code>?
+ Converting all values to string is simpler, but you will loose natural ordering when sorting a column.  If you use
+ <code>templateRenderer</code>, sorting a column is not performed by comparing formatted value but instead it is based on the original
+ (unformatted) value.
+</td>
+</tr>
+</table>
+</div>
+<div class="paragraph">
+<p>Because <code>templateRenderer()</code> generates an instance of <code>JLabel</code>, you can set public properties of resulting <code>JLabel</code> by
+using their name as attribute in <code>templateRenderer()</code>.  For example, to right align the third column, you can use the following code:</p>
+</div>
+<div class="listingblock">
+<div class="title">MyView.groovy</div>
+<div class="content">
+<pre class="highlight"><code class="groovy language-groovy">import static javax.swing.SwingConstants.*
+
+application(pack: true) {
+    borderLayout()
+    scrollPane(constraints: CENTER) {
+      glazedTable(list: model.myTable) {
+        glazedColumn(name: 'Invoice Number', property: 'number')
+        glazedColumn(name: 'Date', property: 'date') {
+          templateRenderer(exp: {it?.toString('dd-MM-YYYY')?:'-'})
+        }
+        glazedColumn(name: 'Total', exp: { it.total() }, columnClass: Integer) { <b>(1)</b>
+          templateRenderer('this:currencyFormat', horizontalAlignment: RIGHT)    <b>(2)</b>
+        }
+      }
+    }
+}</code></pre>
+</div>
+</div>
+<div class="colist arabic">
+<ol>
+<li>
+<p>This causes column header to be right aligned.</p>
+</li>
+<li>
+<p>Right align every cell for this column.</p>
+</li>
+</ol>
+</div>
+<div class="imageblock">
+<div class="content">
+<img src="glazed_column_alignment.PNG" alt="glazed column alignment">
+</div>
+</div>
+<div class="paragraph">
+<p><code>templateRenderer</code> also supports custom condition that set its property based on some conditions.  For example, the
+following view will set font color for third column to red if its value is less than $1000:</p>
+</div>
+<div class="listingblock">
+<div class="title">MyView.groovy</div>
+<div class="content">
+<pre class="highlight"><code class="groovy language-groovy">import static javax.swing.SwingConstants.*
+import java.awt.Color
+
+application(pack: true) {
+    borderLayout()
+    scrollPane(constraints: CENTER) {
+      glazedTable(list: model.myTable) {
+        glazedColumn(name: 'Invoice Number', property: 'number')
+        glazedColumn(name: 'Date', property: 'date') {
+          templateRenderer(exp: {it?.toString('dd-MM-YYYY')?:'-'})
+        }
+        glazedColumn(name: 'Total', exp: { it.total() }, columnClass: Integer) {
+          templateRenderer('this:currencyFormat', horizontalAlignment: RIGHT) {
+            condition(if_: {it &lt; 1000}, then_property_: 'foreground', is_: Color.RED, else_is_: Color.BLACK)
+            condition(if_: {isSelected}, then_property_: 'foreground', is_: Color.WHITE)
+          }
+        }
+      }
+    }
+}</code></pre>
+</div>
+</div>
+<div class="imageblock">
+<div class="content">
+<img src="glazed_column_conditional.PNG" alt="glazed column conditional">
+</div>
+</div>
+<div class="admonitionblock tip">
+<table>
+<tr>
+<td class="icon">
+<div class="title">Tip</div>
+</td>
+<td class="content">
+Using <code>condition()</code> inside <code>templateRenderer()</code> is useful for simple condition.  If you have a complex rendering
+ calculation, consider creating your own implementation of <code>TableCellRenderer</code>.
+</td>
+</tr>
+</table>
+</div>
+<div class="paragraph">
+<p>In addition to <code>glazedColumn()</code>, <code>glazedTable()</code> also accepts <code>menuItem()</code> as child node.  This will add new menu when
+ user right click on the table.  By default, popup menu for <code>glazedTable()</code> consists of only two menu items: copy cell and
+ print.  The following is a sample view that add new popup menus:</p>
+</div>
+<div class="listingblock">
+<div class="title">MyView.groovy</div>
+<div class="content">
+<pre class="highlight"><code class="groovy language-groovy">import static javax.swing.SwingConstants.*
+
+actions {
+  action(id: 'menu1', name: 'Menu 1', closure: { println 'Menu1 is selected' })
+  action(id: 'menu2', name: 'Menu 2', closure: { println 'Menu2 is selected' })
+}
+
+application(pack: true) {
+    borderLayout()
+    scrollPane(constraints: CENTER) {
+      glazedTable(list: model.myTable) {
+        glazedColumn(name: 'Invoice Number', property: 'number')
+        glazedColumn(name: 'Date', property: 'date') {
+          templateRenderer(exp: {it?.toString('dd-MM-YYYY')?:'-'})
+        }
+        glazedColumn(name: 'Total', exp: { it.total() }, columnClass: Integer) {
+          templateRenderer('this:currencyFormat', horizontalAlignment: RIGHT)
+        }
+        menuItem(action: menu1)
+        menuItem(action: menu2)
+      }
+    }
+}</code></pre>
+</div>
+</div>
+<div class="imageblock">
+<div class="content">
+<img src="glazed_table_popupmenu.png" alt="glazed table popupmenu">
+</div>
+</div>
+<div class="paragraph">
+<p>The following table lists attributes that can be used in <code>glazedTable()</code>:</p>
+</div>
+<table class="tableblock frame-all grid-all" style="width: 100%;">
+<caption class="title">Table 3. Attributes for <code>glazedTable()</code></caption>
+<colgroup>
+<col style="width: 33%;">
+<col style="width: 33%;">
+<col style="width: 33%;">
+</colgroup>
+<thead>
+<tr>
+<th class="tableblock halign-left valign-top">Name</th>
+<th class="tableblock halign-left valign-top">Type</th>
+<th class="tableblock halign-left valign-top">Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>list</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>EventList</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Source value for this table.</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>sortingStrategy</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>ca.odell.glazedlists.impl.gui.SortingStrategy</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Sorting strategy for this table.  If <code>list</code> is not a <code>SortedList</code> and <code>sortingStrategy</code> is not defined, <code>list</code> will
+ be converted into a <code>SortedList</code>.</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>onValueChanged</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Closure</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">This closure will be executed if table selection is changed.</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>isRowSelected</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Boolean</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>true</code> is row in table is selected.  This property is bindable.</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>isNotRowSelected</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Boolean</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>true</code> is nothing is selected in table.  This property is bindable.</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>tableFormat</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>GlazedTableFormat</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>GlazedTableFormat</code> used by <code>TableModel</code> in this table.</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>doubleClickAction</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>Action</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Action that will be triggered when user double click a row in this table.</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>enterKeyAction</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>Action</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Action that will be triggered when user press Enter key while row is selected in this table.</p></td>
+</tr>
+</tbody>
+</table>
+<div class="paragraph">
+<p><code>glazedTable()</code> creates an instance of <code>JTable</code> so you can also set any public properties of <code>JTable</code> as attribute in
+ <code>glazedTable()</code>.</p>
+</div>
+</div>
+<div class="sect2">
+<h3 id="_template_renderer">Template Renderer</h3>
+<div class="paragraph">
+<p>simple-jpa a new <code>templateRenderer</code> attribute to <code>comboBox()</code> and <code>list()</code> node to allow you customize renderer without
+creating a new renderer class for every components.  <code>templateRenderer()</code> in <code>glazedColumn()</code> also uses the same thing.</p>
+</div>
+<div class="paragraph">
+<p><code>templateRenderer</code> attribute accepts a closure or string.  If <code>templateRenderer</code> is a closure, it will be executed
+  and the result is displayed.  Inside the closure, <code>it</code> refers to original value.  You can also call the following
+  built-in functions from inside this closure:</p>
+</div>
+<table class="tableblock frame-all grid-all" style="width: 100%;">
+<caption class="title">Table 4. Built-in functions in <code>templateRenderer</code></caption>
+<colgroup>
+<col style="width: 50%;">
+<col style="width: 50%;">
+</colgroup>
+<thead>
+<tr>
+<th class="tableblock halign-left valign-top">Function</th>
+<th class="tableblock halign-left valign-top">Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>floatFormat(v, d)</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Format a number using number style and limit fraction digits to <code>d</code> digits.</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>numberFormat(v)</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Format a number using number style.</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>percentFormat(v)</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Format a number using percent style.</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>currencyFormat(v)</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Format a number using currency style.</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>lowerCase(v)</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Change string to lower case.</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>upperCase(v)</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Change string to upper case.</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>titleCase(v)</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Change string to title case.</p></td>
+</tr>
+</tbody>
+</table>
+<div class="paragraph">
+<p>For example, the following code show how objects are displayed in <code>JComboBox</code> and <code>JList</code> without using <code>templateRenderer</code>:</p>
+</div>
+<div class="listingblock">
+<div class="title">MyModel.groovy</div>
+<div class="content">
+<pre class="highlight"><code class="groovy language-groovy">import ca.odell.glazedlists.*
+import ca.odell.glazedlists.swing.*
+
+class LatihanModel {
+
+   BasicEventList myList = new BasicEventList()
+   DefaultEventComboBoxModel listModel = new DefaultEventComboBoxModel(myList)
+
+}</code></pre>
+</div>
+</div>
+<div class="listingblock">
+<div class="title">MyController.groovy</div>
+<div class="content">
+<pre class="highlight"><code class="groovy language-groovy">import domain.*
+import org.joda.time.*
+
+class LatihanController {
+
+    def model
+    def view
+
+    void mvcGroupInit(Map args) {
+        Invoice invoice1 = new Invoice('inv01', LocalDate.parse('2015-01-01'))
+        invoice1.add(new LineItem('Product1', 100, 1))
+        invoice1.add(new LineItem('Product2', 200, 2))
+
+        Invoice invoice2 = new Invoice('inv02', LocalDate.parse('2015-01-02'))
+        invoice2.add(new LineItem('Product3', 300, 3))
+        invoice2.add(new LineItem('Product4', 400, 4))
+
+        execInsideUISync {
+            model.myList &lt;&lt; invoice1
+            model.myList &lt;&lt; invoice2
+        }
+    }
+
+}</code></pre>
+</div>
+</div>
+<div class="listingblock">
+<div class="title">MyView.groovy</div>
+<div class="content">
+<pre class="highlight"><code class="groovy language-groovy">application(pack: true) {
+    flowLayout()
+    comboBox(model: model.listModel)
+    list(model: model.listModel)
+}</code></pre>
+</div>
+</div>
+<div class="imageblock">
+<div class="content">
+<img src="normal_combobox_and_list.PNG" alt="normal combobox and list">
+</div>
+</div>
+<div class="paragraph">
+<p>Here is what it looks like after adding <code>templateRenderer</code> in view:</p>
+</div>
+<div class="listingblock">
+<div class="title">MyView.groovy</div>
+<div class="content">
+<pre class="highlight"><code class="groovy language-groovy">application(pack: true) {
+    flowLayout()
+    comboBox(model: model.listModel, templateRenderer: { it.number })
+    list(model: model.listModel, templateRenderer: { "${it.number} Qty: ${it.items.size()}" })
+}</code></pre>
+</div>
+</div>
+<div class="imageblock">
+<div class="content">
+<img src="combobox_and_list_with_template_renderer.PNG" alt="combobox and list with template renderer">
+</div>
+</div>
+<div class="paragraph">
+<p>You can also pass a string to <code>templateRenderer</code>.  The string can be a property name or method call.  If it is a method call,
+ it should be starts with <code>'#'</code> character.  You can also call built-in functions by adding <code>':'</code> followed by  a function name.</p>
+</div>
+<div class="listingblock">
+<div class="title">MyView.groovy</div>
+<div class="content">
+<pre class="highlight"><code class="groovy language-groovy">import static javax.swing.SwingConstants.*
+
+application(pack: true) {
+    borderLayout()
+    scrollPane(constraints: CENTER) {
+      list(model: model.listModel, templateRenderer: "#total:currencyFormat")
+    }
+}</code></pre>
+</div>
+</div>
+<div class="imageblock">
+<div class="content">
+<img src="combobox_and_list_with_string_template_renderer.PNG" alt="combobox and list with string template renderer">
+</div>
+</div>
+</div>
+<div class="sect2">
+<h3 id="_dialog_utils">Dialog Utils</h3>
+<div class="paragraph">
+<p>simple-jpa provides <code>mvcPopupButton()</code> as a helper node to create a <code>JButton</code> that will display a modal dialog if it is
+clicked.  The following steps will be performed if <code>mvcPopupButton()</code> is clicked:</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p>Create a new temporary MVC group specified by its <code>mvcGroup</code> attribute.  If <code>args</code> is closure, execute <code>args</code> and pass it
+as arguments for the new MVC group.</p>
+</li>
+<li>
+<p>If <code>onBeforeDisplay</code> is specified, call it.  The generated button and <code>args</code> will be passed as arguments for <code>onBeforeDisplay</code>.</p>
+</li>
+<li>
+<p>Find a <code>JPanel</code> called <code>mainPanel</code> in view and display it in a modal dialog.  It is a convension that all main panel should
+be named <code>mainPanel</code>.</p>
+</li>
+<li>
+<p>If <code>onFinish</code> is specified, when user closed the modal dialog, <code>onFinish</code> will be executed.  Temporary model, view, and
+controller is passed as arguments for <code>onFinish</code>.</p>
+</li>
+</ul>
+</div>
+<div class="paragraph">
+<p>The following code show how to use <code>mvcPopupButton()</code>:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlight"><code class="groovy language-groovy">mvcPopupButton(text: 'Click Me!', mvcGroup: 'anotherMVCGroup', dialogProperties:
+  [title: 'New Dialog', size: new Dimension(900,420)], onFinish: { m, v, c -&gt;
+     println m.result
+  }
+)</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p><code>mvcPopupButton()</code> relies to <code>DialogUtils</code> to create modal dialog.  The following is lists of all available methods in <code>DialogUtils</code>:</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p><code>showMVCGroup(MVCGroup mvcGroup, GriffonView view, Map dialogProperties = [:], LayerUI layerUI = null, Closure onFinish = null)</code></p>
+<div class="paragraph">
+<p>Use this method to display view from existing MVC group instance in modal dialog.</p>
+</div>
+</li>
+<li>
+<p><code>showMVCGroup(String mvcGroupName, Map args = [:], GriffonView view, Map dialogProperties = [:], LayerUI layerUI, Closure onFinish = null)</code></p>
+<div class="paragraph">
+<p>This method creates a temporary MVC group instance and display its view in modal dialog.  Use this method if you need to pass an <code>LayerUI</code>.</p>
+</div>
+</li>
+<li>
+<p><code>showMVCGroup(String mvcGroupName, Map args = [:], GriffonView view, Map dialogProperties = [:], Closure onFinish = null)</code></p>
+<div class="paragraph">
+<p>This method creates a temporary MVC group instance and display its view in modal dialog.</p>
+</div>
+<div class="paragraph">
+<p>Example:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlight"><code class="groovy language-groovy">def args = [parentList: model.items]
+def props = [title: 'Items']
+DialogUtils.showMVCGroup('lineItemAsChild', args, view, props) { m, v, c -&gt;
+  model.items.clear()
+  model.items.addAll(m.lineItemList)
+}</code></pre>
+</div>
+</div>
+</li>
+<li>
+<p><code>showAndReuseMVCGroup(String mvcGroupName, Map args = [:], GriffonView view, Map dialogProperties = [:], LayerUI layerUI = null, Closure onFinish = null)</code></p>
+<div class="paragraph">
+<p>This method creates a new MVC group instance and display its view in modal dialog.  The created MVC group instance won&#8217;t be destroyed.</p>
+</div>
+</li>
+<li>
+<p><code>confirm(Component parent, String message, String title, int messageType = JOptionPane.QUESTION_MESSAGE)</code></p>
+<div class="paragraph">
+<p>Display a confirmation message and returns <code>true</code> if user confirms the dialog.  This method always run in EDT.</p>
+</div>
+<div class="paragraph">
+<p>Example:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlight"><code class="groovy language-groovy">if (!DialogUtils.confirm(view.mainPanel, 'Do you want to continue?', 'Delete Confirmation')) {
+    return
+}</code></pre>
+</div>
+</div>
+</li>
+<li>
+<p><code>message(Component parent, String message, String title, int messageType = JOptionPane.INFORMATION_MESSAGE)</code></p>
+<div class="paragraph">
+<p>Display message dialog.  This method always run in EDT.</p>
+</div>
+<div class="paragraph">
+<p>Example:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlight"><code class="groovy language-groovy">DialogUtils.message(null, errorMessage, 'Error', JOptionPane.ERROR_MESSAGE)</code></pre>
+</div>
+</div>
+</li>
+<li>
+<p><code>input(Component parent, String message, String title, int messageType = JOptionPane.QUESTION_MESSAGE)</code></p>
+<div class="paragraph">
+<p>Display input dialog and return user input as string.  This method always run in EDT.</p>
+</div>
+<div class="paragraph">
+<p>Example:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlight"><code class="groovy language-groovy">String updatedScore = DialogUtils.input(view.mainPanel, 'Please Enter your new score:', 'New Score')</code></pre>
+</div>
+</div>
+</li>
+</ul>
+</div>
+</div>
+</div>
+</div>
+</div>
+<div id="footer">
+<div id="footer-text">
+Last updated 2015-01-30 22:22:22 ICT
+</div>
+</div>
+</body>
+</html>

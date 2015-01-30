@@ -5,7 +5,7 @@
 <!--[if IE]><meta http-equiv="X-UA-Compatible" content="IE=edge"><![endif]-->
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <meta name="generator" content="Asciidoctor 1.5.0.preview.7">
-<title>Introduction</title>
+<title>Testing</title>
 <style>
 /* Asciidoctor default stylesheet | MIT License | http://asciidoctor.org */
 article, aside, details, figcaption, figure, footer, header, hgroup, main, nav, section, summary { display: block; }
@@ -385,83 +385,15 @@ span.icon > [class^="icon-"], span.icon > [class*=" icon-"] { cursor: default; }
 </div>
 <div id="content">
 <div class="sect1">
-<h2 id="_introduction">Introduction</h2>
+<h2 id="_testing">Testing</h2>
 <div class="sectionbody">
-<div class="paragraph">
-<p>simple-jpa is a Griffon plugin for developing JPA and Swing based desktop application. The main goal of simple-jpa is
-to allow developer to concentrate on business logic. simple-jpa provides much functionality that is needed when working
-with JPA, therefore, frees developer from writing high-ceremony code.</p>
-</div>
-<div class="paragraph">
-<p>simple-jpa is very useful for rapidly developing Swing-based database oriented desktop application. It can also be used
-for prototyping.</p>
-</div>
-<div class="paragraph">
-<p>The following is a list of some of simple-jpa’s features:</p>
-</div>
-<div class="dlist">
-<dl>
-<dt class="hdlist1">Scaffolding</dt>
-<dd>
-<p>simple-jpa can generate an MVCGroup based on a domain class. This will speed up development.</p>
-</dd>
-<dt class="hdlist1">Dynamic finders</dt>
-<dd>
-<p>simple-jpa injects dynamic finders to controllers (or services). With dynamic finders, developer can perform a query on
-JPA entities (or domain objects) quickly and easily. simple-jpa also supports the execution of JPA named query, JPQL and
-native SQL.</p>
-</dd>
-<dt class="hdlist1">Transaction management</dt>
-<dd>
-<p>Unlike web-based applications, desktop applications do not require Java Transaction API (JTA). simple-jpa automatically
-provides and manages transaction for each method in controllers (can be configured by using annotation). By default,
-simple-jpa will share EntityManager across transaction in a way that is suitable for desktop application.</p>
-</dd>
-<dt class="hdlist1">Bean Validation API (JSR-303) support</dt>
-<dd>
-<p>In the case of failed validation, simple-jpa will automatically present error messages in Swing-based view. Developer
-can also configure error notification and its behavior.</p>
-</dd>
-<dt class="hdlist1">Common database application features</dt>
-<dd>
-<p>simple-jpa adds the following to all domain classes: an id (auto generated primary key), fields that store created time
-and last modified time (will be filled automatically), and a soft delete flag (soft delete is marking the object as
-inactive without deleting it from database).</p>
-</dd>
-<dt class="hdlist1">Swing nodes for database application</dt>
-<dd>
-<p>simple-jpa provides template renderer for effortlessly represent domain object in JTable, JList or JComboBox. It also
-provides new nodes that can be used in Griffon’s view such as tagChooser, numberTextField, maskTextField, and
-dateTimePicker.</p>
-</dd>
-<dt class="hdlist1">Integration testing</dt>
-<dd>
-<p>simple-jpa is using dbUnit in integration testing to fill database with predefined data from a Microsoft Excel file
-(or csv file). This way, every test cases will be executed with the same table data.</p>
-</dd>
-</dl>
-</div>
-<div class="admonitionblock tip">
-<table>
-<tr>
-<td class="icon">
-<div class="title">Tip</div>
-</td>
-<td class="content">
-<div class="paragraph">
-<p>This version is not compatible with Griffon 2.0.  You will need Griffon 1.5 and upgrade its Groovy version to at
-least Groovy 2.3.</p>
-</div>
-</td>
-</tr>
-</table>
-</div>
+
 </div>
 </div>
 </div>
 <div id="footer">
 <div id="footer-text">
-Last updated 2015-01-30 22:13:08 ICT
+Last updated 2014-07-30 00:55:52 ICT
 </div>
 </div>
 </body>

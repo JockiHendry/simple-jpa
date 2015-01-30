@@ -5,7 +5,7 @@
 <!--[if IE]><meta http-equiv="X-UA-Compatible" content="IE=edge"><![endif]-->
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <meta name="generator" content="Asciidoctor 1.5.0.preview.7">
-<title>Introduction</title>
+<title>Finders</title>
 <style>
 /* Asciidoctor default stylesheet | MIT License | http://asciidoctor.org */
 article, aside, details, figcaption, figure, footer, header, hgroup, main, nav, section, summary { display: block; }
@@ -385,83 +385,236 @@ span.icon > [class^="icon-"], span.icon > [class*=" icon-"] { cursor: default; }
 </div>
 <div id="content">
 <div class="sect1">
-<h2 id="_introduction">Introduction</h2>
+<h2 id="_finders">Finders</h2>
 <div class="sectionbody">
 <div class="paragraph">
-<p>simple-jpa is a Griffon plugin for developing JPA and Swing based desktop application. The main goal of simple-jpa is
-to allow developer to concentrate on business logic. simple-jpa provides much functionality that is needed when working
-with JPA, therefore, frees developer from writing high-ceremony code.</p>
+<p>Finders are dynamic methods that are used to retrieve entities from database. By following their naming pattern, developer can easily execute query for any domain classes.</p>
+</div>
+<div class="sect2">
+<h3 id="_query_configuration">Query Configuration</h3>
+<div class="paragraph">
+<p>All finders except find[DomainClass]By[Attributes]() have query configuration as their parameter. Query configuration is stored in a Map. The possible keys for query configuration are:</p>
+</div>
+<div class="literalblock">
+<div class="content">
+<pre>excludeSubclass
+flushMode
+excludeDeleted
+orderBy
+orderDirection
+page
+pageSize
+allowDuplicate</pre>
+</div>
 </div>
 <div class="paragraph">
-<p>simple-jpa is very useful for rapidly developing Swing-based database oriented desktop application. It can also be used
-for prototyping.</p>
+<p>If excludeSubclass value is <em>*</em>, it will exclude all subclasses of the domain class. It can also accepts a String that contains comma separated class name to be excluded.</p>
 </div>
 <div class="paragraph">
-<p>The following is a list of some of simple-jpa’s features:</p>
+<p>For example, assuming Employee has two subclasses: Teacher and Staff, the following finder will return all instances of Employee including all Teacher and all Staff.</p>
 </div>
-<div class="dlist">
-<dl>
-<dt class="hdlist1">Scaffolding</dt>
-<dd>
-<p>simple-jpa can generate an MVCGroup based on a domain class. This will speed up development.</p>
-</dd>
-<dt class="hdlist1">Dynamic finders</dt>
-<dd>
-<p>simple-jpa injects dynamic finders to controllers (or services). With dynamic finders, developer can perform a query on
-JPA entities (or domain objects) quickly and easily. simple-jpa also supports the execution of JPA named query, JPQL and
-native SQL.</p>
-</dd>
-<dt class="hdlist1">Transaction management</dt>
-<dd>
-<p>Unlike web-based applications, desktop applications do not require Java Transaction API (JTA). simple-jpa automatically
-provides and manages transaction for each method in controllers (can be configured by using annotation). By default,
-simple-jpa will share EntityManager across transaction in a way that is suitable for desktop application.</p>
-</dd>
-<dt class="hdlist1">Bean Validation API (JSR-303) support</dt>
-<dd>
-<p>In the case of failed validation, simple-jpa will automatically present error messages in Swing-based view. Developer
-can also configure error notification and its behavior.</p>
-</dd>
-<dt class="hdlist1">Common database application features</dt>
-<dd>
-<p>simple-jpa adds the following to all domain classes: an id (auto generated primary key), fields that store created time
-and last modified time (will be filled automatically), and a soft delete flag (soft delete is marking the object as
-inactive without deleting it from database).</p>
-</dd>
-<dt class="hdlist1">Swing nodes for database application</dt>
-<dd>
-<p>simple-jpa provides template renderer for effortlessly represent domain object in JTable, JList or JComboBox. It also
-provides new nodes that can be used in Griffon’s view such as tagChooser, numberTextField, maskTextField, and
-dateTimePicker.</p>
-</dd>
-<dt class="hdlist1">Integration testing</dt>
-<dd>
-<p>simple-jpa is using dbUnit in integration testing to fill database with predefined data from a Microsoft Excel file
-(or csv file). This way, every test cases will be executed with the same table data.</p>
-</dd>
-</dl>
-</div>
-<div class="admonitionblock tip">
-<table>
-<tr>
-<td class="icon">
-<div class="title">Tip</div>
-</td>
-<td class="content">
 <div class="paragraph">
-<p>This version is not compatible with Griffon 2.0.  You will need Griffon 1.5 and upgrade its Groovy version to at
-least Groovy 2.3.</p>
+<p>findAllEmployee()</p>
 </div>
-</td>
-</tr>
-</table>
+<div class="paragraph">
+<p>The following finder will return only instance of Employee but not Teacher or Staff:</p>
+</div>
+<div class="paragraph">
+<p>findAllEmployee([excludeSubclass: <em>*</em>])</p>
+</div>
+<div class="paragraph">
+<p>The following finder will return all instance of Employee and all instance of Teacher but excluding all Staff:</p>
+</div>
+<div class="paragraph">
+<p>findAllEmployee([excludeSubclass: <em>Staff</em>])</p>
+</div>
+<div class="paragraph">
+<p>flushMode configuration key accepts FlushModeType.COMMIT or FlushModeType.AUTO. Use this key to override flush mode for specific queries.</p>
+</div>
+<div class="paragraph">
+<p>If excludeDeleted is true, then finder will not return soft deleted entities. An entity is considered as soft deleted if its deleted attribute is not equals to <em>N</em>.</p>
+</div>
+<div class="paragraph">
+<p>orderBy will causes finder to sort results based on certains attributes. To sort based on more than one attribute, use comma separated attribute name as shown in the following:</p>
+</div>
+<div class="paragraph">
+<p>findAllEmployee([orderBy: <em>name,salary</em>])</p>
+</div>
+<div class="paragraph">
+<p>Since simple-jpa 0.7, orderBy accept model__attribute syntax, for example:</p>
+</div>
+<div class="paragraph">
+<p>findAllEmployee([orderBy: <em>department__name</em>])</p>
+</div>
+<div class="paragraph">
+<p>To set order direction, use orderDirection. This key accept <em>asc</em> for ascending order and <em>desc</em> for descending order. For example, the following finder will find all Employee sorted by name and salary in descending order:</p>
+</div>
+<div class="paragraph">
+<p>findAllEmployee([orderBy: <em>name,salary</em>, orderDirection: <em>desc,desc</em>])</p>
+</div>
+<div class="paragraph">
+<p>To limit the result to certain page, set the value for page (starting from 1) and pageSize. If pageSize is not specified, simple-jpa will assume 1 page consists of 10 rows. For example, the following finder will limit the results to the first 3 entities:</p>
+</div>
+<div class="paragraph">
+<p>findAllTeacher([orderBy: <em>salary</em>, page: 1, pageSize: 3])</p>
+</div>
+</div>
+<div class="sect2">
+<h3 id="_basic_finder">Basic Finder</h3>
+<div class="paragraph">
+<p>This finder will return a List that contains all instances of a domain class. If no instances are found, it will return an empty List.</p>
+</div>
+<div class="paragraph">
+<p>Example:</p>
+</div>
+<div class="paragraph">
+<p>def allStudents = findAllStudent()
+def allTeachers = findAllTeacher()</p>
+</div>
+<div class="paragraph">
+<p>This finder can be used to quickly find instances of domain class based on one or more attributes value using and or or logical operator.</p>
+</div>
+<div class="paragraph">
+<p>For example, the following finder will return all female Student in class <em>A3</em>:</p>
+</div>
+<div class="paragraph">
+<p>List result = findAllStudentByAnd([classRoom: <em>A3</em>, gender: <em>F</em>])</p>
+</div>
+<div class="paragraph">
+<p>The following finder will return a Student whose name is Steven and class is <em>A3</em> (if it is not found, the finder will return null value):</p>
+</div>
+<div class="paragraph">
+<p>Student s = findStudentByAnd([name: <em>Steven</em>, classRoom: <em>A3</em>])</p>
+</div>
+<div class="paragraph">
+<p>An alternative syntax for this finder is:</p>
+</div>
+<div class="paragraph">
+<p>Student s = findByAnd(Student, [name: <em>Steven</em>, classRoom: <em>A3</em>])</p>
+</div>
+<div class="paragraph">
+<p>This is the most flexible finder. It allows complex searching in one method call. For example, this finder will search all female Student in class <em>A3</em>:</p>
+</div>
+<div class="paragraph">
+<p>List result1 = findAllStudentByClassRoomEqAndGenderEq(<em>A3</em>,<em>F</em>)
+List result2 = findAllStudentByClassRoomAndGender(<em>A3</em>, <em>F</em>)</p>
+</div>
+<div class="paragraph">
+<p>The default operator used for comparison is eq (equality) if operator is not specified. The following is list of supported operators:</p>
+</div>
+<div class="literalblock">
+<div class="content">
+<pre>greaterThanEqualTo or ge
+lessThanEqualTo or le
+greaterThan or gt
+lessThan or lt
+isNotMember
+isNotEmpty
+isNotNull
+notEqual or ne
+isMember
+isEmpty
+isNull
+like
+notLike
+between
+equal or eq</pre>
+</div>
+</div>
+<div class="paragraph">
+<p>For example, the following finder will return all Student in class room <em>A3</em> whose score is less than 70:</p>
+</div>
+<div class="paragraph">
+<p>List result = findAllStudentByClassRoomAndScoreLt(<em>A3</em>, 70)</p>
+</div>
+<div class="paragraph">
+<p>The following finder will return only one Student whose name contains <em>jack</em> or null if not found:</p>
+</div>
+<div class="paragraph">
+<p>Student s = findStudentByNameLike(<em>%jack%</em>)</p>
+</div>
+</div>
+<div class="sect2">
+<h3 id="_dsl_finder">DSL Finder</h3>
+<div class="paragraph">
+<p>This finder will perform a query based on closure (Dsl). For example, the following finder will return all Student in class room <em>A3</em> whose score is less than 70:</p>
+</div>
+<div class="paragraph">
+<p>List result = findAllStudentByDsl {
+    classRoom eq(<em>A3</em>)
+    and()
+    score lt(70)
+}</p>
+</div>
+<div class="paragraph">
+<p>Note that it is important to separate these conditions and logical operator by line.</p>
+</div>
+<div class="paragraph">
+<p>The benefit of using Dsl closure is developer can build the query conditions on the fly. For example, it is typical to perform searching based on one or more user selection in view:</p>
+</div>
+<div class="paragraph">
+<p>List result = findAllInvoiceByDsl {
+    if (model.txtNumber) {
+       number like("%${txtNumber}%")
+    }
+    if (model.selectedSupplier) {
+       and()
+       supplier eq(selectedSupplier)
+    }
+    if (model.paid) {
+       and()
+       paid eq(true)
+    }
+}</p>
+</div>
+<div class="paragraph">
+<p>An alternative syntax for this finder is:</p>
+</div>
+<div class="paragraph">
+<p>List result = findByDsl(Student) {
+    classRoom eq(<em>A3</em>)
+    and()
+    score lt(70)
+}</p>
+</div>
+<div class="paragraph">
+<p>Since version 0.5.2, this method can accept nested path by separating them using double underscores (__). For example, to find Orders based on their OrderItem&#8217;s Category, use the following code:</p>
+</div>
+<div class="paragraph">
+<p>List result = findOrderByDsl {
+    orderItem<em>category</em>name eq(<em>CAT1</em>)
+}</p>
+</div>
+<div class="paragraph">
+<p>Since version 0.7, this DSL allow isIn operator. For example:</p>
+</div>
+<div class="paragraph">
+<p>List result = findOrderByDsl {
+    orderItem__category isIn([<em>CAT1</em>, <em>CAT2</em>, <em>CAT3</em>])
+}</p>
+</div>
+</div>
+<div class="sect2">
+<h3 id="_using_named_entity_graph">Using Named Entity Graph</h3>
+<div class="paragraph">
+<p>Since simple-jpa 0.7, most finders now accept Fetch[Graph]. This will allow user to use a defined named entity graph in finders. To use this feature, JPA 2.1 provider is required. User can define named entity graphs by using @NamedEntityGraph annotation.</p>
+</div>
+<div class="paragraph">
+<p>For example:</p>
+</div>
+<div class="paragraph">
+<p>List result = findOrderByIdFetchItems(<em>ORDER-1</em>)</p>
+</div>
+<div class="paragraph">
+<p>will find Order with id equals to "ORDER-1" and fecth the result using Items entity graph. To use the code, a named entity graph called Items must be defined.</p>
+</div>
 </div>
 </div>
 </div>
 </div>
 <div id="footer">
 <div id="footer-text">
-Last updated 2015-01-30 22:13:08 ICT
+Last updated 2014-07-30 01:00:35 ICT
 </div>
 </div>
 </body>

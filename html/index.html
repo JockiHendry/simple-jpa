@@ -20,58 +20,59 @@
 <ul class="sectlevel1">
 <li><a href="#introduction">1. Introduction</a></li>
 <li><a href="#getting-started">2. Getting Started</a></li>
-<li><a href="#scaffolding">3. Scaffolding</a></li>
+<li><a href="#persistence">3. Persistence</a></li>
+<li><a href="#scaffolding">4. Scaffolding</a></li>
 <li>
 <ul class="sectlevel2">
-<li><a href="#basic-generator">3.1. Basic Generator</a></li>
-<li><a href="#ddd-generator">3.2. DDD Generator</a></li>
-<li><a href="#customization">3.3. Customization</a></li>
+<li><a href="#basic-generator">4.1. Basic Generator</a></li>
+<li><a href="#ddd-generator">4.2. DDD Generator</a></li>
+<li><a href="#customization">4.3. Customization</a></li>
 </ul>
 </li>
-<li><a href="#validation">4. Validation</a></li>
+<li><a href="#validation">5. Validation</a></li>
 <li>
 <ul class="sectlevel2">
-<li><a href="#validation-method">4.1. Validation Method</a></li>
-<li><a href="#notification-in-view">4.2. Notification In View</a></li>
-<li><a href="#validation-message">4.3. Validation Message</a></li>
-<li><a href="#miscellaneous">4.4. Miscellaneous</a></li>
+<li><a href="#validation-method">5.1. Validation Method</a></li>
+<li><a href="#notification-in-view">5.2. Notification In View</a></li>
+<li><a href="#validation-message">5.3. Validation Message</a></li>
+<li><a href="#miscellaneous">5.4. Miscellaneous</a></li>
 </ul>
 </li>
-<li><a href="#view">5. View</a></li>
+<li><a href="#view">6. View</a></li>
 <li>
 <ul class="sectlevel2">
-<li><a href="#custom-text-fields">5.1. Custom Text Fields</a></li>
-<li><a href="#date-time-picker">5.2. Date Time Picker</a></li>
-<li><a href="#table">5.3. Table</a></li>
-<li><a href="#template-renderer">5.4. Template Renderer</a></li>
-<li><a href="#dialog-utils">5.5. Dialog Utils</a></li>
+<li><a href="#custom-text-fields">6.1. Custom Text Fields</a></li>
+<li><a href="#date-time-picker">6.2. Date Time Picker</a></li>
+<li><a href="#table">6.3. Table</a></li>
+<li><a href="#template-renderer">6.4. Template Renderer</a></li>
+<li><a href="#dialog-utils">6.5. Dialog Utils</a></li>
 </ul>
 </li>
-<li><a href="#persistence">6. Persistence</a></li>
+<li><a href="#transaction">7. Transaction</a></li>
 <li>
 <ul class="sectlevel2">
-<li><a href="#transaction">6.1. Transaction</a></li>
+<li><a href="#transaction-2">7.1. Transaction</a></li>
 </ul>
 </li>
-<li><a href="#auditing">7. Auditing</a></li>
+<li><a href="#auditing">8. Auditing</a></li>
 <li>
 <ul class="sectlevel2">
-<li><a href="#auditable-domain-class">7.1. Auditable Domain Class</a></li>
-<li><a href="#logged-user">7.2. Logged User</a></li>
-<li><a href="#login-dialog">7.3. Login Dialog</a></li>
+<li><a href="#auditable-domain-class">8.1. Auditable Domain Class</a></li>
+<li><a href="#logged-user">8.2. Logged User</a></li>
+<li><a href="#login-dialog">8.3. Login Dialog</a></li>
 </ul>
 </li>
-<li><a href="#finders">8. Finders</a></li>
+<li><a href="#finders">9. Finders</a></li>
 <li>
 <ul class="sectlevel2">
-<li><a href="#query-configuration">8.1. Query Configuration</a></li>
-<li><a href="#basic-finder">8.2. Basic Finder</a></li>
-<li><a href="#dsl-finder">8.3. DSL Finder</a></li>
-<li><a href="#using-named-entity-graph">8.4. Using Named Entity Graph</a></li>
+<li><a href="#query-configuration">9.1. Query Configuration</a></li>
+<li><a href="#basic-finder">9.2. Basic Finder</a></li>
+<li><a href="#dsl-finder">9.3. DSL Finder</a></li>
+<li><a href="#using-named-entity-graph">9.4. Using Named Entity Graph</a></li>
 </ul>
 </li>
-<li><a href="#testing">9. Testing</a></li>
-<li><a href="#deployment">10. Deployment</a></li>
+<li><a href="#testing">10. Testing</a></li>
+<li><a href="#deployment">11. Deployment</a></li>
 <li><a href="#configuration">Appendix A: Configuration</a></li>
 <li>
 <ul class="sectlevel2">
@@ -101,7 +102,7 @@
 <ul class="sectlevel2">
 <li><a href="#conditionsupport">C.1. @ConditionSupport</a></li>
 <li><a href="#domainclass">C.2. @DomainClass</a></li>
-<li><a href="#transaction-2">C.3. @Transaction</a></li>
+<li><a href="#transaction-3">C.3. @Transaction</a></li>
 </ul>
 </li>
 <li><a href="#methods">Appendix D: Methods</a></li>
@@ -208,7 +209,17 @@ least Groovy 2.3.</p>
 </div>
 </div>
 <div class="sect1">
-<h2 id="scaffolding">3. Scaffolding</h2>
+<h2 id="persistence">3. Persistence</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>By default, simple-jpa uses Hibernate JPA as persistence layer for your application.  You have to execute <code>create-simple-jpa</code>
+ to setup persistence layer in your application.  This is the first script you will need to execute when you start a
+ new project.</p>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="scaffolding">4. Scaffolding</h2>
 <div class="sectionbody">
 <div class="paragraph">
 <p>Scaffolding feature from simple-jpa can be used to generate MVC groups based on existing domain classes.  This is very
@@ -555,7 +566,7 @@ automatically run scaffolding process:</p>
 out.</p>
 </div>
 <div class="sect2">
-<h3 id="basic-generator">3.1. Basic Generator</h3>
+<h3 id="basic-generator">4.1. Basic Generator</h3>
 <div class="paragraph">
 <p>Basic generator is the default generator used by simple-jpa.  It supports the following attribute types in
 domain class:</p>
@@ -875,7 +886,7 @@ Don&#8217;t forget to add <code>excludes</code> to <code>@Canonical</code> in bi
 </div>
 </div>
 <div class="sect2">
-<h3 id="ddd-generator">3.2. DDD Generator</h3>
+<h3 id="ddd-generator">4.2. DDD Generator</h3>
 <div class="paragraph">
 <p>simple-jpa also shipped with a DDD generator that can selected by using <code>-generator</code> parameter such as in the following
 execution:</p>
@@ -926,7 +937,7 @@ when it is called for the first time.</p>
 </div>
 </div>
 <div class="sect2">
-<h3 id="customization">3.3. Customization</h3>
+<h3 id="customization">4.3. Customization</h3>
 <div class="paragraph">
 <p>A generator usually has classes and multiple templates.  Reusable logic for view generation is stored in
 classes.  They will be invoked by templates.  For example, the generator class is always available to template as <code>g</code>
@@ -1122,7 +1133,7 @@ files for individual domain class.</p>
 </div>
 </div>
 <div class="sect1">
-<h2 id="validation">4. Validation</h2>
+<h2 id="validation">5. Validation</h2>
 <div class="sectionbody">
 <div class="paragraph">
 <p>simple-jpa uses Bean Validation API (JSR 303) for validation.  By default, it uses Hibernate Validator as Bean Validation
@@ -1189,7 +1200,7 @@ files for individual domain class.</p>
 </div>
 </div>
 <div class="sect2">
-<h3 id="validation-method">4.1. Validation Method</h3>
+<h3 id="validation-method">5.1. Validation Method</h3>
 <div class="paragraph">
 <p>You can use <code>validate()</code> method from injection enhanced artifact to validate an object.  The first argument for this
  method is an object that will be validated.  It is the only required argument.  <code>validate()</code> returns <code>true</code> if requested
@@ -1252,7 +1263,7 @@ To use a different group, you can pass the group class to <code>validate()</code
 </div>
 </div>
 <div class="sect2">
-<h3 id="notification-in-view">4.2. Notification In View</h3>
+<h3 id="notification-in-view">5.2. Notification In View</h3>
 <div class="paragraph">
 <p>To help you in displaying information about failed validation, simple-jpa injects the following members to all view
 models (model in MVC group):</p>
@@ -1476,7 +1487,7 @@ models (model in MVC group):</p>
 </div>
 </div>
 <div class="sect2">
-<h3 id="validation-message">4.3. Validation Message</h3>
+<h3 id="validation-message">5.3. Validation Message</h3>
 <div class="paragraph">
 <p>If validation is failed, simple-jpa stores validation message for the failed paths in <code>model.errors</code>.  You can use values
  stored in <code>model.errors</code> to determine which paths have been failed and what are their corresponding messages. You can
@@ -1566,7 +1577,7 @@ models (model in MVC group):</p>
 </div>
 </div>
 <div class="sect2">
-<h3 id="miscellaneous">4.4. Miscellaneous</h3>
+<h3 id="miscellaneous">5.4. Miscellaneous</h3>
 <div class="paragraph">
 <p>In some cases, validation may be failed because <code>JTextField</code> value in model is an empty <code>String</code> rather than null
 value. To ensure consistent behaviour, simple-jpa can be configured to translate all empty <code>String</code> into null value
@@ -1581,7 +1592,7 @@ before performing validation. This feature is disabled by default. To enable it,
 </div>
 </div>
 <div class="sect1">
-<h2 id="view">5. View</h2>
+<h2 id="view">6. View</h2>
 <div class="sectionbody">
 <div class="paragraph">
 <p>To assist you in building presentation layer, simple-jpa provides several custom nodes that are typically
@@ -1589,7 +1600,7 @@ used in business application.  They can only be used if your presentation layer 
 Groovy&#8217;s SwingBuilder (default in Griffon).</p>
 </div>
 <div class="sect2">
-<h3 id="custom-text-fields">5.1. Custom Text Fields</h3>
+<h3 id="custom-text-fields">6.1. Custom Text Fields</h3>
 <div class="paragraph">
 <p>Use <code>numberTextField()</code> to bind text component with numeric property in view model.  For example:</p>
 </div>
@@ -1711,7 +1722,7 @@ formatter&#8217;s property name, for example:</p>
 </div>
 </div>
 <div class="sect2">
-<h3 id="date-time-picker">5.2. Date Time Picker</h3>
+<h3 id="date-time-picker">6.2. Date Time Picker</h3>
 <div class="paragraph">
 <p>You can use <code>dateTimePicker()</code> to allow user to input date or time (or both).  This component should be binded to date
 data type from Joda Time library.  If you don&#8217;t need time input or binding to property that uses Joda Time type, you can
@@ -1842,7 +1853,7 @@ just use <code>JXDatePicker</code> from SwingX instead of this component.</p>
 </div>
 </div>
 <div class="sect2">
-<h3 id="table">5.3. Table</h3>
+<h3 id="table">6.3. Table</h3>
 <div class="paragraph">
 <p>Table is one of the most important components in business application.  That is why simple-jpa provides its own custom
 <code>JTable</code> called <code>glazedTable()</code>.  It is designed to be binded to <code>EventList</code> from Glazed Lists library.  If you don&#8217;t use
@@ -2325,7 +2336,7 @@ application(<span class="key">pack</span>: <span class="predefined-constant">tru
 </div>
 </div>
 <div class="sect2">
-<h3 id="template-renderer">5.4. Template Renderer</h3>
+<h3 id="template-renderer">6.4. Template Renderer</h3>
 <div class="paragraph">
 <p>simple-jpa a new <code>templateRenderer</code> attribute to <code>comboBox()</code> and <code>list()</code> node to allow you customize renderer without
 creating a new renderer class for every components.  <code>templateRenderer()</code> in <code>glazedColumn()</code> also uses the same thing.</p>
@@ -2481,7 +2492,7 @@ application(<span class="key">pack</span>: <span class="predefined-constant">tru
 </div>
 </div>
 <div class="sect2">
-<h3 id="dialog-utils">5.5. Dialog Utils</h3>
+<h3 id="dialog-utils">6.5. Dialog Utils</h3>
 <div class="paragraph">
 <p>simple-jpa provides <code>mvcPopupButton()</code> as a helper node to create a <code>JButton</code> that will display a modal dialog if it is
 clicked.  The following steps will be performed if <code>mvcPopupButton()</code> is clicked:</p>
@@ -2609,16 +2620,16 @@ DialogUtils.showMVCGroup(<span class="string"><span class="delimiter">'</span><s
 </div>
 </div>
 <div class="sect1">
-<h2 id="persistence">6. Persistence</h2>
+<h2 id="transaction">7. Transaction</h2>
 <div class="sectionbody">
 <div class="paragraph">
-<p>By default, simple-jpa uses Hibernate JPA as persistence layer for your application.  Enhanced artifacts will have
+<p>Enhanced artifacts will have
  persistence related method injected to them.  These methods are usually used to manage entity (instance of class marked
  by <code>@Entity</code> annotation).
  class.</p>
 </div>
 <div class="sect2">
-<h3 id="transaction">6.1. Transaction</h3>
+<h3 id="transaction-2">7.1. Transaction</h3>
 <div class="paragraph">
 <p>Using <code>EntityManager</code> in Griffon is a bit tricky since <code>EntityManager</code> is not thread-safe while Griffon may execute
 code in different thread.  To solve this problem, simple-jpa will create new <code>EntityManager</code> when the same code
@@ -2791,10 +2802,10 @@ in persistence layer!
 </div>
 </div>
 <div class="sect1">
-<h2 id="auditing">7. Auditing</h2>
+<h2 id="auditing">8. Auditing</h2>
 <div class="sectionbody">
 <div class="sect2">
-<h3 id="auditable-domain-class">7.1. Auditable Domain Class</h3>
+<h3 id="auditable-domain-class">8.1. Auditable Domain Class</h3>
 <div class="paragraph">
 <p>Classes annotated by <code>@DomainClass</code> will automatically have the following auditing properties:</p>
 </div>
@@ -2971,7 +2982,7 @@ You can always change the generated code to use any custom formatter.
 </div>
 </div>
 <div class="sect2">
-<h3 id="logged-user">7.2. Logged User</h3>
+<h3 id="logged-user">8.2. Logged User</h3>
 <div class="paragraph">
 <p>simple-jpa expects the value of current user is stored in <code>SimpleJpaUtil.user</code>.  Value for this property must be an
 an implementation of <code>AuditableUser</code>.  For example, developer can create a domain class that implement <code>AuditableUser</code> such as:</p>
@@ -3024,7 +3035,7 @@ You&#8217;re not required to set current user.  If <code>SimpleJpaUtil.user</cod
 </div>
 </div>
 <div class="sect2">
-<h3 id="login-dialog">7.3. Login Dialog</h3>
+<h3 id="login-dialog">8.3. Login Dialog</h3>
 <div class="paragraph">
 <p>simple-jpa can display a login dialog by using SwingX <code>JXLoginPane</code> at startup time.  To enable this feature, a service
 that is derived from <code>org.jdesktop.swingx.auth.LoginService</code> is required.  The following is typical steps to create
@@ -3117,13 +3128,13 @@ from database and check if user&#8217;s password is correct.</p>
 </div>
 </div>
 <div class="sect1">
-<h2 id="finders">8. Finders</h2>
+<h2 id="finders">9. Finders</h2>
 <div class="sectionbody">
 <div class="paragraph">
 <p>Finders are dynamic methods that are used to retrieve entities from database. By following their naming pattern, developer can easily execute query for any domain classes.</p>
 </div>
 <div class="sect2">
-<h3 id="query-configuration">8.1. Query Configuration</h3>
+<h3 id="query-configuration">9.1. Query Configuration</h3>
 <div class="paragraph">
 <p>All finders except find[DomainClass]By[Attributes]() have query configuration as their parameter. Query configuration is stored in a Map. The possible keys for query configuration are:</p>
 </div>
@@ -3192,7 +3203,7 @@ allowDuplicate</pre>
 </div>
 </div>
 <div class="sect2">
-<h3 id="basic-finder">8.2. Basic Finder</h3>
+<h3 id="basic-finder">9.2. Basic Finder</h3>
 <div class="paragraph">
 <p>This finder will return a List that contains all instances of a domain class. If no instances are found, it will return an empty List.</p>
 </div>
@@ -3267,7 +3278,7 @@ equal or eq</pre>
 </div>
 </div>
 <div class="sect2">
-<h3 id="dsl-finder">8.3. DSL Finder</h3>
+<h3 id="dsl-finder">9.3. DSL Finder</h3>
 <div class="paragraph">
 <p>This finder will perform a query based on closure (Dsl). For example, the following finder will return all Student in class room <em>A3</em> whose score is less than 70:</p>
 </div>
@@ -3327,7 +3338,7 @@ equal or eq</pre>
 </div>
 </div>
 <div class="sect2">
-<h3 id="using-named-entity-graph">8.4. Using Named Entity Graph</h3>
+<h3 id="using-named-entity-graph">9.4. Using Named Entity Graph</h3>
 <div class="paragraph">
 <p>Since simple-jpa 0.7, most finders now accept Fetch[Graph]. This will allow user to use a defined named entity graph in finders. To use this feature, JPA 2.1 provider is required. User can define named entity graphs by using @NamedEntityGraph annotation.</p>
 </div>
@@ -3344,13 +3355,13 @@ equal or eq</pre>
 </div>
 </div>
 <div class="sect1">
-<h2 id="testing">9. Testing</h2>
+<h2 id="testing">10. Testing</h2>
 <div class="sectionbody">
 
 </div>
 </div>
 <div class="sect1">
-<h2 id="deployment">10. Deployment</h2>
+<h2 id="deployment">11. Deployment</h2>
 <div class="sectionbody">
 
 </div>
@@ -4215,7 +4226,7 @@ located in domain package, finders will not recognize it.</p>
 </div>
 </div>
 <div class="sect2">
-<h3 id="transaction-2">C.3. @Transaction</h3>
+<h3 id="transaction-3">C.3. @Transaction</h3>
 <div class="paragraph">
 <p><code>@Transaction</code> annotation can be used to annotate a class, a closure field, or a method. It will cause the method or
 closure to be wrapped in database transaction. Using <code>@Transaction</code> on a class will make all execution of methods or
@@ -4609,7 +4620,7 @@ attribute is not equals to <em>N</em>. To automatically add deleted attribute to
 </div>
 <div id="footer">
 <div id="footer-text">
-Last updated 2015-01-29 23:43:15 ICT
+Last updated 2015-01-30 23:11:13 ICT
 </div>
 <div id="mask"></div>
 <script type="text/javascript">

@@ -5,7 +5,7 @@
 <article xmlns="http://docbook.org/ns/docbook" xmlns:xlink="http://www.w3.org/1999/xlink" version="5.0" lang="en">
 <info>
 <title><i class="icon-reorder" id='nav-icon'></i> simple-jpa 0.8</title>
-<date>2015-01-29</date>
+<date>2015-01-30</date>
 </info>
 <section xml:id="introduction">
 <title>Introduction</title>
@@ -77,6 +77,12 @@ least Groovy 2.3.</simpara>
 <section xml:id="getting-started">
 <title>Getting Started</title>
 
+</section>
+<section xml:id="persistence">
+<title>Persistence</title>
+<simpara>By default, simple-jpa uses Hibernate JPA as persistence layer for your application.  You have to execute <literal>create-simple-jpa</literal>
+ to setup persistence layer in your application.  This is the first script you will need to execute when you start a
+ new project.</simpara>
 </section>
 <section xml:id="scaffolding">
 <title>Scaffolding</title>
@@ -2032,13 +2038,13 @@ DialogUtils.showMVCGroup('lineItemAsChild', args, view, props) { m, v, c -&gt;
 </itemizedlist>
 </section>
 </section>
-<section xml:id="persistence">
-<title>Persistence</title>
-<simpara>By default, simple-jpa uses Hibernate JPA as persistence layer for your application.  Enhanced artifacts will have
+<section xml:id="transaction">
+<title>Transaction</title>
+<simpara>Enhanced artifacts will have
  persistence related method injected to them.  These methods are usually used to manage entity (instance of class marked
  by <literal>@Entity</literal> annotation).
  class.</simpara>
-<section xml:id="transaction">
+<section xml:id="transaction-2">
 <title>Transaction</title>
 <simpara>Using <literal>EntityManager</literal> in Griffon is a bit tricky since <literal>EntityManager</literal> is not thread-safe while Griffon may execute
 code in different thread.  To solve this problem, simple-jpa will create new <literal>EntityManager</literal> when the same code
@@ -3041,7 +3047,7 @@ class Student {
 simple-jpa will register it in <literal>persistence.xml</literal>. Even when a class is annotated with <literal>@DomainClass</literal>, if it is not
 located in domain package, finders will not recognize it.</simpara>
 </section>
-<section xml:id="transaction-2">
+<section xml:id="transaction-3">
 <title>@Transaction</title>
 <simpara><literal>@Transaction</literal> annotation can be used to annotate a class, a closure field, or a method. It will cause the method or
 closure to be wrapped in database transaction. Using <literal>@Transaction</literal> on a class will make all execution of methods or
