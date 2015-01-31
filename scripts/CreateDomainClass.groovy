@@ -1,5 +1,5 @@
 /*
- * Copyright 2013 Jocki Hendry.
+ * Copyright 2015 Jocki Hendry.
  *
  * Licensed under the Apache License, Version 2.0 (the 'License');
  * you may not use this file except in compliance with the License.
@@ -66,7 +66,7 @@ EXAMPLES
     griffon create-domain-class Teacher,Student
 
 CONFIGURATIONS
-    griffon.simplejpa.domain.package.value = $packageName
+    griffon.simplejpa.domain.package = $packageName
 """
 
     if (argsMap?.params?.isEmpty() || argsMap['info']) {
