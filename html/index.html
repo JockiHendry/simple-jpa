@@ -21,6 +21,14 @@
 <li><a href="#introduction">1. Introduction</a></li>
 <li><a href="#getting-started">2. Getting Started</a></li>
 <li><a href="#persistence">3. Persistence</a></li>
+<li>
+<ul class="sectlevel2">
+<li><a href="#setup">3.1. Setup</a></li>
+<li><a href="#jpa-configurations">3.2. JPA Configurations</a></li>
+<li><a href="#domain-class">3.3. Domain Class</a></li>
+<li><a href="#persistence-methods">3.4. Persistence Methods</a></li>
+</ul>
+</li>
 <li><a href="#scaffolding">4. Scaffolding</a></li>
 <li>
 <ul class="sectlevel2">
@@ -73,36 +81,26 @@
 </li>
 <li><a href="#testing">10. Testing</a></li>
 <li><a href="#deployment">11. Deployment</a></li>
-<li><a href="#configuration">Appendix A: Configuration</a></li>
 <li>
 <ul class="sectlevel2">
-<li><a href="#domain-package">A.1. Domain Package</a></li>
-<li><a href="#default-flush-mode">A.2. Default Flush Mode</a></li>
-<li><a href="#entity-manager-properties">A.3. Entity Manager Properties</a></li>
-<li><a href="#soft-delete">A.4. Soft Delete</a></li>
-<li><a href="#finders-2">A.5. Finders</a></li>
-<li><a href="#auditing-2">A.6. Auditing</a></li>
+<li><a href="#default-flush-mode">Appendix A: Default Flush Mode</a></li>
+<li><a href="#soft-delete">11.1. Soft Delete</a></li>
+<li><a href="#finders-2">11.2. Finders</a></li>
+<li><a href="#auditing-2">11.3. Auditing</a></li>
 </ul>
 </li>
-<li><a href="#script">Appendix B: Script</a></li>
+<li><a href="#script">Appendix C: Script</a></li>
 <li>
 <ul class="sectlevel2">
-<li><a href="#create-simple-jpa">B.1. create-simple-jpa</a></li>
-<li><a href="#create-domain-class">B.2. create-domain-class</a></li>
-<li><a href="#generate-all">B.3. generate-all</a></li>
-<li><a href="#install-templates">B.4. install-templates</a></li>
-<li><a href="#simple-jpa-console">B.5. simple-jpa-console</a></li>
-<li><a href="#generate-schema">B.6. generate-schema</a></li>
-<li><a href="#obfuscate">B.7. obfuscate</a></li>
-<li><a href="#create-repository">B.8. create-repository</a></li>
-</ul>
-</li>
-<li><a href="#annotation">Appendix C: Annotation</a></li>
-<li>
-<ul class="sectlevel2">
-<li><a href="#conditionsupport">C.1. @ConditionSupport</a></li>
-<li><a href="#domainclass">C.2. @DomainClass</a></li>
-<li><a href="#transaction-3">C.3. @Transaction</a></li>
+<li><a href="#create-simple-jpa">C.1. create-simple-jpa</a></li>
+<li><a href="#create-domain-class">C.2. create-domain-class</a></li>
+<li><a href="#generate-all">C.3. generate-all</a></li>
+<li><a href="#install-templates">C.4. install-templates</a></li>
+<li><a href="#simple-jpa-console">C.5. simple-jpa-console</a></li>
+<li><a href="#generate-schema">C.6. generate-schema</a></li>
+<li><a href="#obfuscate">C.7. obfuscate</a></li>
+<li><a href="#create-repository">C.8. create-repository</a></li>
+<li><a href="#transaction-3">Appendix B: @Transaction</a></li>
 </ul>
 </li>
 <li><a href="#methods">Appendix D: Methods</a></li>
@@ -110,18 +108,11 @@
 <ul class="sectlevel2">
 <li><a href="#begintransaction">D.1. beginTransaction()</a></li>
 <li><a href="#committransaction">D.2. commitTransaction()</a></li>
-<li><a href="#createentitymanager">D.3. createEntityManager()</a></li>
-<li><a href="#destroyentitymanager">D.4. destroyEntityManager()</a></li>
-<li><a href="#executenamedquery">D.5. executeNamedQuery()</a></li>
-<li><a href="#executenativequery">D.6. executeNativeQuery()</a></li>
-<li><a href="#executequery">D.7. executeQuery()</a></li>
-<li><a href="#getentitymanager">D.8. getEntityManager()</a></li>
-<li><a href="#merge">D.9. merge()</a></li>
-<li><a href="#persist">D.10. persist()</a></li>
-<li><a href="#remove">D.11. remove()</a></li>
-<li><a href="#rollbacktransaction">D.12. rollbackTransaction()</a></li>
-<li><a href="#softdelete">D.13. softDelete()</a></li>
-<li><a href="#withtransaction">D.14. withTransaction()</a></li>
+<li><a href="#executenamedquery">D.3. executeNamedQuery()</a></li>
+<li><a href="#executenativequery">D.4. executeNativeQuery()</a></li>
+<li><a href="#executequery">D.5. executeQuery()</a></li>
+<li><a href="#rollbacktransaction">D.6. rollbackTransaction()</a></li>
+<li><a href="#withtransaction">D.7. withTransaction()</a></li>
 </ul>
 </li>
 </ul>
@@ -215,6 +206,587 @@ least Groovy 2.3.</p>
 <p>By default, simple-jpa uses Hibernate JPA as persistence layer for your application.  You have to execute <code>create-simple-jpa</code>
  to setup persistence layer in your application.  This is the first script you will need to execute when you start a
  new project.</p>
+</div>
+<div class="sect2">
+<h3 id="setup">3.1. Setup</h3>
+<div class="paragraph">
+<p>In order to setup your persistence layer, you need to call <code>create-simple-jpa</code> script.  This is usually performed once
+ for every new project.  <code>create-simple-jpa</code> will create database user and schema for you if they don&#8217;t exists.  Current version
+  of simple-jpa only supports MySQL Server and Apache Derby Embedded setup.  If your database is not supported, you should
+ configure your database manually.</p>
+</div>
+<div class="paragraph">
+<p>If you use MySQL Server, you can execute <code>create-simple-jpa</code> like:</p>
+</div>
+<div class="literalblock">
+<div class="content">
+<pre>griffon create-simple-jpa -user=steven -password=12345 -database=sample
+   -provider=hibernate -jdbc=mysql -rootPassword=secret</pre>
+</div>
+</div>
+<div class="paragraph">
+<p>Because <code>hibernate</code> is default value for <code>-provider</code> and <code>mysql</code> is default value for <code>-jdbc</code>, you can ommit them:</p>
+</div>
+<div class="literalblock">
+<div class="content">
+<pre>griffon create-simple-jpa -user=steven -password=12345 -database=sample
+   -rootPassword=secret</pre>
+</div>
+</div>
+<div class="paragraph">
+<p><code>create-simple-jpa</code> will check if <code>sample</code> database is exists or not.  If <em>sample</em> database doesn&#8217;t exists, it will be created.
+  Because this operation requires root user and its password, you need to provide a value in <code>-rootPassword</code>.  This password
+  won&#8217;t be saved in your application.  <code>create-simple-jpa</code> also creates new database user called <em>steven</em> with default password
+  <em>12345</em> if it doesn&#8217;t exists yet.  This user will have full privilleges on <em>sample</em> database.</p>
+</div>
+<div class="paragraph">
+<p>If you want to use Derby Embedded, you can execute <code>create-simple-jpa</code> like:</p>
+</div>
+<div class="literalblock">
+<div class="content">
+<pre>griffon create-simple-jpa -user=steven -password=12345 -database=C:/Users/steven/mydb
+  -jdbc=derby-embedded -rootPassword=secret</pre>
+</div>
+</div>
+<div class="paragraph">
+<p>When using <code>-jdbc=derby-embedded</code>, it is better to use absolute path for <code>-database</code> value.  Derby embedded database will
+be created at the specified location.  The draw back of using absolute path is you must make sure database is copied
+ to the proper location when you distribute your application.</p>
+</div>
+<div class="paragraph">
+<p>Root password is not required when using Derby embedded.  If you didn&#8217;t specify root password, <code>create-simple-jpa</code> will
+create root user with password equals to user password (in this sample, it is <em>12345</em>).</p>
+</div>
+<div class="paragraph">
+<p>In addition to setup your database, <code>create-simple-jpa</code> also performs the following steps:</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p>Create <code>griffon-app/conf/metainf/persistence.xml</code> that contains information required to connect to database, such as
+JDBC URL, database username and password.</p>
+</li>
+<li>
+<p>Create <code>griffon-app/conf/metainf/orm.xml</code> that register <code>AuditingEntityListener</code>.  This is required if you want to use
+<a href="#auditing">Auditing</a> feature.</p>
+</li>
+<li>
+<p>Create <code>griffon-app/i18n/ValidationMessages.properties</code>.  You can edit this file if you want to change <a href="#validation-message">Validation Message</a>.</p>
+</li>
+<li>
+<p>Add dependencies to JPA provider and JDBC driver in <code>griffon-app/conf/BuildConfig.groovy</code>.</p>
+</li>
+</ul>
+</div>
+<div class="paragraph">
+<p>If you want <code>create-simple-jpa</code> to perform the operations above without touching your database, use <code>-skipDatabase</code>
+argument:</p>
+</div>
+<div class="literalblock">
+<div class="content">
+<pre>griffon create-simple-jpa -user=steven -password=12345 -database=sample -skipDatabase</pre>
+</div>
+</div>
+<div class="paragraph">
+<p>You can instruct your JPA provider to recreate database objects (tables) based on current domain classes by executing
+  <code>generate-schema</code> script:</p>
+</div>
+<div class="literalblock">
+<div class="content">
+<pre>griffon generate-schema -target=database -action=drop-and-create</pre>
+</div>
+</div>
+<div class="paragraph">
+<p>Rather than directly executing in target database, <code>generate-schema</code> can also store the generated SQL statements in a file:</p>
+</div>
+<div class="literalblock">
+<div class="content">
+<pre>griffon generate-schema -target=script -action=create -createTarget=mydatabase.sql</pre>
+</div>
+</div>
+<div class="paragraph">
+<p>The command above will create <code>mydatabase.sql</code> in current directory.  This file contains SQL statements to create
+ tables required by your application.</p>
+</div>
+</div>
+<div class="sect2">
+<h3 id="jpa-configurations">3.2. JPA Configurations</h3>
+<div class="paragraph">
+<p>By default, JPA provider will read persistence layer configurations stored in <code>persistence.xml</code>.  The following is a
+sample <code>persistence.xml</code> created by <code>create-simple-jpa</code> script:</p>
+</div>
+<div class="listingblock">
+<div class="title">persistence.xml</div>
+<div class="content">
+<pre class="CodeRay"><code class="xml language-xml"><span class="preprocessor">&lt;?xml version=&quot;1.0&quot; encoding=&quot;UTF-8&quot;?&gt;</span><span class="tag">&lt;persistence</span> <span class="attribute-name">xmlns:xsi</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">http://www.w3.org/2001/XMLSchema-instance</span><span class="delimiter">&quot;</span></span> <span class="attribute-name">xmlns</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">http://java.sun.com/xml/ns/persistence</span><span class="delimiter">&quot;</span></span> <span class="attribute-name">xsi:schemaLocation</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">http://java.sun.com/xml/ns/persistence http://java.sun.com/xml/ns/persistence/persistence_2_0.xsd</span><span class="delimiter">&quot;</span></span> <span class="attribute-name">version</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">2.0</span><span class="delimiter">&quot;</span></span><span class="tag">&gt;</span>
+  <span class="tag">&lt;persistence-unit</span> <span class="attribute-name">name</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">default</span><span class="delimiter">&quot;</span></span> <span class="attribute-name">transaction-type</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">RESOURCE_LOCAL</span><span class="delimiter">&quot;</span></span><span class="tag">&gt;</span>
+    <span class="tag">&lt;provider&gt;</span>org.hibernate.jpa.HibernatePersistenceProvider<span class="tag">&lt;/provider&gt;</span>
+    <span class="tag">&lt;class&gt;</span>domain.Product<span class="tag">&lt;/class&gt;</span>
+    <span class="tag">&lt;class&gt;</span>domain.LineItem<span class="tag">&lt;/class&gt;</span>
+    <span class="tag">&lt;class&gt;</span>domain.Invoice<span class="tag">&lt;/class&gt;</span>
+    <span class="tag">&lt;properties&gt;</span>
+      <span class="tag">&lt;property</span> <span class="attribute-name">name</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">javax.persistence.jdbc.driver</span><span class="delimiter">&quot;</span></span> <span class="attribute-name">value</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">com.mysql.jdbc.Driver</span><span class="delimiter">&quot;</span></span><span class="tag">/&gt;</span>
+      <span class="tag">&lt;property</span> <span class="attribute-name">name</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">javax.persistence.jdbc.url</span><span class="delimiter">&quot;</span></span> <span class="attribute-name">value</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">jdbc:mysql://localhost/exercises</span><span class="delimiter">&quot;</span></span><span class="tag">/&gt;</span>
+      <span class="tag">&lt;property</span> <span class="attribute-name">name</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">javax.persistence.jdbc.user</span><span class="delimiter">&quot;</span></span> <span class="attribute-name">value</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">steven</span><span class="delimiter">&quot;</span></span><span class="tag">/&gt;</span>
+      <span class="tag">&lt;property</span> <span class="attribute-name">name</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">javax.persistence.jdbc.password</span><span class="delimiter">&quot;</span></span> <span class="attribute-name">value</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">12345</span><span class="delimiter">&quot;</span></span><span class="tag">/&gt;</span>
+      <span class="tag">&lt;property</span> <span class="attribute-name">name</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">hibernate.connection.autocommit</span><span class="delimiter">&quot;</span></span> <span class="attribute-name">value</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">false</span><span class="delimiter">&quot;</span></span><span class="tag">/&gt;</span>
+      <span class="tag">&lt;property</span> <span class="attribute-name">name</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">hibernate.dialect</span><span class="delimiter">&quot;</span></span> <span class="attribute-name">value</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">org.hibernate.dialect.MySQL5Dialect</span><span class="delimiter">&quot;</span></span><span class="tag">/&gt;</span>
+      <span class="tag">&lt;property</span> <span class="attribute-name">name</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">hibernate.connection.provider_class</span><span class="delimiter">&quot;</span></span> <span class="attribute-name">value</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">org.hibernate.c3p0.internal.C3P0ConnectionProvider</span><span class="delimiter">&quot;</span></span><span class="tag">/&gt;</span>
+      <span class="tag">&lt;property</span> <span class="attribute-name">name</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">javax.persistence.schema-generation.database.action</span><span class="delimiter">&quot;</span></span> <span class="attribute-name">value</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">drop-and-create</span><span class="delimiter">&quot;</span></span><span class="tag">/&gt;</span>
+      <span class="tag">&lt;property</span> <span class="attribute-name">name</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">jadira.usertype.autoRegisterUserTypes</span><span class="delimiter">&quot;</span></span> <span class="attribute-name">value</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">true</span><span class="delimiter">&quot;</span></span><span class="tag">/&gt;</span>
+    <span class="tag">&lt;/properties&gt;</span>
+  <span class="tag">&lt;/persistence-unit&gt;</span>
+<span class="tag">&lt;/persistence&gt;</span></code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>You can add new or edit existing JPA configurations inside <code>&lt;properties/&gt;</code>.  For example, setting
+<code>javax.persistence.schema-generation.database.action</code> to <code>drop-and-create</code> makes your JPA provider to recreate
+ database tables everytime application is launched.  You may want to disable this to make application startup faster.  If
+ you disable auto schema generation, you can still use <code>generate-schema</code> to create database tables manually.</p>
+</div>
+<div class="paragraph">
+<p>In addition to <code>persistence.xml</code>, simple-jpa also reads JPA configurations stored in <code>Config.groovy</code> and external
+ properties file.  If more than one property are found, simple-jpa uses the value based on the following order:</p>
+</div>
+<div class="olist arabic">
+<ol class="arabic">
+<li>
+<p>Configuration passed as system properties (must start with <code>javax.persistence</code>) have the first priority.</p>
+</li>
+<li>
+<p>Configuration stored in properties file have the first priority.</p>
+</li>
+<li>
+<p>Configuration stored in <code>Config.groovy</code>.</p>
+</li>
+<li>
+<p>Configuration stored in <code>persistence.xml</code>.</p>
+</li>
+</ol>
+</div>
+<div class="paragraph">
+<p>The following lines show a sample configurations added to <code>Config.groovy</code>:</p>
+</div>
+<div class="listingblock">
+<div class="title">Config.groovy</div>
+<div class="content">
+<pre class="CodeRay"><code class="groovy language-groovy">griffon {
+    simplejpa {
+        entityManager {
+            properties  {
+                javax.persistence.jdbc.driver = <span class="string"><span class="delimiter">'</span><span class="content">com.mysql.jdbc.Driver</span><span class="delimiter">'</span></span>
+                javax.persistence.jdbc.url = <span class="string"><span class="delimiter">'</span><span class="content">jdbc:mysql://localhost/mydatabase</span><span class="delimiter">'</span></span>
+                javax.persistence.jdbc.user = <span class="string"><span class="delimiter">'</span><span class="content">scott</span><span class="delimiter">'</span></span>
+                javax.persistence.jdbc.password = <span class="string"><span class="delimiter">'</span><span class="content">tiger</span><span class="delimiter">'</span></span>
+                hibernate.connection.autocommit = <span class="string"><span class="delimiter">'</span><span class="content">false</span><span class="delimiter">'</span></span>
+                hibernate.dialect = <span class="string"><span class="delimiter">'</span><span class="content">org.hibernate.dialect.MySQL5Dialect</span><span class="delimiter">'</span></span>
+            }
+        }
+    }
+}</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>The advantage of storing configurations in <code>Config.groovy</code> is you can have different JPA configurations per Griffon
+ environments.  For example, the following configurations use different database for different environments:</p>
+</div>
+<div class="listingblock">
+<div class="title">Config.groovy</div>
+<div class="content">
+<pre class="CodeRay"><code class="groovy language-groovy">griffon {
+  simplejpa {
+    entityManager {
+      properties {
+        environments {
+          development {
+            javax.persistence.jdbc.url = <span class="string"><span class="delimiter">'</span><span class="content">jdbc:mysql://localhost/exercises</span><span class="delimiter">'</span></span>
+            javax.persistence.jdbc.user = <span class="string"><span class="delimiter">'</span><span class="content">steven</span><span class="delimiter">'</span></span>
+            javax.persistence.jdbc.password = <span class="string"><span class="delimiter">'</span><span class="content">12345</span><span class="delimiter">'</span></span>
+          }
+          test {
+            javax.persistence.jdbc.url = <span class="string"><span class="delimiter">'</span><span class="content">jdbc:mysql://localhost/test</span><span class="delimiter">'</span></span>
+            javax.persistence.jdbc.user = <span class="string"><span class="delimiter">'</span><span class="content">test</span><span class="delimiter">'</span></span>
+            javax.persistence.jdbc.password = <span class="string"><span class="delimiter">'</span><span class="content">secret</span><span class="delimiter">'</span></span>
+            javax.persistence.<span class="string"><span class="delimiter">'</span><span class="content">schema-generation</span><span class="delimiter">'</span></span>.database.action = <span class="string"><span class="delimiter">'</span><span class="content">drop-and-create</span><span class="delimiter">'</span></span>
+          }
+        }
+      }
+    }
+  }
+}</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>If you run the application by using command like <code>run-app</code>, it will activate <code>development</code> environment.  In this case, JPA
+uses database <code>jdbc:mysql://localhost/exercises</code>.  If you activate <code>test</code> environment (for example by running <code>test-app</code>),
+JPA uses database <code>jdbc:mysql://localhost/test</code>.  It also recreate tables in that database.</p>
+</div>
+<div class="paragraph">
+<p>To avoid storing sensitive information such as JDBC URL, username dan password in your source code, you
+  can take advantage of Griffon feature to include properties file from <code>Config.groovy</code>.  For example, if you store JPA
+  configuration to <code>hibernate.properties</code>, you can add the following line to <code>Config.groovy</code> to include your properties file:</p>
+</div>
+<div class="listingblock">
+<div class="title">Config.groovy</div>
+<div class="content">
+<pre class="CodeRay"><code class="groovy language-groovy">griffon.config.locations = [<span class="string"><span class="delimiter">'</span><span class="content">classpath:hibernate.properties</span><span class="delimiter">'</span></span>]</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>You may want to configure your source code repository to make sure your properties file will never committed to public
+server.</p>
+</div>
+<div class="paragraph">
+<p>simple-jpa can also be configured to read JPA properties from external properties file.  You can define the location of this
+properties file by adding the following line to <code>Config.groovy</code>:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="CodeRay"><code class="groovy language-groovy">griffon.simplejpa.entityManager.propertiesFile = <span class="string"><span class="delimiter">'</span><span class="content">C:/example/db.properties</span><span class="delimiter">'</span></span></code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>A sample <code>db.properties</code> will look like:</p>
+</div>
+<div class="listingblock">
+<div class="title">C:/example/db.properties</div>
+<div class="content">
+<pre class="CodeRay"><code class="groovy language-groovy">javax.persistence.jdbc.url = <span class="string"><span class="delimiter">'</span><span class="content">jdbc:mysql://localhost/test</span><span class="delimiter">'</span></span>
+javax.persistence.jdbc.user = <span class="string"><span class="delimiter">'</span><span class="content">test</span><span class="delimiter">'</span></span>
+javax.persistence.jdbc.password = <span class="string"><span class="delimiter">'</span><span class="content">secret</span><span class="delimiter">'</span></span></code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>Configurations stored in this properties file will override existing configurations in <code>Config.groovy</code> and <code>persistence.xml</code>,
+ but can be overriden by JVM system properties.  If you didn&#8217;t change <code>griffon.simplejpa.entityManager.propertiesFile</code>,
+ it defaults to <code>simplejpa.properties</code>.  This means you can always override JPA configuration for existing distribution by
+ adding a new file called <code>simplejpa.properties</code> in the same location when you launched the application.</p>
+</div>
+<div class="paragraph">
+<p>simple-jpa supports obfuscating configuration value.  For example, if you want to store obfuscated version of <em>12345</em>, you
+ need to execute the following command to retrieve its obsfuscated version:</p>
+</div>
+<div class="literalblock">
+<div class="content">
+<pre>griffon obfuscate -generate='12345'</pre>
+</div>
+</div>
+<div class="paragraph">
+<p>Then, you can use the obfuscated version for any value in any location (such as <code>Config.groovy</code>, properties file or
+system propeties).  For example, you can add the following line to <code>Config.groovy</code>:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="CodeRay"><code class="groovy language-groovy">griffon {
+  simplejpa {
+    entityManager {
+      properties {
+        javax.persistence.jdbc.password = <span class="string"><span class="delimiter">'</span><span class="content">obfuscated:YUqF9w6l5lpvNyH+1tnJBg==</span><span class="delimiter">'</span></span>
+      }
+    }
+  }
+}</code></pre>
+</div>
+</div>
+<div class="admonitionblock warning">
+<table>
+<tr>
+<td class="icon">
+<i class="icon-warning" title="Warning"></i>
+</td>
+<td class="content">
+While obfuscation makes it harder for lay people to read your configuration file, it doesn&#8217;t actually increase
+  your security.  Anyone can easily display the original string by executing <code>griffon obfuscate -reverse</code>.   You should
+  never publish obfuscated value if you don&#8217;t want people to know the original value.
+</td>
+</tr>
+</table>
+</div>
+</div>
+<div class="sect2">
+<h3 id="domain-class">3.3. Domain Class</h3>
+<div class="paragraph">
+<p>simple-jpa provides persistence methods to deal with persistent domain class (marked by <code>@Entity</code>).  To create such
+  entity, you can use <code>create-domain-class</code> script, for example:</p>
+</div>
+<div class="literalblock">
+<div class="content">
+<pre>griffon create-domain-class Invoice LineItem</pre>
+</div>
+</div>
+<div class="paragraph">
+<p>The command creates two new classes: <code>domain.Invoice</code> and <code>domain.LineItem</code>.  It also add these classes to <code>persistence.xml</code>.
+  You can change the default base packages for domain classes by setting <code>griffon.simplejpa.domain.package</code> in <code>Config.groovy</code>.</p>
+</div>
+<div class="paragraph">
+<p>You can also specify subpackage when executing <code>create-domain-class</code>, for example:</p>
+</div>
+<div class="literalblock">
+<div class="content">
+<pre>griffon create-domain-class sales.Invoice sales.LineItem inventory.Product</pre>
+</div>
+</div>
+<div class="paragraph">
+<p>The command creates three new classes: <code>domain.sales.Invoice</code>, <code>domain.sales.LineItem</code> and <code>domain.inventory.Product</code>.</p>
+</div>
+<div class="paragraph">
+<p>Persistent domain classes in simple-jpa is a normal JPA entities.  Just like when using JPA in Java, you can
+decorate JPA entity with JPA annotations such as <code>@Entity</code>, <code>@OneToMany</code>, <code>@ManyToMany</code>, <code>@ManyToOne</code> and others.
+See JPA documentation for more information about JPA annotations.  The following show examples of persistent domain
+classes in simple-jpa:</p>
+</div>
+<div class="listingblock">
+<div class="title">Invoice.groovy</div>
+<div class="content">
+<pre class="CodeRay"><code class="groovy language-groovy"><span class="keyword">package</span> domain
+
+<span class="comment">// import statements are not shown.</span>
+
+<span class="annotation">@DomainClass</span> <span class="annotation">@Entity</span> <span class="annotation">@Canonical</span>
+<span class="type">class</span> <span class="class">Invoice</span> {
+
+  <span class="annotation">@NotEmpty</span> <span class="annotation">@Size</span>(min=<span class="integer">5</span>, max=<span class="integer">5</span>)
+  <span class="predefined-type">String</span> number
+
+
+  <span class="annotation">@NotNull</span> <span class="annotation">@Type</span>(type=<span class="string"><span class="delimiter">&quot;</span><span class="content">org.jadira.usertype.dateandtime.joda.PersistentLocalDate</span><span class="delimiter">&quot;</span></span>)
+  LocalDate date
+
+  <span class="annotation">@ElementCollection</span> <span class="annotation">@OrderColumn</span> <span class="annotation">@NotEmpty</span>
+  <span class="predefined-type">List</span>&lt;LineItem&gt; items = <span class="type">[]</span>
+
+  <span class="type">void</span> add(LineItem item) {
+    items &lt;&lt; item
+  }
+
+  <span class="predefined-type">BigDecimal</span> total() {
+    items.sum { <span class="local-variable">it</span>.total() }
+  }
+
+}</code></pre>
+</div>
+</div>
+<div class="listingblock">
+<div class="title">LineItem.groovy</div>
+<div class="content">
+<pre class="CodeRay"><code class="groovy language-groovy"><span class="keyword">package</span> domain
+
+<span class="comment">// import statements are not shown.</span>
+
+<span class="annotation">@Embeddable</span> <span class="annotation">@Canonical</span>
+<span class="type">class</span> <span class="class">LineItem</span> {
+
+  <span class="annotation">@NotNull</span> <span class="annotation">@ManyToOne</span>
+  Product product
+
+  <span class="annotation">@NotNull</span> <span class="annotation">@Min</span>(<span class="integer">0l</span>)
+  <span class="predefined-type">BigDecimal</span> price
+
+  <span class="annotation">@NotNull</span> <span class="annotation">@Min</span>(<span class="integer">1l</span>)
+  <span class="predefined-type">BigDecimal</span> qty
+
+  <span class="predefined-type">BigDecimal</span> total() {
+    price * qty
+  }
+
+}</code></pre>
+</div>
+</div>
+<div class="listingblock">
+<div class="title">Product.groovy</div>
+<div class="content">
+<pre class="CodeRay"><code class="groovy language-groovy"><span class="keyword">package</span> domain
+
+<span class="comment">// import statements are not shown.</span>
+
+<span class="annotation">@DomainClass</span> <span class="annotation">@Entity</span> <span class="annotation">@Canonical</span>
+<span class="type">class</span> <span class="class">Product</span> {
+
+  <span class="annotation">@NotEmpty</span> <span class="annotation">@Size</span>(min=<span class="integer">2</span>, max=<span class="integer">50</span>)
+  <span class="predefined-type">String</span> name
+
+  <span class="annotation">@NotNull</span> <span class="annotation">@Min</span>(value=<span class="integer">1l</span>)
+  <span class="predefined-type">BigDecimal</span> retailPrice
+
+}</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p><code>@DomainClass</code> is special annotation provided by simple-jpa.  This annotation automatically adds the following property
+ to the annotated class:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="CodeRay"><code class="groovy language-groovy"><span class="annotation">@Id</span> <span class="annotation">@GeneratedValue</span>(strategy=GenerationType.TABLE)   <i class="conum" data-value="1"></i><b>(1)</b>
+<span class="predefined-type">Long</span> id  <i class="conum" data-value="2"></i><b>(2)</b>
+
+<span class="predefined-type">String</span> deleted = <span class="string"><span class="delimiter">'</span><span class="content">N</span><span class="delimiter">'</span></span>  <i class="conum" data-value="3"></i><b>(3)</b>
+
+<span class="predefined-type">Date</span> createdDate   <i class="conum" data-value="4"></i><b>(4)</b>
+
+<span class="predefined-type">String</span> createdBy   <i class="conum" data-value="4"></i><b>(4)</b>
+
+<span class="predefined-type">Date</span> modifiedDate  <i class="conum" data-value="4"></i><b>(4)</b>
+
+<span class="predefined-type">String</span> modifiedBy  <i class="conum" data-value="4"></i><b>(4)</b></code></pre>
+</div>
+</div>
+<div class="colist arabic">
+<table>
+<tr>
+<td><i class="conum" data-value="1"></i><b>1</b></td>
+<td>To change generation strategy, add desired strategy to <code>idGenerationStrategy</code> attribute.</td>
+</tr>
+<tr>
+<td><i class="conum" data-value="2"></i><b>2</b></td>
+<td><code>@DomainClass(excludeId=true)</code> will not generate this property.</td>
+</tr>
+<tr>
+<td><i class="conum" data-value="3"></i><b>3</b></td>
+<td><code>@DomainClass(excludeDeletedFlag=true)</code> will not generate this property.</td>
+</tr>
+<tr>
+<td><i class="conum" data-value="4"></i><b>4</b></td>
+<td><code>@DomainClass(excludeAuditing=true)</code> will not generate these properties.</td>
+</tr>
+</table>
+</div>
+<div class="paragraph">
+<p>You aren&#8217;t required to add <code>@DomainClass</code> to every persistent domain classes, but some features such as <a href="#auditing">Auditing</a> will
+not work without the properties generated by <code>@DomainClass</code>.  Of course, you can still code by hand the required properties in
+every entities.</p>
+</div>
+</div>
+<div class="sect2">
+<h3 id="persistence-methods">3.4. Persistence Methods</h3>
+<div class="paragraph">
+<p>To make it possible for Griffon&#8217;s  artifacts to manage domain classes, simple-jpa injects persistence methods to them.
+By default, persistence methods are injected into controller, but you can change it by adding the following line to <code>Config.groovy</code>:</p>
+</div>
+<div class="listingblock">
+<div class="title">Config.groovy</div>
+<div class="content">
+<pre class="CodeRay"><code class="groovy language-groovy">griffon.simplejpa.finders.injectInto = [ <span class="string"><span class="delimiter">'</span><span class="content">service</span><span class="delimiter">'</span></span>, <span class="string"><span class="delimiter">'</span><span class="content">repository</span><span class="delimiter">'</span></span> ]</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>The configuration above will inject persistence methods to services and repositories.  Repository is a custom artifact type
+provided by simple-jpa.  You can create a new repository by using <code>griffon create-repository</code>, for example:</p>
+</div>
+<div class="literalblock">
+<div class="content">
+<pre>griffon create-repository MyRepository</pre>
+</div>
+</div>
+<div class="paragraph">
+<p>The script creates <code>MyRepository.groovy</code> in <code>griffon-app/repositories</code>.</p>
+</div>
+<div class="paragraph">
+<p>To retrieve instance of repository, you can use code like:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="CodeRay"><code class="groovy language-groovy"><span class="keyword">def</span> myRepository = SimpleJpaUtil.instance.repositoryManager.findRepository(<span class="string"><span class="delimiter">'</span><span class="content">MyRepository</span><span class="delimiter">'</span></span>)</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>For a simple application, it is usually acceptable to inject persistence methods to controllers.  If you want a clear
+ separation, you should inject persistence methods only to repositories.  You must add <code>@Transaction</code> annotation to
+ the injected artifacts to enable <a href="#transaction">Transaction</a>.  Class generated by <code>create-repository</code> already has <code>@Transaction</code>,
+ but Griffon&#8217;s controllers do not have <code>@Transaction</code> by default.</p>
+</div>
+<div class="paragraph">
+<p>The following is list of persistence methods injected by simple-jpa:</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p><code>persist(entity)</code></p>
+<div class="paragraph">
+<p>Use this method to save new entity.  It is a shortcut for <code>entityManager.persist()</code>.</p>
+</div>
+</li>
+<li>
+<p><code>merge(entity)</code></p>
+<div class="paragraph">
+<p>Use this method to add detached entity to current EntityManager.  It is a shortcut for <code>entityManager.merge()</code>.</p>
+</div>
+</li>
+<li>
+<p><code>remove(entity)</code></p>
+<div class="paragraph">
+<p>Delete an entity.  It is a shortcut for <code>entityManager.remove()</code>.</p>
+</div>
+</li>
+<li>
+<p><code>softDelete(entity)</code></p>
+<div class="paragraph">
+<p>Set <code>deleted</code> property of an entity into <code>'Y'</code>.</p>
+</div>
+</li>
+<li>
+<p><code>validate(object)</code></p>
+<div class="paragraph">
+<p>See <a href="#validation">Validation</a> for more information.</p>
+</div>
+</li>
+<li>
+<p>Finders</p>
+<div class="paragraph">
+<p>See <a href="#finders">Finders</a> for more information.</p>
+</div>
+</li>
+<li>
+<p><code>getEntityManager()</code></p>
+<div class="paragraph">
+<p>Returns an <code>EntityManager</code> for current session.  This method can&#8217;t be renamed.</p>
+</div>
+</li>
+<li>
+<p>All public methods of <code>EntityManager</code>.</p>
+<div class="paragraph">
+<p>simple-jpa exposes all public methods of <code>EntityManager</code> to injected class.  This means you can directly call methods such
+as <code>lock()</code>, <code>refresh()</code>, or <code>detach()</code> in injected class.  For more information about <code>EntityManager</code>, see JPA documentation.
+These methods can&#8217;t be renamed.</p>
+</div>
+</li>
+</ul>
+</div>
+<div class="paragraph">
+<p>To avoid conflict with existing methods in injected class, simple-jpa can add prefix to persistence methods.  For example,
+  you can add the following line to <code>Config.groovy</code>:</p>
+</div>
+<div class="literalblock">
+<div class="content">
+<pre>griffon.simplejpa.finders.prefix = 'jpa'</pre>
+</div>
+</div>
+<div class="paragraph">
+<p>Now, every persistence methods that can be renamed will have <em>jpa</em> prefix.  For example, you have to execute <code>jpaPersist()</code>
+ rather than <code>persist()</code>.</p>
+</div>
+<div class="paragraph">
+<p>The easiest way to learn simple-jpa persistence methods is by using <code>simple-jpa-console</code> script:</p>
+</div>
+<div class="literalblock">
+<div class="content">
+<pre>griffon simple-jpa-console</pre>
+</div>
+</div>
+<div class="paragraph">
+<p>It will launch a Groovy console where you can write code snippet and see the result.</p>
+</div>
+<div class="imageblock">
+<div class="content">
+<img src="../images/simple_jpa_console.PNG" alt="simple jpa console">
+</div>
+</div>
+<div class="paragraph">
+<p>The main advantage of Groovy console is you can edit existing code and execute it directly by selecting <em>Script</em>, <em>Run</em> (Ctrl+R).
+This is many times faster than relaunching application by using <code>griffon run-app</code>.  You will find Groovy console very useful
+ in testing your code snippet or understanding the result of persistence methods.</p>
+</div>
 </div>
 </div>
 </div>
@@ -3363,49 +3935,8 @@ equal or eq</pre>
 <div class="sect1">
 <h2 id="deployment">11. Deployment</h2>
 <div class="sectionbody">
-
-</div>
-</div>
-<div class="sect1">
-<h2 id="configuration">Appendix A: Configuration</h2>
-<div class="sectionbody">
-<div class="paragraph">
-<p>simple-jpa can be configured by adding configuration lines in <code>griffon-app/conf/Config.groovy</code>. Adding JPA provider
-properties can also be done directly by editing <code>griffon-app/conf/metainf/persistence.xml</code> or by using system
-properties.</p>
-</div>
 <div class="sect2">
-<h3 id="domain-package">A.1. Domain Package</h3>
-<div class="paragraph">
-<p>simple-jpa doesn&#8217;t use any metadata to manage domain classes. The only way for simple-jpa to find or to write domain
-classes is by inspecting the content of domain package. All domain classes should be located in this domain package.
-By default, the name of domain package is <code>domain</code>.</p>
-</div>
-<div class="paragraph">
-<p>Developer can change the name of domain package by using this configuration line. For example, the following
-configuration change the name of domain package to <code>com.example.domain</code>:</p>
-</div>
-<div class="listingblock">
-<div class="content">
-<pre class="CodeRay"><code class="groovy language-groovy">griffon.simplejpa.domain.package=<span class="string"><span class="delimiter">'</span><span class="content">com.example.domain</span><span class="delimiter">'</span></span></code></pre>
-</div>
-</div>
-<div class="admonitionblock warning">
-<table>
-<tr>
-<td class="icon">
-<i class="icon-warning" title="Warning"></i>
-</td>
-<td class="content">
-Changing this configuration value will not move existing domain classes to the new domain package. This value
-merely used as an indicator to find domain classes.
-</td>
-</tr>
-</table>
-</div>
-</div>
-<div class="sect2">
-<h3 id="default-flush-mode">A.2. Default Flush Mode</h3>
+<h3 id="default-flush-mode">Appendix A: Default Flush Mode</h3>
 <div class="paragraph">
 <p>Use this configuration key to change the default <code>flushMode</code> for all EntityManager in application. The possible values
 for flushMode is <code><em>COMMIT</em></code> and <code><em>AUTO</em></code>. The default value for <code>flushMode</code> is depends on JPA provider.</p>
@@ -3423,104 +3954,7 @@ for flushMode is <code><em>COMMIT</em></code> and <code><em>AUTO</em></code>. Th
 </div>
 </div>
 <div class="sect2">
-<h3 id="entity-manager-properties">A.3. Entity Manager Properties</h3>
-<div class="paragraph">
-<p>In most cases, JPA properties can be added directly to <code>griffon-app/conf/metainf/persistence.xml</code>. The following is
-content of a typical <code>persistence.xml</code> file for desktop application:</p>
-</div>
-<div class="listingblock">
-<div class="content">
-<pre class="CodeRay"><code class="xml language-xml"><span class="preprocessor">&lt;?xml version=&quot;1.0&quot; encoding=&quot;UTF-8&quot;?&gt;</span><span class="tag">&lt;persistence</span> <span class="attribute-name">xmlns:xsi</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">http://www.w3.org/2001/XMLSchema-instance</span><span class="delimiter">&quot;</span></span> <span class="attribute-name">xmlns</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">http://java.sun.com/xml/ns/persistence</span><span class="delimiter">&quot;</span></span> <span class="attribute-name">xsi:schemaLocation</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">http://java.sun.com/xml/ns/persistence http://java.sun.com/xml/ns/persistence/persistence_2_0.xsd</span><span class="delimiter">&quot;</span></span> <span class="attribute-name">version</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">2.0</span><span class="delimiter">&quot;</span></span><span class="tag">&gt;</span>
-  <span class="tag">&lt;persistence-unit</span> <span class="attribute-name">name</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">default</span><span class="delimiter">&quot;</span></span> <span class="attribute-name">transaction-type</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">RESOURCE_LOCAL</span><span class="delimiter">&quot;</span></span><span class="tag">&gt;</span>
-    <span class="tag">&lt;provider&gt;</span>org.hibernate.ejb.HibernatePersistence<span class="tag">&lt;/provider&gt;</span>
-    <span class="tag">&lt;class&gt;</span>domain.Student<span class="tag">&lt;/class&gt;</span>
-    <span class="tag">&lt;class&gt;</span>domain.Classroom<span class="tag">&lt;/class&gt;</span>
-    <span class="tag">&lt;properties&gt;</span>
-      <span class="tag">&lt;property</span> <span class="attribute-name">name</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">javax.persistence.jdbc.driver</span><span class="delimiter">&quot;</span></span> <span class="attribute-name">value</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">com.mysql.jdbc.Driver</span><span class="delimiter">&quot;</span></span><span class="tag">/&gt;</span>
-      <span class="tag">&lt;property</span> <span class="attribute-name">name</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">javax.persistence.jdbc.url</span><span class="delimiter">&quot;</span></span> <span class="attribute-name">value</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">jdbc:mysql://localhost/mydatabase</span><span class="delimiter">&quot;</span></span><span class="tag">/&gt;</span>
-      <span class="tag">&lt;property</span> <span class="attribute-name">name</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">javax.persistence.jdbc.user</span><span class="delimiter">&quot;</span></span> <span class="attribute-name">value</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">scott</span><span class="delimiter">&quot;</span></span><span class="tag">/&gt;</span>
-      <span class="tag">&lt;property</span> <span class="attribute-name">name</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">javax.persistence.jdbc.password</span><span class="delimiter">&quot;</span></span> <span class="attribute-name">value</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">tiger</span><span class="delimiter">&quot;</span></span><span class="tag">/&gt;</span>
-      <span class="tag">&lt;property</span> <span class="attribute-name">name</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">hibernate.connection.autocommit</span><span class="delimiter">&quot;</span></span> <span class="attribute-name">value</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">false</span><span class="delimiter">&quot;</span></span><span class="tag">/&gt;</span>
-      <span class="tag">&lt;property</span> <span class="attribute-name">name</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">hibernate.dialect</span><span class="delimiter">&quot;</span></span> <span class="attribute-name">value</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">org.hibernate.dialect.MySQL5Dialect</span><span class="delimiter">&quot;</span></span><span class="tag">/&gt;</span>
-      <span class="tag">&lt;property</span> <span class="attribute-name">name</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">hibernate.hbm2ddl.auto</span><span class="delimiter">&quot;</span></span> <span class="attribute-name">value</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">create-drop</span><span class="delimiter">&quot;</span></span><span class="tag">/&gt;</span>
-      <span class="tag">&lt;property</span> <span class="attribute-name">name</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">jadira.usertype.autoRegisterUserTypes</span><span class="delimiter">&quot;</span></span> <span class="attribute-name">value</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">true</span><span class="delimiter">&quot;</span></span><span class="tag">/&gt;</span>
-    <span class="tag">&lt;/properties&gt;</span>
-  <span class="tag">&lt;/persistence-unit&gt;</span>
-<span class="tag">&lt;/persistence&gt;</span></code></pre>
-</div>
-</div>
-<div class="paragraph">
-<p>Developer can override properties in <code>persistence.xml</code> by adding configuration line with
-<code>griffon.simplejpa.entityManager.properties</code> key. For example, the following configuration will result in the same
-JPA properties as above:</p>
-</div>
-<div class="listingblock">
-<div class="content">
-<pre class="CodeRay"><code class="groovy language-groovy">griffon {
-    simplejpa {
-        entityManager {
-            properties  {
-                javax.persistence.jdbc.driver = <span class="string"><span class="delimiter">'</span><span class="content">com.mysql.jdbc.Driver</span><span class="delimiter">'</span></span>
-                javax.persistence.jdbc.url = <span class="string"><span class="delimiter">'</span><span class="content">jdbc:mysql://localhost/mydatabase</span><span class="delimiter">'</span></span>
-                javax.persistence.jdbc.user = <span class="string"><span class="delimiter">'</span><span class="content">scott</span><span class="delimiter">'</span></span>
-                javax.persistence.jdbc.password = <span class="string"><span class="delimiter">'</span><span class="content">tiger</span><span class="delimiter">'</span></span>
-                hibernate.connection.autocommit = <span class="string"><span class="delimiter">'</span><span class="content">false</span><span class="delimiter">'</span></span>
-                hibernate.dialect = <span class="string"><span class="delimiter">'</span><span class="content">org.hibernate.dialect.MySQL5Dialect</span><span class="delimiter">'</span></span>
-                jadira.usertype.autoRegisterUserTypes=  <span class="string"><span class="delimiter">'</span><span class="content">true</span><span class="delimiter">'</span></span>
-            }
-        }
-    }
-}</code></pre>
-</div>
-</div>
-<div class="paragraph">
-<p>Another way to override JPA provider properties is by writing the properties in a file called <code>simplejpa.properties</code>.
-Content of the file is in Groovy&#8217;s config format just like the one specified in <code>Config.groovy</code>. simple-jpa will search
-for this file in current working directory. If the file exists, its content will override properties in
-<code>persistence.xml</code> and <code>Config.groovy</code>.</p>
-</div>
-<div class="paragraph">
-<p>This is a convenient way to modify JPA properties without changing source code. It is common to put database connection
-properties in <code>simplejpa.properties</code> so that changing database connection will not require touching application&#8217;s source
-code.</p>
-</div>
-<div class="paragraph">
-<p>The following is sample content of <code>simplejpa.properties</code>:</p>
-</div>
-<div class="listingblock">
-<div class="content">
-<pre class="CodeRay"><code class="groovy language-groovy">javax {
-    persistence {
-        jdbc {
-            driver = <span class="string"><span class="delimiter">'</span><span class="content">com.mysql.jdbc.Driver</span><span class="delimiter">'</span></span>
-            url = <span class="string"><span class="delimiter">'</span><span class="content">jdbc:mysql://localhost/mydatabase</span><span class="delimiter">'</span></span>
-            user = <span class="string"><span class="delimiter">'</span><span class="content">scott</span><span class="delimiter">'</span></span>
-            password = <span class="string"><span class="delimiter">'</span><span class="content">tiger</span><span class="delimiter">'</span></span>
-        }
-    }
-}
-hibernate {
-    connection {
-        autocommit = <span class="string"><span class="delimiter">'</span><span class="content">false</span><span class="delimiter">'</span></span>
-    }
-    dialect = <span class="string"><span class="delimiter">'</span><span class="content">org.hibernate.dialect.MySQL5Dialect</span><span class="delimiter">'</span></span>
-}
-jadira.usertype.autoRegisterUserTypes=  <span class="string"><span class="delimiter">'</span><span class="content">true</span><span class="delimiter">'</span></span></code></pre>
-</div>
-</div>
-<div class="paragraph">
-<p>Developer can change location and name of the <code>simplejpa.properties</code> by adding <code>griffon.simplejpa.entityManager.propertiesFile</code>
-configuration line. For example, in the following configuration, simple-jpa will search for a file called <code>connection.db</code>
-in root directory of drive C:</p>
-</div>
-<div class="listingblock">
-<div class="content">
-<pre class="CodeRay"><code>griffon.simplejpa.entityManager.propertiesFile = 'C:/connection.db'</code></pre>
-</div>
-</div>
-</div>
-<div class="sect2">
-<h3 id="soft-delete">A.4. Soft Delete</h3>
+<h3 id="soft-delete">11.1. Soft Delete</h3>
 <div class="paragraph">
 <p>If the value for this configuration key is <code>true</code>, simple-jpa finders will not return soft deleted objects. A soft
 deleted object is an object whose deleted attribute is not equals to <code><em>N</em></code>. The deleted attribute is available on all
@@ -3540,65 +3974,7 @@ passing <code>false</code> to <code>excludeDeleted</code> query configuration.</
 </div>
 </div>
 <div class="sect2">
-<h3 id="finders-2">A.5. Finders</h3>
-<div class="paragraph">
-<p>By default, simple-jpa will inject JPA related methods such as finders to all Griffon&#8217;s controllers. This causes all
-controllers to act as public repositories with the abilities to retrieve arbitary domain objects. While this pattern
-reduces complexity, some people may want to appoint service layer as repository layer (instead of controllers as
-repositories). This can be achieved by adding the following configuration line:</p>
-</div>
-<div class="listingblock">
-<div class="content">
-<pre class="CodeRay"><code class="grooovy language-grooovy">griffon.simplejpa.finders.injectInto = ['service']</code></pre>
-</div>
-</div>
-<div class="paragraph">
-<p>The following examples will cause simple-jpa to inject JPA related methods to all controllers and all models:</p>
-</div>
-<div class="listingblock">
-<div class="content">
-<pre class="CodeRay"><code class="groovy language-groovy">griffon.simplejpa.finders.injectInto = [<span class="string"><span class="delimiter">'</span><span class="content">controller</span><span class="delimiter">'</span></span>, <span class="string"><span class="delimiter">'</span><span class="content">model</span><span class="delimiter">'</span></span>]</code></pre>
-</div>
-</div>
-<div class="paragraph">
-<p>To avoid conflict with existing methods in controller, simple-jpa can add prefix to its dynamic methods. For example,
-the following configuration line will add jpa prefix to simple-jpa dynamic methods:</p>
-</div>
-<div class="listingblock">
-<div class="content">
-<pre class="CodeRay"><code class="groovy language-groovy">griffon.simplejpa.finders.prefix = <span class="string"><span class="delimiter">'</span><span class="content">jpa</span><span class="delimiter">'</span></span>
-<span class="comment">// This will add 'jpa' prefix to dynamic methods name, for example:</span>
-<span class="comment">// findAllStudent() becomes jpaFindAllStudent()</span></code></pre>
-</div>
-</div>
-<div class="paragraph">
-<p>The following dynamic methods will never have prefix:</p>
-</div>
-<div class="ulist">
-<ul>
-<li>
-<p><code>beginTransaction()</code></p>
-</li>
-<li>
-<p><code>commitTransaction()</code></p>
-</li>
-<li>
-<p><code>rollbackTransaction()</code></p>
-</li>
-<li>
-<p><code>return_failed()</code></p>
-</li>
-<li>
-<p><code>createEntityManager()</code></p>
-</li>
-<li>
-<p><code>destroyEntityManager()</code></p>
-</li>
-<li>
-<p><code>getEntityManager()</code></p>
-</li>
-</ul>
-</div>
+<h3 id="finders-2">11.2. Finders</h3>
 <div class="paragraph">
 <p>Since simple-jpa 0.7, by default, duplicate entities returned by finders will be ignored. To allow finders to return
 duplicate entities, add the following line:</p>
@@ -3610,7 +3986,7 @@ duplicate entities, add the following line:</p>
 </div>
 </div>
 <div class="sect2">
-<h3 id="auditing-2">A.6. Auditing</h3>
+<h3 id="auditing-2">11.3. Auditing</h3>
 <div class="paragraph">
 <p>To display a login dialog at startup time, set a service name for <code>griffon.simplejpa.auditing.loginService</code>.  This service must be an
 instance of <code>org.jdesktop.swingx.auth.LoginService</code>.</p>
@@ -3625,7 +4001,7 @@ instance of <code>org.jdesktop.swingx.auth.LoginService</code>.</p>
 </div>
 </div>
 <div class="sect1">
-<h2 id="script">Appendix B: Script</h2>
+<h2 id="script">Appendix C: Script</h2>
 <div class="sectionbody">
 <div class="paragraph">
 <p>simple-jpa scripts can be called just like any Griffon&#8217;s commands:</p>
@@ -3644,7 +4020,7 @@ instance of <code>org.jdesktop.swingx.auth.LoginService</code>.</p>
 </div>
 </div>
 <div class="sect2">
-<h3 id="create-simple-jpa">B.1. create-simple-jpa</h3>
+<h3 id="create-simple-jpa">C.1. create-simple-jpa</h3>
 <div class="paragraph">
 <p>This command is usually the first command that will be invoked before working with Java Persistence API (JPA).
 It will create persistence.xml and orm.xml in current project. It will also create some resource files that are commonly
@@ -3724,7 +4100,7 @@ if they are not exists:</p>
 <div class="listingblock">
 <div class="content">
 <pre class="CodeRay"><code>griffon create-simple-jpa -user=steven -password=12345 -database=sample
-    -provider=hibernate -databaseType=mysql -rootPassword=secret</code></pre>
+    -provider=hibernate -jdbc=mysql -rootPassword=secret</code></pre>
 </div>
 </div>
 <div class="paragraph">
@@ -3737,9 +4113,13 @@ database schema: ha), uses Hibernate JPA, and will not check if required user an
     -skip-database</code></pre>
 </div>
 </div>
+<div class="paragraph">
+<p>If you use <code>-jdbc=derby-embedded</code>, <code>-database</code> should be a full path to directory such as
+<em>C:/Users/me/mydb</em>.</p>
+</div>
 </div>
 <div class="sect2">
-<h3 id="create-domain-class">B.2. create-domain-class</h3>
+<h3 id="create-domain-class">C.2. create-domain-class</h3>
 <div class="paragraph">
 <p>This command will create a new empty domain class and register it in persistence context file. Before creating domain
 class, the project must has <code>persistence.xml</code> file in <code>metainf</code> directory. To generate required files for working with
@@ -3805,7 +4185,7 @@ is <code>domain</code>.</p>
 </div>
 </div>
 <div class="sect2">
-<h3 id="generate-all">B.3. generate-all</h3>
+<h3 id="generate-all">C.3. generate-all</h3>
 <div class="paragraph">
 <p>This command will create a new <code>MVCGroup</code> based on a domain class. The generated MVCGroup (consists of a view, a model
 and a controller) has the ability to perform CRUD operations on a domain class. This command can also generate a startup
@@ -3928,7 +4308,7 @@ MVCGroup as startup:</p>
 </div>
 </div>
 <div class="sect2">
-<h3 id="install-templates">B.4. install-templates</h3>
+<h3 id="install-templates">C.4. install-templates</h3>
 <div class="paragraph">
 <p>This command will add templates used by simple-jpa to current project in <code>/src/templates/artifacts</code>. This command is
 useful for changing templates that is used by simple-jpa generator. Developer can edit the templates and the next
@@ -3952,7 +4332,7 @@ invocation of simple-jpa generator will based on them.</p>
 </div>
 </div>
 <div class="sect2">
-<h3 id="simple-jpa-console">B.5. simple-jpa-console</h3>
+<h3 id="simple-jpa-console">C.5. simple-jpa-console</h3>
 <div class="paragraph">
 <p>This command will launch Groovy Console loaded with Griffon and simple-jpa. Developer can use this command to test or
 execute code interactively.</p>
@@ -3984,7 +4364,7 @@ To display list of available variables, select <strong>Script</strong>, <strong>
 </div>
 </div>
 <div class="sect2">
-<h3 id="generate-schema">B.6. generate-schema</h3>
+<h3 id="generate-schema">C.6. generate-schema</h3>
 <div class="paragraph">
 <p>This command will generate database schema based on current domain models mapping to database or scripts. Developer can
 use this command to retrieve SQL scripts that can be used to populate new database schema for current application.</p>
@@ -4059,7 +4439,7 @@ initialize database (for example, populating tables with initial data).</p>
 </div>
 </div>
 <div class="sect2">
-<h3 id="obfuscate">B.7. obfuscate</h3>
+<h3 id="obfuscate">C.7. obfuscate</h3>
 <div class="paragraph">
 <p>Use this command to generate obfuscated value that can be added to configuration file or simplejpa.properties. This is
 useful to hide sensitive information such as database password from novice users.</p>
@@ -4105,7 +4485,7 @@ configurations that accepts string value. For example, it can be used in <code>C
 </div>
 </div>
 <div class="sect2">
-<h3 id="create-repository">B.8. create-repository</h3>
+<h3 id="create-repository">C.8. create-repository</h3>
 <div class="paragraph">
 <p>Use this command to create a new repository.  It is recommended to generate repository automatically by using
 DDD generator rather than create them manually using this command.</p>
@@ -4130,103 +4510,8 @@ DDD generator rather than create them manually using this command.</p>
 </div>
 </div>
 </div>
-</div>
-</div>
-<div class="sect1">
-<h2 id="annotation">Appendix C: Annotation</h2>
-<div class="sectionbody">
-<div class="paragraph">
-<p>These annotations are using Groovy AST transformation feature to change the content of a class dynamically on compile.</p>
-</div>
 <div class="sect2">
-<h3 id="conditionsupport">C.1. @ConditionSupport</h3>
-<div class="paragraph">
-<p>Adding <code>@ConditionSupport</code> annotation to a Swing <code>TableCellRenderer</code> will make the renderer ready to use with
-<code>condition()</code> node.</p>
-</div>
-<div class="paragraph">
-<p>Example:</p>
-</div>
-<div class="listingblock">
-<div class="content">
-<pre class="CodeRay"><code class="groovy language-groovy"><span class="annotation">@ConditionSupport</span>
-<span class="type">class</span> <span class="class">MyCustomRenderer</span> <span class="directive">extends</span> <span class="predefined-type">DefaultTableCellRenderer</span> {
-   ...
-}</code></pre>
-</div>
-</div>
-</div>
-<div class="sect2">
-<h3 id="domainclass">C.2. @DomainClass</h3>
-<div class="paragraph">
-<p>This annotation is supposed to be used on domain class, for example:</p>
-</div>
-<div class="listingblock">
-<div class="content">
-<pre class="CodeRay"><code class="groovy language-groovy"><span class="annotation">@DomainClass</span>
-<span class="type">class</span> <span class="class">Student</span> {
-
-}</code></pre>
-</div>
-</div>
-<div class="paragraph">
-<p><code>@DomainClass</code> annotation will add the following attribute to the annotated class:</p>
-</div>
-<div class="listingblock">
-<div class="content">
-<pre class="CodeRay"><code class="groovy language-groovy"><span class="annotation">@Id</span> <span class="annotation">@GeneratedValue</span>(strategy=GenerationType.TABLE)
-<span class="predefined-type">Long</span> id
-
-<span class="predefined-type">String</span> deleted = <span class="string"><span class="delimiter">'</span><span class="content">N</span><span class="delimiter">'</span></span>
-
-<span class="predefined-type">Date</span> createdDate
-
-<span class="predefined-type">Date</span> modifiedDate</code></pre>
-</div>
-</div>
-<div class="paragraph">
-<p><code>@DomainClass</code> will not add the attributes above if the annotated class is a subclass of another class which is
-annotated by <code>@DomainClass</code> or <code>@Entity</code>.</p>
-</div>
-<div class="paragraph">
-<p>To skip adding <code>id</code> attribute, set <code>excludeId</code> to <code>true</code>.</p>
-</div>
-<div class="paragraph">
-<p>To skip adding <code>deleted</code> attribute, set <code>excludeDeletedFlag</code> to <code>true</code>.</p>
-</div>
-<div class="paragraph">
-<p>To skip adding <code>createdDate</code> and <code>modifiedDate</code> attribute, set <code>excludeAuditing</code> to <code>true</code>. For example, the following
-annotation will only add <code>id</code> to the annotated class:</p>
-</div>
-<div class="listingblock">
-<div class="content">
-<pre class="CodeRay"><code class="groovy language-groovy"><span class="annotation">@DomainClass</span>(excludeDeletedFlag=<span class="predefined-constant">true</span>, excludeAuditing=<span class="predefined-constant">true</span>)
-<span class="type">class</span> <span class="class">Student</span> {
-
-}</code></pre>
-</div>
-</div>
-<div class="paragraph">
-<p>By default, the id generation strategy is <code>GenerationType.TABLE</code>. To change the default generation strategy, use
-<code>idGenerationStrategy</code> member. For example, the following annotation will add an <code>id</code> attribute whose value is generated
-by using database identity column (auto increment field):</p>
-</div>
-<div class="listingblock">
-<div class="content">
-<pre class="CodeRay"><code class="groovy language-groovy"><span class="annotation">@DomainClass</span>(idGenerationStrategy=GenerationType.IDENTITY)
-<span class="type">class</span> <span class="class">Student</span> {
-
-}</code></pre>
-</div>
-</div>
-<div class="paragraph">
-<p>Warning: This annotation only add attributes to annotated class. Using this annotation on a class doesn&#8217;t mean that
-simple-jpa will register it in <code>persistence.xml</code>. Even when a class is annotated with <code>@DomainClass</code>, if it is not
-located in domain package, finders will not recognize it.</p>
-</div>
-</div>
-<div class="sect2">
-<h3 id="transaction-3">C.3. @Transaction</h3>
+<h3 id="transaction-3">Appendix B: @Transaction</h3>
 <div class="paragraph">
 <p><code>@Transaction</code> annotation can be used to annotate a class, a closure field, or a method. It will cause the method or
 closure to be wrapped in database transaction. Using <code>@Transaction</code> on a class will make all execution of methods or
@@ -4380,25 +4665,7 @@ commitTransaction()</code></pre>
 </div>
 </div>
 <div class="sect2">
-<h3 id="createentitymanager">D.3. createEntityManager()</h3>
-<div class="paragraph">
-<p>It is not recommended to call this method directly. This is a low level method that will be called by <code>@Transaction</code>.</p>
-</div>
-<div class="paragraph">
-<p>Use this method to create a new EntityManager for current thread.</p>
-</div>
-</div>
-<div class="sect2">
-<h3 id="destroyentitymanager">D.4. destroyEntityManager()</h3>
-<div class="paragraph">
-<p>It is not recommended to call this method directly. This is a low level method that will be called by <code>@Transaction</code>.</p>
-</div>
-<div class="paragraph">
-<p>Use this method to close all open EntityManager.</p>
-</div>
-</div>
-<div class="sect2">
-<h3 id="executenamedquery">D.5. executeNamedQuery()</h3>
+<h3 id="executenamedquery">D.3. executeNamedQuery()</h3>
 <div class="paragraph">
 <p>Use this method to execute JPA named query. This method will return a List that contains the result from named query
 execution. The syntax of this method is:</p>
@@ -4438,7 +4705,7 @@ execution. The syntax of this method is:</p>
 </div>
 </div>
 <div class="sect2">
-<h3 id="executenativequery">D.6. executeNativeQuery()</h3>
+<h3 id="executenativequery">D.4. executeNativeQuery()</h3>
 <div class="paragraph">
 <p>Use this method to execute native SQL. This is a low level query method (from JPA point of view) so it is better to use
 <code>executeQuery()</code> if possible. This method will return a <code>List</code> that contains the result from SQL execution.</p>
@@ -4464,7 +4731,7 @@ execution. The syntax of this method is:</p>
 </div>
 </div>
 <div class="sect2">
-<h3 id="executequery">D.7. executeQuery()</h3>
+<h3 id="executequery">D.5. executeQuery()</h3>
 <div class="paragraph">
 <p>Use this method to execute JP QL. This method will return a List that contains the result from JP QL execution.
 The syntax of this method is:</p>
@@ -4487,81 +4754,7 @@ The syntax of this method is:</p>
 </div>
 </div>
 <div class="sect2">
-<h3 id="getentitymanager">D.8. getEntityManager()</h3>
-<div class="paragraph">
-<p>It is not recommended to call this method directly. It is better to use simple-jpa methods rather than calling
-EntityManager methods directly.</p>
-</div>
-<div class="paragraph">
-<p>This method will return EntityManager for current thread.</p>
-</div>
-<div class="paragraph">
-<p>Example:</p>
-</div>
-<div class="listingblock">
-<div class="content">
-<pre class="CodeRay"><code class="groovy language-groovy">createEntityManager()
-<span class="keyword">def</span> em = getEntityManager()
-<span class="comment">// do something with em</span>
-destroyEntityManager()</code></pre>
-</div>
-</div>
-</div>
-<div class="sect2">
-<h3 id="merge">D.9. merge()</h3>
-<div class="paragraph">
-<p>This is a shortcut for calling <code>merge()</code> method of current EntityManager. Use this method to put a detached entity into
-current EntityManager.</p>
-</div>
-<div class="paragraph">
-<p>Example:</p>
-</div>
-<div class="listingblock">
-<div class="content">
-<pre class="CodeRay"><code class="groovy language-groovy">merge(student)</code></pre>
-</div>
-</div>
-</div>
-<div class="sect2">
-<h3 id="persist">D.10. persist()</h3>
-<div class="paragraph">
-<p>This is a shortcut for calling <code>persist()</code> method of current EntityManager. Use this method to save a new entity into
-database.</p>
-</div>
-<div class="paragraph">
-<p>Example:</p>
-</div>
-<div class="listingblock">
-<div class="content">
-<pre class="CodeRay"><code class="groovy language-groovy">Student s = <span class="keyword">new</span> Student()
-
-<span class="comment">// insert operation</span>
-persist(s)
-
-<span class="comment">// update operation</span>
-s.name = <span class="string"><span class="delimiter">'</span><span class="content">new</span><span class="delimiter">'</span></span></code></pre>
-</div>
-</div>
-</div>
-<div class="sect2">
-<h3 id="remove">D.11. remove()</h3>
-<div class="paragraph">
-<p>This method will call <code>remove()</code> method of current EntityManager. Before executing <code>remove()</code>, simple-jpa will try to
-merge the entity if it is detached. Use this method to delete an entity from database.</p>
-</div>
-<div class="paragraph">
-<p>Example:</p>
-</div>
-<div class="listingblock">
-<div class="content">
-<pre class="CodeRay"><code class="groovy language-groovy">findAllStudentByName(<span class="string"><span class="delimiter">'</span><span class="content">%Steve%</span><span class="delimiter">'</span></span>).each {
-  remove(<span class="local-variable">it</span>)
-}</code></pre>
-</div>
-</div>
-</div>
-<div class="sect2">
-<h3 id="rollbacktransaction">D.12. rollbackTransaction()</h3>
+<h3 id="rollbacktransaction">D.6. rollbackTransaction()</h3>
 <div class="paragraph">
 <p>It is not recommended to call this method directly. This is a low level method that will be called by <code>@Transaction</code>.</p>
 </div>
@@ -4582,24 +4775,7 @@ em.close()</code></pre>
 </div>
 </div>
 <div class="sect2">
-<h3 id="softdelete">D.13. softDelete()</h3>
-<div class="paragraph">
-<p>Use this method to set deleted attribute to <code><em>Y</em></code>. In simple-jpa, a soft deleted entity is an entity whose deleted
-attribute is not equals to <em>N</em>. To automatically add deleted attribute to an entity, use <code>@DomainClass</code> annotation.</p>
-</div>
-<div class="paragraph">
-<p>Example:</p>
-</div>
-<div class="listingblock">
-<div class="content">
-<pre class="CodeRay"><code class="groovy language-groovy">findAllStudentByName(<span class="string"><span class="delimiter">'</span><span class="content">%steve%</span><span class="delimiter">'</span></span>).each {
-    softDelete(<span class="local-variable">it</span>)
-}</code></pre>
-</div>
-</div>
-</div>
-<div class="sect2">
-<h3 id="withtransaction">D.14. withTransaction()</h3>
+<h3 id="withtransaction">D.7. withTransaction()</h3>
 <div class="paragraph">
 <p>This method will execute a closure as one transaction. The code inside the closure can call simple-jpa dynamic methods directly.</p>
 </div>

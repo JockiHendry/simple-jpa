@@ -83,6 +83,403 @@ least Groovy 2.3.</simpara>
 <simpara>By default, simple-jpa uses Hibernate JPA as persistence layer for your application.  You have to execute <literal>create-simple-jpa</literal>
  to setup persistence layer in your application.  This is the first script you will need to execute when you start a
  new project.</simpara>
+<section xml:id="setup">
+<title>Setup</title>
+<simpara>In order to setup your persistence layer, you need to call <literal>create-simple-jpa</literal> script.  This is usually performed once
+ for every new project.  <literal>create-simple-jpa</literal> will create database user and schema for you if they don&#8217;t exists.  Current version
+  of simple-jpa only supports MySQL Server and Apache Derby Embedded setup.  If your database is not supported, you should
+ configure your database manually.</simpara>
+<simpara>If you use MySQL Server, you can execute <literal>create-simple-jpa</literal> like:</simpara>
+<literallayout class="monospaced">griffon create-simple-jpa -user=steven -password=12345 -database=sample
+   -provider=hibernate -jdbc=mysql -rootPassword=secret</literallayout>
+<simpara>Because <literal>hibernate</literal> is default value for <literal>-provider</literal> and <literal>mysql</literal> is default value for <literal>-jdbc</literal>, you can ommit them:</simpara>
+<literallayout class="monospaced">griffon create-simple-jpa -user=steven -password=12345 -database=sample
+   -rootPassword=secret</literallayout>
+<simpara><literal>create-simple-jpa</literal> will check if <literal>sample</literal> database is exists or not.  If <emphasis>sample</emphasis> database doesn&#8217;t exists, it will be created.
+  Because this operation requires root user and its password, you need to provide a value in <literal>-rootPassword</literal>.  This password
+  won&#8217;t be saved in your application.  <literal>create-simple-jpa</literal> also creates new database user called <emphasis>steven</emphasis> with default password
+  <emphasis>12345</emphasis> if it doesn&#8217;t exists yet.  This user will have full privilleges on <emphasis>sample</emphasis> database.</simpara>
+<simpara>If you want to use Derby Embedded, you can execute <literal>create-simple-jpa</literal> like:</simpara>
+<literallayout class="monospaced">griffon create-simple-jpa -user=steven -password=12345 -database=C:/Users/steven/mydb
+  -jdbc=derby-embedded -rootPassword=secret</literallayout>
+<simpara>When using <literal>-jdbc=derby-embedded</literal>, it is better to use absolute path for <literal>-database</literal> value.  Derby embedded database will
+be created at the specified location.  The draw back of using absolute path is you must make sure database is copied
+ to the proper location when you distribute your application.</simpara>
+<simpara>Root password is not required when using Derby embedded.  If you didn&#8217;t specify root password, <literal>create-simple-jpa</literal> will
+create root user with password equals to user password (in this sample, it is <emphasis>12345</emphasis>).</simpara>
+<simpara>In addition to setup your database, <literal>create-simple-jpa</literal> also performs the following steps:</simpara>
+<itemizedlist>
+<listitem>
+<simpara>Create <literal>griffon-app/conf/metainf/persistence.xml</literal> that contains information required to connect to database, such as
+JDBC URL, database username and password.</simpara>
+</listitem>
+<listitem>
+<simpara>Create <literal>griffon-app/conf/metainf/orm.xml</literal> that register <literal>AuditingEntityListener</literal>.  This is required if you want to use
+<xref linkend="auditing"/> feature.</simpara>
+</listitem>
+<listitem>
+<simpara>Create <literal>griffon-app/i18n/ValidationMessages.properties</literal>.  You can edit this file if you want to change <xref linkend="validation-message"/>.</simpara>
+</listitem>
+<listitem>
+<simpara>Add dependencies to JPA provider and JDBC driver in <literal>griffon-app/conf/BuildConfig.groovy</literal>.</simpara>
+</listitem>
+</itemizedlist>
+<simpara>If you want <literal>create-simple-jpa</literal> to perform the operations above without touching your database, use <literal>-skipDatabase</literal>
+argument:</simpara>
+<literallayout class="monospaced">griffon create-simple-jpa -user=steven -password=12345 -database=sample -skipDatabase</literallayout>
+<simpara>You can instruct your JPA provider to recreate database objects (tables) based on current domain classes by executing
+  <literal>generate-schema</literal> script:</simpara>
+<literallayout class="monospaced">griffon generate-schema -target=database -action=drop-and-create</literallayout>
+<simpara>Rather than directly executing in target database, <literal>generate-schema</literal> can also store the generated SQL statements in a file:</simpara>
+<literallayout class="monospaced">griffon generate-schema -target=script -action=create -createTarget=mydatabase.sql</literallayout>
+<simpara>The command above will create <literal>mydatabase.sql</literal> in current directory.  This file contains SQL statements to create
+ tables required by your application.</simpara>
+</section>
+<section xml:id="jpa-configurations">
+<title>JPA Configurations</title>
+<simpara>By default, JPA provider will read persistence layer configurations stored in <literal>persistence.xml</literal>.  The following is a
+sample <literal>persistence.xml</literal> created by <literal>create-simple-jpa</literal> script:</simpara>
+<formalpara>
+<title>persistence.xml</title>
+<para>
+<programlisting language="xml" linenumbering="unnumbered">&lt;?xml version="1.0" encoding="UTF-8"?&gt;&lt;persistence xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns="http://java.sun.com/xml/ns/persistence" xsi:schemaLocation="http://java.sun.com/xml/ns/persistence http://java.sun.com/xml/ns/persistence/persistence_2_0.xsd" version="2.0"&gt;
+  &lt;persistence-unit name="default" transaction-type="RESOURCE_LOCAL"&gt;
+    &lt;provider&gt;org.hibernate.jpa.HibernatePersistenceProvider&lt;/provider&gt;
+    &lt;class&gt;domain.Product&lt;/class&gt;
+    &lt;class&gt;domain.LineItem&lt;/class&gt;
+    &lt;class&gt;domain.Invoice&lt;/class&gt;
+    &lt;properties&gt;
+      &lt;property name="javax.persistence.jdbc.driver" value="com.mysql.jdbc.Driver"/&gt;
+      &lt;property name="javax.persistence.jdbc.url" value="jdbc:mysql://localhost/exercises"/&gt;
+      &lt;property name="javax.persistence.jdbc.user" value="steven"/&gt;
+      &lt;property name="javax.persistence.jdbc.password" value="12345"/&gt;
+      &lt;property name="hibernate.connection.autocommit" value="false"/&gt;
+      &lt;property name="hibernate.dialect" value="org.hibernate.dialect.MySQL5Dialect"/&gt;
+      &lt;property name="hibernate.connection.provider_class" value="org.hibernate.c3p0.internal.C3P0ConnectionProvider"/&gt;
+      &lt;property name="javax.persistence.schema-generation.database.action" value="drop-and-create"/&gt;
+      &lt;property name="jadira.usertype.autoRegisterUserTypes" value="true"/&gt;
+    &lt;/properties&gt;
+  &lt;/persistence-unit&gt;
+&lt;/persistence&gt;</programlisting>
+</para>
+</formalpara>
+<simpara>You can add new or edit existing JPA configurations inside <literal>&lt;properties/&gt;</literal>.  For example, setting
+<literal>javax.persistence.schema-generation.database.action</literal> to <literal>drop-and-create</literal> makes your JPA provider to recreate
+ database tables everytime application is launched.  You may want to disable this to make application startup faster.  If
+ you disable auto schema generation, you can still use <literal>generate-schema</literal> to create database tables manually.</simpara>
+<simpara>In addition to <literal>persistence.xml</literal>, simple-jpa also reads JPA configurations stored in <literal>Config.groovy</literal> and external
+ properties file.  If more than one property are found, simple-jpa uses the value based on the following order:</simpara>
+<orderedlist numeration="arabic">
+<listitem>
+<simpara>Configuration passed as system properties (must start with <literal>javax.persistence</literal>) have the first priority.</simpara>
+</listitem>
+<listitem>
+<simpara>Configuration stored in properties file have the first priority.</simpara>
+</listitem>
+<listitem>
+<simpara>Configuration stored in <literal>Config.groovy</literal>.</simpara>
+</listitem>
+<listitem>
+<simpara>Configuration stored in <literal>persistence.xml</literal>.</simpara>
+</listitem>
+</orderedlist>
+<simpara>The following lines show a sample configurations added to <literal>Config.groovy</literal>:</simpara>
+<formalpara>
+<title>Config.groovy</title>
+<para>
+<programlisting language="groovy" linenumbering="unnumbered">griffon {
+    simplejpa {
+        entityManager {
+            properties  {
+                javax.persistence.jdbc.driver = 'com.mysql.jdbc.Driver'
+                javax.persistence.jdbc.url = 'jdbc:mysql://localhost/mydatabase'
+                javax.persistence.jdbc.user = 'scott'
+                javax.persistence.jdbc.password = 'tiger'
+                hibernate.connection.autocommit = 'false'
+                hibernate.dialect = 'org.hibernate.dialect.MySQL5Dialect'
+            }
+        }
+    }
+}</programlisting>
+</para>
+</formalpara>
+<simpara>The advantage of storing configurations in <literal>Config.groovy</literal> is you can have different JPA configurations per Griffon
+ environments.  For example, the following configurations use different database for different environments:</simpara>
+<formalpara>
+<title>Config.groovy</title>
+<para>
+<programlisting language="groovy" linenumbering="unnumbered">griffon {
+  simplejpa {
+    entityManager {
+      properties {
+        environments {
+          development {
+            javax.persistence.jdbc.url = 'jdbc:mysql://localhost/exercises'
+            javax.persistence.jdbc.user = 'steven'
+            javax.persistence.jdbc.password = '12345'
+          }
+          test {
+            javax.persistence.jdbc.url = 'jdbc:mysql://localhost/test'
+            javax.persistence.jdbc.user = 'test'
+            javax.persistence.jdbc.password = 'secret'
+            javax.persistence.'schema-generation'.database.action = 'drop-and-create'
+          }
+        }
+      }
+    }
+  }
+}</programlisting>
+</para>
+</formalpara>
+<simpara>If you run the application by using command like <literal>run-app</literal>, it will activate <literal>development</literal> environment.  In this case, JPA
+uses database <literal>jdbc:mysql://localhost/exercises</literal>.  If you activate <literal>test</literal> environment (for example by running <literal>test-app</literal>),
+JPA uses database <literal>jdbc:mysql://localhost/test</literal>.  It also recreate tables in that database.</simpara>
+<simpara>To avoid storing sensitive information such as JDBC URL, username dan password in your source code, you
+  can take advantage of Griffon feature to include properties file from <literal>Config.groovy</literal>.  For example, if you store JPA
+  configuration to <literal>hibernate.properties</literal>, you can add the following line to <literal>Config.groovy</literal> to include your properties file:</simpara>
+<formalpara>
+<title>Config.groovy</title>
+<para>
+<programlisting language="groovy" linenumbering="unnumbered">griffon.config.locations = ['classpath:hibernate.properties']</programlisting>
+</para>
+</formalpara>
+<simpara>You may want to configure your source code repository to make sure your properties file will never committed to public
+server.</simpara>
+<simpara>simple-jpa can also be configured to read JPA properties from external properties file.  You can define the location of this
+properties file by adding the following line to <literal>Config.groovy</literal>:</simpara>
+<programlisting language="groovy" linenumbering="unnumbered">griffon.simplejpa.entityManager.propertiesFile = 'C:/example/db.properties'</programlisting>
+<simpara>A sample <literal>db.properties</literal> will look like:</simpara>
+<formalpara>
+<title>C:/example/db.properties</title>
+<para>
+<programlisting language="groovy" linenumbering="unnumbered">javax.persistence.jdbc.url = 'jdbc:mysql://localhost/test'
+javax.persistence.jdbc.user = 'test'
+javax.persistence.jdbc.password = 'secret'</programlisting>
+</para>
+</formalpara>
+<simpara>Configurations stored in this properties file will override existing configurations in <literal>Config.groovy</literal> and <literal>persistence.xml</literal>,
+ but can be overriden by JVM system properties.  If you didn&#8217;t change <literal>griffon.simplejpa.entityManager.propertiesFile</literal>,
+ it defaults to <literal>simplejpa.properties</literal>.  This means you can always override JPA configuration for existing distribution by
+ adding a new file called <literal>simplejpa.properties</literal> in the same location when you launched the application.</simpara>
+<simpara>simple-jpa supports obfuscating configuration value.  For example, if you want to store obfuscated version of <emphasis>12345</emphasis>, you
+ need to execute the following command to retrieve its obsfuscated version:</simpara>
+<literallayout class="monospaced">griffon obfuscate -generate='12345'</literallayout>
+<simpara>Then, you can use the obfuscated version for any value in any location (such as <literal>Config.groovy</literal>, properties file or
+system propeties).  For example, you can add the following line to <literal>Config.groovy</literal>:</simpara>
+<programlisting language="groovy" linenumbering="unnumbered">griffon {
+  simplejpa {
+    entityManager {
+      properties {
+        javax.persistence.jdbc.password = 'obfuscated:YUqF9w6l5lpvNyH+1tnJBg=='
+      }
+    }
+  }
+}</programlisting>
+<warning>
+<simpara>While obfuscation makes it harder for lay people to read your configuration file, it doesn&#8217;t actually increase
+  your security.  Anyone can easily display the original string by executing <literal>griffon obfuscate -reverse</literal>.   You should
+  never publish obfuscated value if you don&#8217;t want people to know the original value.</simpara>
+</warning>
+</section>
+<section xml:id="domain-class">
+<title>Domain Class</title>
+<simpara>simple-jpa provides persistence methods to deal with persistent domain class (marked by <literal>@Entity</literal>).  To create such
+  entity, you can use <literal>create-domain-class</literal> script, for example:</simpara>
+<literallayout class="monospaced">griffon create-domain-class Invoice LineItem</literallayout>
+<simpara>The command creates two new classes: <literal>domain.Invoice</literal> and <literal>domain.LineItem</literal>.  It also add these classes to <literal>persistence.xml</literal>.
+  You can change the default base packages for domain classes by setting <literal>griffon.simplejpa.domain.package</literal> in <literal>Config.groovy</literal>.</simpara>
+<simpara>You can also specify subpackage when executing <literal>create-domain-class</literal>, for example:</simpara>
+<literallayout class="monospaced">griffon create-domain-class sales.Invoice sales.LineItem inventory.Product</literallayout>
+<simpara>The command creates three new classes: <literal>domain.sales.Invoice</literal>, <literal>domain.sales.LineItem</literal> and <literal>domain.inventory.Product</literal>.</simpara>
+<simpara>Persistent domain classes in simple-jpa is a normal JPA entities.  Just like when using JPA in Java, you can
+decorate JPA entity with JPA annotations such as <literal>@Entity</literal>, <literal>@OneToMany</literal>, <literal>@ManyToMany</literal>, <literal>@ManyToOne</literal> and others.
+See JPA documentation for more information about JPA annotations.  The following show examples of persistent domain
+classes in simple-jpa:</simpara>
+<formalpara>
+<title>Invoice.groovy</title>
+<para>
+<programlisting language="groovy" linenumbering="unnumbered">package domain
+
+// import statements are not shown.
+
+@DomainClass @Entity @Canonical
+class Invoice {
+
+  @NotEmpty @Size(min=5, max=5)
+  String number
+
+
+  @NotNull @Type(type="org.jadira.usertype.dateandtime.joda.PersistentLocalDate")
+  LocalDate date
+
+  @ElementCollection @OrderColumn @NotEmpty
+  List&lt;LineItem&gt; items = []
+
+  void add(LineItem item) {
+    items &lt;&lt; item
+  }
+
+  BigDecimal total() {
+    items.sum { it.total() }
+  }
+
+}</programlisting>
+</para>
+</formalpara>
+<formalpara>
+<title>LineItem.groovy</title>
+<para>
+<programlisting language="groovy" linenumbering="unnumbered">package domain
+
+// import statements are not shown.
+
+@Embeddable @Canonical
+class LineItem {
+
+  @NotNull @ManyToOne
+  Product product
+
+  @NotNull @Min(0l)
+  BigDecimal price
+
+  @NotNull @Min(1l)
+  BigDecimal qty
+
+  BigDecimal total() {
+    price * qty
+  }
+
+}</programlisting>
+</para>
+</formalpara>
+<formalpara>
+<title>Product.groovy</title>
+<para>
+<programlisting language="groovy" linenumbering="unnumbered">package domain
+
+// import statements are not shown.
+
+@DomainClass @Entity @Canonical
+class Product {
+
+  @NotEmpty @Size(min=2, max=50)
+  String name
+
+  @NotNull @Min(value=1l)
+  BigDecimal retailPrice
+
+}</programlisting>
+</para>
+</formalpara>
+<simpara><literal>@DomainClass</literal> is special annotation provided by simple-jpa.  This annotation automatically adds the following property
+ to the annotated class:</simpara>
+<programlisting language="groovy" linenumbering="unnumbered">@Id @GeneratedValue(strategy=GenerationType.TABLE)   <co xml:id="CO1-1"/>
+Long id  <co xml:id="CO1-2"/>
+
+String deleted = 'N'  <co xml:id="CO1-3"/>
+
+Date createdDate   <co xml:id="CO1-4"/>
+
+String createdBy   <co xml:id="CO1-5"/>
+
+Date modifiedDate  <co xml:id="CO1-6"/>
+
+String modifiedBy  <co xml:id="CO1-7"/></programlisting>
+<calloutlist>
+<callout arearefs="CO1-1">
+<para>To change generation strategy, add desired strategy to <literal>idGenerationStrategy</literal> attribute.</para>
+</callout>
+<callout arearefs="CO1-2">
+<para><literal>@DomainClass(excludeId=true)</literal> will not generate this property.</para>
+</callout>
+<callout arearefs="CO1-3">
+<para><literal>@DomainClass(excludeDeletedFlag=true)</literal> will not generate this property.</para>
+</callout>
+<callout arearefs="CO1-4 CO1-5 CO1-6 CO1-7">
+<para><literal>@DomainClass(excludeAuditing=true)</literal> will not generate these properties.</para>
+</callout>
+</calloutlist>
+<simpara>You aren&#8217;t required to add <literal>@DomainClass</literal> to every persistent domain classes, but some features such as <xref linkend="auditing"/> will
+not work without the properties generated by <literal>@DomainClass</literal>.  Of course, you can still code by hand the required properties in
+every entities.</simpara>
+</section>
+<section xml:id="persistence-methods">
+<title>Persistence Methods</title>
+<simpara>To make it possible for Griffon&#8217;s  artifacts to manage domain classes, simple-jpa injects persistence methods to them.
+By default, persistence methods are injected into controller, but you can change it by adding the following line to <literal>Config.groovy</literal>:</simpara>
+<formalpara>
+<title>Config.groovy</title>
+<para>
+<programlisting language="groovy" linenumbering="unnumbered">griffon.simplejpa.finders.injectInto = [ 'service', 'repository' ]</programlisting>
+</para>
+</formalpara>
+<simpara>The configuration above will inject persistence methods to services and repositories.  Repository is a custom artifact type
+provided by simple-jpa.  You can create a new repository by using <literal>griffon create-repository</literal>, for example:</simpara>
+<literallayout class="monospaced">griffon create-repository MyRepository</literallayout>
+<simpara>The script creates <literal>MyRepository.groovy</literal> in <literal>griffon-app/repositories</literal>.</simpara>
+<simpara>To retrieve instance of repository, you can use code like:</simpara>
+<programlisting language="groovy" linenumbering="unnumbered">def myRepository = SimpleJpaUtil.instance.repositoryManager.findRepository('MyRepository')</programlisting>
+<simpara>For a simple application, it is usually acceptable to inject persistence methods to controllers.  If you want a clear
+ separation, you should inject persistence methods only to repositories.  You must add <literal>@Transaction</literal> annotation to
+ the injected artifacts to enable <xref linkend="transaction"/>.  Class generated by <literal>create-repository</literal> already has <literal>@Transaction</literal>,
+ but Griffon&#8217;s controllers do not have <literal>@Transaction</literal> by default.</simpara>
+<simpara>The following is list of persistence methods injected by simple-jpa:</simpara>
+<itemizedlist>
+<listitem>
+<simpara><literal>persist(entity)</literal></simpara>
+<simpara>Use this method to save new entity.  It is a shortcut for <literal>entityManager.persist()</literal>.</simpara>
+</listitem>
+<listitem>
+<simpara><literal>merge(entity)</literal></simpara>
+<simpara>Use this method to add detached entity to current EntityManager.  It is a shortcut for <literal>entityManager.merge()</literal>.</simpara>
+</listitem>
+<listitem>
+<simpara><literal>remove(entity)</literal></simpara>
+<simpara>Delete an entity.  It is a shortcut for <literal>entityManager.remove()</literal>.</simpara>
+</listitem>
+<listitem>
+<simpara><literal>softDelete(entity)</literal></simpara>
+<simpara>Set <literal>deleted</literal> property of an entity into <literal>'Y'</literal>.</simpara>
+</listitem>
+<listitem>
+<simpara><literal>validate(object)</literal></simpara>
+<simpara>See <xref linkend="validation"/> for more information.</simpara>
+</listitem>
+<listitem>
+<simpara>Finders</simpara>
+<simpara>See <xref linkend="finders"/> for more information.</simpara>
+</listitem>
+<listitem>
+<simpara><literal>getEntityManager()</literal></simpara>
+<simpara>Returns an <literal>EntityManager</literal> for current session.  This method can&#8217;t be renamed.</simpara>
+</listitem>
+<listitem>
+<simpara>All public methods of <literal>EntityManager</literal>.</simpara>
+<simpara>simple-jpa exposes all public methods of <literal>EntityManager</literal> to injected class.  This means you can directly call methods such
+as <literal>lock()</literal>, <literal>refresh()</literal>, or <literal>detach()</literal> in injected class.  For more information about <literal>EntityManager</literal>, see JPA documentation.
+These methods can&#8217;t be renamed.</simpara>
+</listitem>
+</itemizedlist>
+<simpara>To avoid conflict with existing methods in injected class, simple-jpa can add prefix to persistence methods.  For example,
+  you can add the following line to <literal>Config.groovy</literal>:</simpara>
+<literallayout class="monospaced">griffon.simplejpa.finders.prefix = 'jpa'</literallayout>
+<simpara>Now, every persistence methods that can be renamed will have <emphasis>jpa</emphasis> prefix.  For example, you have to execute <literal>jpaPersist()</literal>
+ rather than <literal>persist()</literal>.</simpara>
+<simpara>The easiest way to learn simple-jpa persistence methods is by using <literal>simple-jpa-console</literal> script:</simpara>
+<literallayout class="monospaced">griffon simple-jpa-console</literallayout>
+<simpara>It will launch a Groovy console where you can write code snippet and see the result.</simpara>
+<figure>
+<mediaobject>
+<imageobject>
+<imagedata fileref="../images/simple_jpa_console.PNG"/>
+</imageobject>
+<textobject><phrase>simple jpa console</phrase></textobject>
+</mediaobject>
+</figure>
+<simpara>The main advantage of Groovy console is you can edit existing code and execute it directly by selecting <emphasis>Script</emphasis>, <emphasis>Run</emphasis> (Ctrl+R).
+This is many times faster than relaunching application by using <literal>griffon run-app</literal>.  You will find Groovy console very useful
+ in testing your code snippet or understanding the result of persistence methods.</simpara>
+</section>
 </section>
 <section xml:id="scaffolding">
 <title>Scaffolding</title>
@@ -1644,8 +2041,8 @@ application(pack: true) {
         glazedColumn(name: 'Date', property: 'date') {
           templateRenderer(exp: {it?.toString('dd-MM-YYYY')?:'-'})
         }
-        glazedColumn(name: 'Total', exp: { it.total() }, columnClass: Integer) { <co xml:id="CO1-1"/>
-          templateRenderer('this:currencyFormat', horizontalAlignment: RIGHT)    <co xml:id="CO1-2"/>
+        glazedColumn(name: 'Total', exp: { it.total() }, columnClass: Integer) { <co xml:id="CO2-1"/>
+          templateRenderer('this:currencyFormat', horizontalAlignment: RIGHT)    <co xml:id="CO2-2"/>
         }
       }
     }
@@ -1653,10 +2050,10 @@ application(pack: true) {
 </para>
 </formalpara>
 <calloutlist>
-<callout arearefs="CO1-1">
+<callout arearefs="CO2-1">
 <para>This causes column header to be right aligned.</para>
 </callout>
-<callout arearefs="CO1-2">
+<callout arearefs="CO2-2">
 <para>Right align every cell for this column.</para>
 </callout>
 </calloutlist>
@@ -2542,26 +2939,6 @@ equal or eq</literallayout>
 </section>
 <section xml:id="deployment">
 <title>Deployment</title>
-
-</section>
-<appendix xml:id="configuration">
-<title>Configuration</title>
-<simpara>simple-jpa can be configured by adding configuration lines in <literal>griffon-app/conf/Config.groovy</literal>. Adding JPA provider
-properties can also be done directly by editing <literal>griffon-app/conf/metainf/persistence.xml</literal> or by using system
-properties.</simpara>
-<section xml:id="domain-package">
-<title>Domain Package</title>
-<simpara>simple-jpa doesn&#8217;t use any metadata to manage domain classes. The only way for simple-jpa to find or to write domain
-classes is by inspecting the content of domain package. All domain classes should be located in this domain package.
-By default, the name of domain package is <literal>domain</literal>.</simpara>
-<simpara>Developer can change the name of domain package by using this configuration line. For example, the following
-configuration change the name of domain package to <literal>com.example.domain</literal>:</simpara>
-<programlisting language="groovy" linenumbering="unnumbered">griffon.simplejpa.domain.package='com.example.domain'</programlisting>
-<warning>
-<simpara>Changing this configuration value will not move existing domain classes to the new domain package. This value
-merely used as an indicator to find domain classes.</simpara>
-</warning>
-</section>
 <section xml:id="default-flush-mode">
 <title>Default Flush Mode</title>
 <simpara>Use this configuration key to change the default <literal>flushMode</literal> for all EntityManager in application. The possible values
@@ -2569,75 +2946,6 @@ for flushMode is <literal><emphasis>COMMIT</emphasis></literal> and <literal><em
 <simpara>For example, the following configuration line will set <literal>flushMode</literal> for all EntityManager to <literal>DefaultFlushModeType.COMMIT</literal>:</simpara>
 <programlisting language="groovy" linenumbering="unnumbered">griffon.simplejpa.entityManager.defaultFlushMode = 'COMMIT'</programlisting>
 <simpara>Default flushMode can be overriden in certain queries by using <literal>flushMode</literal> query configuration.</simpara>
-</section>
-<section xml:id="entity-manager-properties">
-<title>Entity Manager Properties</title>
-<simpara>In most cases, JPA properties can be added directly to <literal>griffon-app/conf/metainf/persistence.xml</literal>. The following is
-content of a typical <literal>persistence.xml</literal> file for desktop application:</simpara>
-<programlisting language="xml" linenumbering="unnumbered">&lt;?xml version="1.0" encoding="UTF-8"?&gt;&lt;persistence xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns="http://java.sun.com/xml/ns/persistence" xsi:schemaLocation="http://java.sun.com/xml/ns/persistence http://java.sun.com/xml/ns/persistence/persistence_2_0.xsd" version="2.0"&gt;
-  &lt;persistence-unit name="default" transaction-type="RESOURCE_LOCAL"&gt;
-    &lt;provider&gt;org.hibernate.ejb.HibernatePersistence&lt;/provider&gt;
-    &lt;class&gt;domain.Student&lt;/class&gt;
-    &lt;class&gt;domain.Classroom&lt;/class&gt;
-    &lt;properties&gt;
-      &lt;property name="javax.persistence.jdbc.driver" value="com.mysql.jdbc.Driver"/&gt;
-      &lt;property name="javax.persistence.jdbc.url" value="jdbc:mysql://localhost/mydatabase"/&gt;
-      &lt;property name="javax.persistence.jdbc.user" value="scott"/&gt;
-      &lt;property name="javax.persistence.jdbc.password" value="tiger"/&gt;
-      &lt;property name="hibernate.connection.autocommit" value="false"/&gt;
-      &lt;property name="hibernate.dialect" value="org.hibernate.dialect.MySQL5Dialect"/&gt;
-      &lt;property name="hibernate.hbm2ddl.auto" value="create-drop"/&gt;
-      &lt;property name="jadira.usertype.autoRegisterUserTypes" value="true"/&gt;
-    &lt;/properties&gt;
-  &lt;/persistence-unit&gt;
-&lt;/persistence&gt;</programlisting>
-<simpara>Developer can override properties in <literal>persistence.xml</literal> by adding configuration line with
-<literal>griffon.simplejpa.entityManager.properties</literal> key. For example, the following configuration will result in the same
-JPA properties as above:</simpara>
-<programlisting language="groovy" linenumbering="unnumbered">griffon {
-    simplejpa {
-        entityManager {
-            properties  {
-                javax.persistence.jdbc.driver = 'com.mysql.jdbc.Driver'
-                javax.persistence.jdbc.url = 'jdbc:mysql://localhost/mydatabase'
-                javax.persistence.jdbc.user = 'scott'
-                javax.persistence.jdbc.password = 'tiger'
-                hibernate.connection.autocommit = 'false'
-                hibernate.dialect = 'org.hibernate.dialect.MySQL5Dialect'
-                jadira.usertype.autoRegisterUserTypes=  'true'
-            }
-        }
-    }
-}</programlisting>
-<simpara>Another way to override JPA provider properties is by writing the properties in a file called <literal>simplejpa.properties</literal>.
-Content of the file is in Groovy&#8217;s config format just like the one specified in <literal>Config.groovy</literal>. simple-jpa will search
-for this file in current working directory. If the file exists, its content will override properties in
-<literal>persistence.xml</literal> and <literal>Config.groovy</literal>.</simpara>
-<simpara>This is a convenient way to modify JPA properties without changing source code. It is common to put database connection
-properties in <literal>simplejpa.properties</literal> so that changing database connection will not require touching application&#8217;s source
-code.</simpara>
-<simpara>The following is sample content of <literal>simplejpa.properties</literal>:</simpara>
-<programlisting language="groovy" linenumbering="unnumbered">javax {
-    persistence {
-        jdbc {
-            driver = 'com.mysql.jdbc.Driver'
-            url = 'jdbc:mysql://localhost/mydatabase'
-            user = 'scott'
-            password = 'tiger'
-        }
-    }
-}
-hibernate {
-    connection {
-	autocommit = 'false'
-    }
-    dialect = 'org.hibernate.dialect.MySQL5Dialect'
-}
-jadira.usertype.autoRegisterUserTypes=  'true'</programlisting>
-<simpara>Developer can change location and name of the <literal>simplejpa.properties</literal> by adding <literal>griffon.simplejpa.entityManager.propertiesFile</literal>
-configuration line. For example, in the following configuration, simple-jpa will search for a file called <literal>connection.db</literal>
-in root directory of drive C:</simpara>
-<screen>griffon.simplejpa.entityManager.propertiesFile = 'C:/connection.db'</screen>
 </section>
 <section xml:id="soft-delete">
 <title>Soft Delete</title>
@@ -2651,42 +2959,6 @@ passing <literal>false</literal> to <literal>excludeDeleted</literal> query conf
 </section>
 <section xml:id="finders-2">
 <title>Finders</title>
-<simpara>By default, simple-jpa will inject JPA related methods such as finders to all Griffon&#8217;s controllers. This causes all
-controllers to act as public repositories with the abilities to retrieve arbitary domain objects. While this pattern
-reduces complexity, some people may want to appoint service layer as repository layer (instead of controllers as
-repositories). This can be achieved by adding the following configuration line:</simpara>
-<programlisting language="grooovy" linenumbering="unnumbered">griffon.simplejpa.finders.injectInto = ['service']</programlisting>
-<simpara>The following examples will cause simple-jpa to inject JPA related methods to all controllers and all models:</simpara>
-<programlisting language="groovy" linenumbering="unnumbered">griffon.simplejpa.finders.injectInto = ['controller', 'model']</programlisting>
-<simpara>To avoid conflict with existing methods in controller, simple-jpa can add prefix to its dynamic methods. For example,
-the following configuration line will add jpa prefix to simple-jpa dynamic methods:</simpara>
-<programlisting language="groovy" linenumbering="unnumbered">griffon.simplejpa.finders.prefix = 'jpa'
-// This will add 'jpa' prefix to dynamic methods name, for example:
-// findAllStudent() becomes jpaFindAllStudent()</programlisting>
-<simpara>The following dynamic methods will never have prefix:</simpara>
-<itemizedlist>
-<listitem>
-<simpara><literal>beginTransaction()</literal></simpara>
-</listitem>
-<listitem>
-<simpara><literal>commitTransaction()</literal></simpara>
-</listitem>
-<listitem>
-<simpara><literal>rollbackTransaction()</literal></simpara>
-</listitem>
-<listitem>
-<simpara><literal>return_failed()</literal></simpara>
-</listitem>
-<listitem>
-<simpara><literal>createEntityManager()</literal></simpara>
-</listitem>
-<listitem>
-<simpara><literal>destroyEntityManager()</literal></simpara>
-</listitem>
-<listitem>
-<simpara><literal>getEntityManager()</literal></simpara>
-</listitem>
-</itemizedlist>
 <simpara>Since simple-jpa 0.7, by default, duplicate entities returned by finders will be ignored. To allow finders to return
 duplicate entities, add the following line:</simpara>
 <programlisting language="groovy" linenumbering="unnumbered">griffon.simplejpa.finders.alwaysAllowDuplicate = true</programlisting>
@@ -2702,7 +2974,7 @@ instance of <literal>org.jdesktop.swingx.auth.LoginService</literal>.</simpara>
 </para>
 </formalpara>
 </section>
-</appendix>
+</section>
 <appendix xml:id="script">
 <title>Script</title>
 <simpara>simple-jpa scripts can be called just like any Griffon&#8217;s commands:</simpara>
@@ -2778,11 +3050,13 @@ if they are not exists:</simpara>
     -rootPassword=secret</screen>
 <simpara>The following command will do the same as the previous one:</simpara>
 <screen>griffon create-simple-jpa -user=steven -password=12345 -database=sample
-    -provider=hibernate -databaseType=mysql -rootPassword=secret</screen>
+    -provider=hibernate -jdbc=mysql -rootPassword=secret</screen>
 <simpara>The following command will generate <literal>persistence.xml</literal> with a connection to MySQL database (user: scott, password: tiger,
 database schema: ha), uses Hibernate JPA, and will not check if required user and schema are available:</simpara>
 <screen>griffon create-simple-jpa -user=scott -password=tiger -database=ha
     -skip-database</screen>
+<simpara>If you use <literal>-jdbc=derby-embedded</literal>, <literal>-database</literal> should be a full path to directory such as
+<emphasis>C:/Users/me/mydb</emphasis>.</simpara>
 </section>
 <section xml:id="create-domain-class">
 <title>create-domain-class</title>
@@ -2996,57 +3270,6 @@ DDD generator rather than create them manually using this command.</simpara>
 <simpara>Examples:</simpara>
 <screen>create-repository Invoice</screen>
 </section>
-</appendix>
-<appendix xml:id="annotation">
-<title>Annotation</title>
-<simpara>These annotations are using Groovy AST transformation feature to change the content of a class dynamically on compile.</simpara>
-<section xml:id="conditionsupport">
-<title>@ConditionSupport</title>
-<simpara>Adding <literal>@ConditionSupport</literal> annotation to a Swing <literal>TableCellRenderer</literal> will make the renderer ready to use with
-<literal>condition()</literal> node.</simpara>
-<simpara>Example:</simpara>
-<programlisting language="groovy" linenumbering="unnumbered">@ConditionSupport
-class MyCustomRenderer extends DefaultTableCellRenderer {
-   ...
-}</programlisting>
-</section>
-<section xml:id="domainclass">
-<title>@DomainClass</title>
-<simpara>This annotation is supposed to be used on domain class, for example:</simpara>
-<programlisting language="groovy" linenumbering="unnumbered">@DomainClass
-class Student {
-
-}</programlisting>
-<simpara><literal>@DomainClass</literal> annotation will add the following attribute to the annotated class:</simpara>
-<programlisting language="groovy" linenumbering="unnumbered">@Id @GeneratedValue(strategy=GenerationType.TABLE)
-Long id
-
-String deleted = 'N'
-
-Date createdDate
-
-Date modifiedDate</programlisting>
-<simpara><literal>@DomainClass</literal> will not add the attributes above if the annotated class is a subclass of another class which is
-annotated by <literal>@DomainClass</literal> or <literal>@Entity</literal>.</simpara>
-<simpara>To skip adding <literal>id</literal> attribute, set <literal>excludeId</literal> to <literal>true</literal>.</simpara>
-<simpara>To skip adding <literal>deleted</literal> attribute, set <literal>excludeDeletedFlag</literal> to <literal>true</literal>.</simpara>
-<simpara>To skip adding <literal>createdDate</literal> and <literal>modifiedDate</literal> attribute, set <literal>excludeAuditing</literal> to <literal>true</literal>. For example, the following
-annotation will only add <literal>id</literal> to the annotated class:</simpara>
-<programlisting language="groovy" linenumbering="unnumbered">@DomainClass(excludeDeletedFlag=true, excludeAuditing=true)
-class Student {
-
-}</programlisting>
-<simpara>By default, the id generation strategy is <literal>GenerationType.TABLE</literal>. To change the default generation strategy, use
-<literal>idGenerationStrategy</literal> member. For example, the following annotation will add an <literal>id</literal> attribute whose value is generated
-by using database identity column (auto increment field):</simpara>
-<programlisting language="groovy" linenumbering="unnumbered">@DomainClass(idGenerationStrategy=GenerationType.IDENTITY)
-class Student {
-
-}</programlisting>
-<simpara>Warning: This annotation only add attributes to annotated class. Using this annotation on a class doesn&#8217;t mean that
-simple-jpa will register it in <literal>persistence.xml</literal>. Even when a class is annotated with <literal>@DomainClass</literal>, if it is not
-located in domain package, finders will not recognize it.</simpara>
-</section>
 <section xml:id="transaction-3">
 <title>@Transaction</title>
 <simpara><literal>@Transaction</literal> annotation can be used to annotate a class, a closure field, or a method. It will cause the method or
@@ -3151,16 +3374,6 @@ def em = getEntityManager()
 em.close()
 commitTransaction()</programlisting>
 </section>
-<section xml:id="createentitymanager">
-<title>createEntityManager()</title>
-<simpara>It is not recommended to call this method directly. This is a low level method that will be called by <literal>@Transaction</literal>.</simpara>
-<simpara>Use this method to create a new EntityManager for current thread.</simpara>
-</section>
-<section xml:id="destroyentitymanager">
-<title>destroyEntityManager()</title>
-<simpara>It is not recommended to call this method directly. This is a low level method that will be called by <literal>@Transaction</literal>.</simpara>
-<simpara>Use this method to close all open EntityManager.</simpara>
-</section>
 <section xml:id="executenamedquery">
 <title>executeNamedQuery()</title>
 <simpara>Use this method to execute JPA named query. This method will return a List that contains the result from named query
@@ -3200,46 +3413,6 @@ The syntax of this method is:</simpara>
 <simpara>Example:</simpara>
 <programlisting language="groovy" linenumbering="unnumbered">def allStudents = executeQuery('FROM Student')</programlisting>
 </section>
-<section xml:id="getentitymanager">
-<title>getEntityManager()</title>
-<simpara>It is not recommended to call this method directly. It is better to use simple-jpa methods rather than calling
-EntityManager methods directly.</simpara>
-<simpara>This method will return EntityManager for current thread.</simpara>
-<simpara>Example:</simpara>
-<programlisting language="groovy" linenumbering="unnumbered">createEntityManager()
-def em = getEntityManager()
-// do something with em
-destroyEntityManager()</programlisting>
-</section>
-<section xml:id="merge">
-<title>merge()</title>
-<simpara>This is a shortcut for calling <literal>merge()</literal> method of current EntityManager. Use this method to put a detached entity into
-current EntityManager.</simpara>
-<simpara>Example:</simpara>
-<programlisting language="groovy" linenumbering="unnumbered">merge(student)</programlisting>
-</section>
-<section xml:id="persist">
-<title>persist()</title>
-<simpara>This is a shortcut for calling <literal>persist()</literal> method of current EntityManager. Use this method to save a new entity into
-database.</simpara>
-<simpara>Example:</simpara>
-<programlisting language="groovy" linenumbering="unnumbered">Student s = new Student()
-
-// insert operation
-persist(s)
-
-// update operation
-s.name = 'new'</programlisting>
-</section>
-<section xml:id="remove">
-<title>remove()</title>
-<simpara>This method will call <literal>remove()</literal> method of current EntityManager. Before executing <literal>remove()</literal>, simple-jpa will try to
-merge the entity if it is detached. Use this method to delete an entity from database.</simpara>
-<simpara>Example:</simpara>
-<programlisting language="groovy" linenumbering="unnumbered">findAllStudentByName('%Steve%').each {
-  remove(it)
-}</programlisting>
-</section>
 <section xml:id="rollbacktransaction">
 <title>rollbackTransaction()</title>
 <simpara>It is not recommended to call this method directly. This is a low level method that will be called by <literal>@Transaction</literal>.</simpara>
@@ -3250,15 +3423,6 @@ def em = getEntityManager()
 ... // perform works with em
 rollbackTransaction()
 em.close()</programlisting>
-</section>
-<section xml:id="softdelete">
-<title>softDelete()</title>
-<simpara>Use this method to set deleted attribute to <literal><emphasis>Y</emphasis></literal>. In simple-jpa, a soft deleted entity is an entity whose deleted
-attribute is not equals to <emphasis>N</emphasis>. To automatically add deleted attribute to an entity, use <literal>@DomainClass</literal> annotation.</simpara>
-<simpara>Example:</simpara>
-<programlisting language="groovy" linenumbering="unnumbered">findAllStudentByName('%steve%').each {
-    softDelete(it)
-}</programlisting>
 </section>
 <section xml:id="withtransaction">
 <title>withTransaction()</title>
