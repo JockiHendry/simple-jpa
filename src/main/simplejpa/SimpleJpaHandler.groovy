@@ -14,6 +14,8 @@
  * limitations under the License.
  */
 
+
+
 package simplejpa
 
 import org.codehaus.groovy.runtime.metaclass.ConcurrentReaderHashMap
@@ -55,7 +57,6 @@ final class SimpleJpaHandler {
     private static final int DEFAULT_PAGE_SIZE = 10
 
     final String prefix
-    final String domainClassPackage
     final EntityManagerFactory emf
     final Validator validator
     final boolean alwaysExcludeSoftDeleted
@@ -86,7 +87,6 @@ final class SimpleJpaHandler {
             'griffon.simplejpa.finders.alwaysExcludeSoftDeleted', false)
         this.alwaysAllowDuplicate = ConfigUtils.getConfigValueAsBoolean(app.config,
             'griffon.simplejpa.finders.alwaysAllowDuplicate', false)
-        this.domainClassPackage = ConfigUtils.getConfigValueAsString(app.config, 'griffon.simplejpa.domain.package', 'domain')
         this.convertEmptyStringToNull = ConfigUtils.getConfigValueAsBoolean(app.config,
             'griffon.simplejpa.validation.convertEmptyStringToNull', false)
 
@@ -94,7 +94,6 @@ final class SimpleJpaHandler {
             LOG.debug "SimpleJpaHandler initializd with the following configuration: \n" +
                 "griffon.simplejpa.entityManager.defaultFlushMode = $defaultFlushMode\n" +
                 "griffon.simplejpa.method.prefix = $prefix\n" +
-                "griffon.simplejpa.domain.package = $domainClassPackage\n" +
                 "griffon.simplejpa.finders.alwaysExcludeSoftDeleted = $alwaysExcludeSoftDeleted\n" +
                 "griffon.simplejpa.finders.alwaysAllowDuplicate = $alwaysAllowDuplicate\n" +
                 "griffon.simplejpa.validation.convertEmptyStringToNull = $convertEmptyStringToNull\n"
