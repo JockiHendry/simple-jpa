@@ -925,6 +925,12 @@ provided by simple-jpa.  You can create a new repository by using <code>griffon 
 </div>
 </li>
 <li>
+<p>Transaction methods</p>
+<div class="paragraph">
+<p>See <a href="#transaction-methods">[transaction-methods]</a> for more information.</p>
+</div>
+</li>
+<li>
 <p>All public methods of <code>EntityManager</code>.</p>
 <div class="paragraph">
 <p>simple-jpa exposes all public methods of <code>EntityManager</code> to injected class.  This means you can directly call methods such
@@ -933,6 +939,18 @@ These methods can&#8217;t be renamed.</p>
 </div>
 </li>
 </ul>
+</div>
+<div class="admonitionblock tip">
+<table>
+<tr>
+<td class="icon">
+<div class="title">Tip</div>
+</td>
+<td class="content">
+All persistence methods are public so you can still call them from different class.
+</td>
+</tr>
+</table>
 </div>
 <div class="paragraph">
 <p>To avoid conflict with existing methods in injected class, simple-jpa can add prefix to persistence methods.  For example,
@@ -974,7 +992,7 @@ This is many times faster than relaunching application by using <code>griffon ru
 </div>
 <div id="footer">
 <div id="footer-text">
-Last updated 2015-01-31 23:59:00 ICT
+Last updated 2015-02-01 12:57:10 ICT
 </div>
 </div>
 </body>

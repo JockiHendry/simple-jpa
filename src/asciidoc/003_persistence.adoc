@@ -428,11 +428,17 @@ See <<finders>> for more information.
 +
 Returns an `EntityManager` for current session.  This method can't be renamed.
 
+* Transaction methods
++
+See <<transaction-methods>> for more information.
+
 * All public methods of `EntityManager`.
 +
 simple-jpa exposes all public methods of `EntityManager` to injected class.  This means you can directly call methods such
 as `lock()`, `refresh()`, or `detach()` in injected class.  For more information about `EntityManager`, see JPA documentation.
 These methods can't be renamed.
+
+TIP:  All persistence methods are public so you can still call them from different class.
 
 To avoid conflict with existing methods in injected class, simple-jpa can add prefix to persistence methods.  For example,
   you can add the following line to `Config.groovy`:

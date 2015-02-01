@@ -5,7 +5,7 @@
 <article xmlns="http://docbook.org/ns/docbook" xmlns:xlink="http://www.w3.org/1999/xlink" version="5.0" lang="en">
 <info>
 <title>Untitled</title>
-<date>2015-01-31</date>
+<date>2015-02-01</date>
 </info>
 <section xml:id="_persistence">
 <title>Persistence</title>
@@ -383,12 +383,19 @@ provided by simple-jpa.  You can create a new repository by using <literal>griff
 <simpara>Returns an <literal>EntityManager</literal> for current session.  This method can&#8217;t be renamed.</simpara>
 </listitem>
 <listitem>
+<simpara>Transaction methods</simpara>
+<simpara>See <xref linkend="transaction-methods"/> for more information.</simpara>
+</listitem>
+<listitem>
 <simpara>All public methods of <literal>EntityManager</literal>.</simpara>
 <simpara>simple-jpa exposes all public methods of <literal>EntityManager</literal> to injected class.  This means you can directly call methods such
 as <literal>lock()</literal>, <literal>refresh()</literal>, or <literal>detach()</literal> in injected class.  For more information about <literal>EntityManager</literal>, see JPA documentation.
 These methods can&#8217;t be renamed.</simpara>
 </listitem>
 </itemizedlist>
+<tip>
+<simpara>All persistence methods are public so you can still call them from different class.</simpara>
+</tip>
 <simpara>To avoid conflict with existing methods in injected class, simple-jpa can add prefix to persistence methods.  For example,
   you can add the following line to <literal>Config.groovy</literal>:</simpara>
 <literallayout class="monospaced">griffon.simplejpa.finders.prefix = 'jpa'</literallayout>
