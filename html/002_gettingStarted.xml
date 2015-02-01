@@ -5,10 +5,158 @@
 <article xmlns="http://docbook.org/ns/docbook" xmlns:xlink="http://www.w3.org/1999/xlink" version="5.0" lang="en">
 <info>
 <title>Untitled</title>
-<date>2014-07-29</date>
+<date>2015-02-02</date>
 </info>
 <section xml:id="_getting_started">
 <title>Getting Started</title>
+<simpara>This section will help you write your first simple-jpa application.  You should have installed JDK 7 and Griffon 1.5 if you haven&#8217;t done so.
+You can find more information about Griffon&#8217;s installation in <link xlink:href="http://griffon.codehaus.org/guide/latest/guide/gettingStarted.html">http://griffon.codehaus.org/guide/latest/guide/gettingStarted.html</link>.</simpara>
+<simpara>simple-jpa binary is compiled using Groovy 2.3 while the latest Griffon shipped with Groovy 2.2.  Unfortunately,
+Groovy 2.3 binary is not backward compatible with previous version.  If you run simple-jpa in Griffon 1.5, you
+ will encouter strange <literal>Exception</literal> such as <literal>java.lang.NoClassDefFoundError: org/codehaus/groovy/runtime/typehandling/ShortTypeHandling</literal>.
+To fix this, you can either upgrade Griffon to use Groovy 2.3 or rebuild simple-jpa from source.  See <link xlink:href="http://www.jroller.com/aalmiray/entry/running_griffon_with_an_alternate">http://www.jroller.com/aalmiray/entry/running_griffon_with_an_alternate</link> for
+ more information on upgrading Groovy used by Griffon.</simpara>
+<tip>
+<simpara>The article explains how to edit <literal>griffon-cli-1.5.0.jar</literal> by using CLI.  As an alternative, you can
+also open <literal>griffon-cli-1.5.0.jar</literal> in 7zip, right click <literal>build.properties</literal> and select <emphasis>Edit</emphasis>.</simpara>
+</tip>
+<simpara>You can execute the following command to determine Groovy version used by Griffon:</simpara>
+<literallayout class="monospaced">C:\&gt; griffon -v</literallayout>
+<simpara>If Griffon has been setup properly, you are ready to create your first Griffon application:</simpara>
+<literallayout class="monospaced">C:\&gt; griffon create-app myapp</literallayout>
+<simpara>Griffon creates and stores your new project in a folder named <literal>myapp</literal>.  You should move to this folder:</simpara>
+<literallayout class="monospaced">C:\&gt; cd myapp</literallayout>
+<simpara>Install simple-jpa plugin by executing the following script:</simpara>
+<literallayout class="monospaced">C:\myapp&gt; griffon install-plugin simple-jpa</literallayout>
+<simpara>The first thing to do when using simple-jpa is calling <literal>create-simple-jpa</literal> to setup persistence layer in your application.
+ Don&#8217;t forget to make sure your database server is ready.  If you don&#8217;t have a database server installed in your computer,
+ you can use Apache Derby as embedded database by executing the following script:</simpara>
+<literallayout class="monospaced">C:\myapp&gt; griffon create-simple-jpa -user=steven -password=12345 -database=C:/mydb -jdbc=derby-embedded</literallayout>
+<simpara>You don&#8217;t need to install anything to use Apache Derby as embedded database because it is embedded in your application.
+Your data will be stored in <literal>C:\mydb</literal>.  If you accidentally delete this folder, you need to recreate this folder by
+appending <literal>create=true</literal> to JDBC URL in <literal>griffon-app\conf\metainf\persistence.xml</literal>:</simpara>
+<programlisting language="xml" linenumbering="unnumbered">&lt;property name="javax.persistence.jdbc.url" value="jdbc:derby:C:/mydb;create=true" /&gt;</programlisting>
+<simpara>Lets create your first domain classes:</simpara>
+<literallayout class="monospaced">C:\myapp&gt; griffon create-domain-class Invoice LineItem</literallayout>
+<simpara>You can their properties and methods by changing the content of <literal>Invoice.groovy</literal> and <literal>LineItem.groovy</literal> in <literal>C:\myapp\src\main\domain</literal>:</simpara>
+<formalpara>
+<title>Invoice.groovy</title>
+<para>
+<programlisting language="groovy" linenumbering="unnumbered">package domain
 
+import groovy.transform.*
+import simplejpa.DomainClass
+import javax.persistence.*
+import org.hibernate.annotations.Type
+import javax.validation.constraints.*
+import org.hibernate.validator.constraints.*
+import org.joda.time.*
+
+@DomainClass @Entity @Canonical
+class Invoice {
+
+  @NotBlank
+  String number
+
+  @NotNull @Type(type="org.jadira.usertype.dateandtime.joda.PersistentLocalDate")
+  LocalDate date
+
+  @ElementCollection(fetch=FetchType.EAGER) @NotEmpty
+  List&lt;LineItem&gt; items = []
+
+  void add(LineItem item) {
+    items &lt;&lt; item
+  }
+
+  BigDecimal total() {
+    items.sum { it.total() }
+  }
+
+}</programlisting>
+</para>
+</formalpara>
+<formalpara>
+<title>LineItem.groovy</title>
+<para>
+<programlisting language="groovy" linenumbering="unnumbered">package domain
+
+import groovy.transform.*
+import simplejpa.DomainClass
+import javax.persistence.*
+import org.hibernate.annotations.Type
+import javax.validation.constraints.*
+import org.hibernate.validator.constraints.*
+import org.joda.time.*
+
+@Embeddable @Canonical
+class LineItem {
+
+  @NotBlank @Size(min=2, max=100)
+  String productName
+
+  @NotNull @Min(value=1l)
+  Integer qty
+
+  @NotNull @Min(value=0l)
+  BigDecimal price
+
+  BigDecimal total() {
+    qty * price
+  }
+
+}</programlisting>
+</para>
+</formalpara>
+<simpara>Now, you can instruct simple-jpa to generate basic presentation layer (scaffolding):</simpara>
+<literallayout class="monospaced">C:\myapp&gt; griffon generate-all * -startupGroup=MainGroup</literallayout>
+<tip>
+<simpara>If you change your domain classes later, you can overwrite the generated code by calling:</simpara>
+<literallayout class="monospaced">C:\myapp&gt; griffon generate-all * -startupGroup=MainGroup -forceOverwrite</literallayout>
+</tip>
+<simpara>Try to run your application:</simpara>
+<literallayout class="monospaced">C:\myapp&gt; griffon run-app</literallayout>
+<simpara>You&#8217;ve just created Swing-based Java application that uses JPA.  It is a working application!  You can add new record,
+  edit or delete existing record.  You can search for existing records.  You can also double-click on table row to
+  modify line items.</simpara>
+<figure>
+<mediaobject>
+<imageobject>
+<imagedata fileref="getting_started.PNG"/>
+</imageobject>
+<textobject><phrase>getting started</phrase></textobject>
+</mediaobject>
+</figure>
+<simpara>If you close and re-run your application, tables will be recreated to reflect the latest change in domain classes.  You can
+ disable this by remove the following line from <literal>griffon-app/conf/metainf/persistence.xml</literal>:</simpara>
+<programlisting language="xml" linenumbering="unnumbered">&lt;property name="javax.persistence.schema-generation.database.action" value="drop-and-create" /&gt;</programlisting>
+<simpara>If you think logger is too noisy, you change <literal>log4j</literal> configuration in <literal>griffon-app/conf/Config.groovy</literal> into:</simpara>
+<programlisting language="groovy" linenumbering="unnumbered">log4j = {
+   appenders {
+      console name: 'stdout', layout: pattern(conversionPattern: '%d [%t] %-5p %c - %m%n')
+   }
+
+   root {
+      error 'stdout'
+   }
+}</programlisting>
+<simpara>Now if you close and re-run your application, existing records are still there because they&#8217;re persisted in <literal>C:\mydb</literal> by
+  Apache Derby.</simpara>
+<simpara>Want to learn more about programming with simple-jpa?  Close your application and execute the following script:</simpara>
+<literallayout class="monospaced">C:\myapp&gt; griffon simple-jpa-console</literallayout>
+<simpara>This will launch Groovy Console where you can input Groovy code and execute them on the fly.  Click on <emphasis>simple-jpa</emphasis>,
+<emphasis>MVC Groups</emphasis> in the menu bar and place a checkmark in <emphasis>invoice</emphasis> MVC group.  Type the following code and press Ctrl + R
+to run it:</simpara>
+<figure>
+<mediaobject>
+<imageobject>
+<imagedata fileref="getting_started_simple_jpa_console.PNG"/>
+</imageobject>
+<textobject><phrase>getting started simple jpa console</phrase></textobject>
+</mediaobject>
+</figure>
+<simpara>Try to delete existing code in Groovy console (without closing or relaunching a new console) and type a different one, such as:</simpara>
+<programlisting language="groovy" linenumbering="unnumbered">invoiceController.findAllInvoice()</programlisting>
+<simpara>Press Ctrl + R to execute this script and the result will be displayed right away.  By using <literal>simple-jpa-console</literal>,
+you easily test the result of finders or experiment on the right JP QL without relaunching your application.</simpara>
 </section>
 </article>

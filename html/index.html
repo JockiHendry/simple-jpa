@@ -88,7 +88,6 @@
 <li><a href="#integration-test">10.2. Integration Test</a></li>
 </ul>
 </li>
-<li><a href="#deployment">11. Deployment</a></li>
 <li><a href="#script">Appendix A: Script</a></li>
 <li>
 <ul class="sectlevel2">
@@ -183,7 +182,265 @@ least Groovy 2.3.</p>
 <div class="sect1">
 <h2 id="getting-started">2. Getting Started</h2>
 <div class="sectionbody">
+<div class="paragraph">
+<p>This section will help you write your first simple-jpa application.  You should have installed JDK 7 and Griffon 1.5 if you haven&#8217;t done so.
+You can find more information about Griffon&#8217;s installation in <a href="http://griffon.codehaus.org/guide/latest/guide/gettingStarted.html">http://griffon.codehaus.org/guide/latest/guide/gettingStarted.html</a>.</p>
+</div>
+<div class="paragraph">
+<p>simple-jpa binary is compiled using Groovy 2.3 while the latest Griffon shipped with Groovy 2.2.  Unfortunately,
+Groovy 2.3 binary is not backward compatible with previous version.  If you run simple-jpa in Griffon 1.5, you
+ will encouter strange <code>Exception</code> such as <code>java.lang.NoClassDefFoundError: org/codehaus/groovy/runtime/typehandling/ShortTypeHandling</code>.
+To fix this, you can either upgrade Griffon to use Groovy 2.3 or rebuild simple-jpa from source.  See <a href="http://www.jroller.com/aalmiray/entry/running_griffon_with_an_alternate">http://www.jroller.com/aalmiray/entry/running_griffon_with_an_alternate</a> for
+ more information on upgrading Groovy used by Griffon.</p>
+</div>
+<div class="admonitionblock tip">
+<table>
+<tr>
+<td class="icon">
+<i class="icon-tip" title="Tip"></i>
+</td>
+<td class="content">
+The article explains how to edit <code>griffon-cli-1.5.0.jar</code> by using CLI.  As an alternative, you can
+also open <code>griffon-cli-1.5.0.jar</code> in 7zip, right click <code>build.properties</code> and select <em>Edit</em>.
+</td>
+</tr>
+</table>
+</div>
+<div class="paragraph">
+<p>You can execute the following command to determine Groovy version used by Griffon:</p>
+</div>
+<div class="literalblock">
+<div class="content">
+<pre>C:\&gt; griffon -v</pre>
+</div>
+</div>
+<div class="paragraph">
+<p>If Griffon has been setup properly, you are ready to create your first Griffon application:</p>
+</div>
+<div class="literalblock">
+<div class="content">
+<pre>C:\&gt; griffon create-app myapp</pre>
+</div>
+</div>
+<div class="paragraph">
+<p>Griffon creates and stores your new project in a folder named <code>myapp</code>.  You should move to this folder:</p>
+</div>
+<div class="literalblock">
+<div class="content">
+<pre>C:\&gt; cd myapp</pre>
+</div>
+</div>
+<div class="paragraph">
+<p>Install simple-jpa plugin by executing the following script:</p>
+</div>
+<div class="literalblock">
+<div class="content">
+<pre>C:\myapp&gt; griffon install-plugin simple-jpa</pre>
+</div>
+</div>
+<div class="paragraph">
+<p>The first thing to do when using simple-jpa is calling <code>create-simple-jpa</code> to setup persistence layer in your application.
+ Don&#8217;t forget to make sure your database server is ready.  If you don&#8217;t have a database server installed in your computer,
+ you can use Apache Derby as embedded database by executing the following script:</p>
+</div>
+<div class="literalblock">
+<div class="content">
+<pre>C:\myapp&gt; griffon create-simple-jpa -user=steven -password=12345 -database=C:/mydb -jdbc=derby-embedded</pre>
+</div>
+</div>
+<div class="paragraph">
+<p>You don&#8217;t need to install anything to use Apache Derby as embedded database because it is embedded in your application.
+Your data will be stored in <code>C:\mydb</code>.  If you accidentally delete this folder, you need to recreate this folder by
+appending <code>create=true</code> to JDBC URL in <code>griffon-app\conf\metainf\persistence.xml</code>:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="CodeRay"><code class="xml language-xml"><span class="tag">&lt;property</span> <span class="attribute-name">name</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">javax.persistence.jdbc.url</span><span class="delimiter">&quot;</span></span> <span class="attribute-name">value</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">jdbc:derby:C:/mydb;create=true</span><span class="delimiter">&quot;</span></span> <span class="tag">/&gt;</span></code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>Lets create your first domain classes:</p>
+</div>
+<div class="literalblock">
+<div class="content">
+<pre>C:\myapp&gt; griffon create-domain-class Invoice LineItem</pre>
+</div>
+</div>
+<div class="paragraph">
+<p>You can their properties and methods by changing the content of <code>Invoice.groovy</code> and <code>LineItem.groovy</code> in <code>C:\myapp\src\main\domain</code>:</p>
+</div>
+<div class="listingblock">
+<div class="title">Invoice.groovy</div>
+<div class="content">
+<pre class="CodeRay"><code class="groovy language-groovy"><span class="keyword">package</span> domain
 
+<span class="keyword">import</span> <span class="include">groovy.transform.*</span>
+<span class="keyword">import</span> <span class="include">simplejpa.DomainClass</span>
+<span class="keyword">import</span> <span class="include">javax.persistence.*</span>
+<span class="keyword">import</span> <span class="include">org.hibernate.annotations.Type</span>
+<span class="keyword">import</span> <span class="include">javax.validation.constraints.*</span>
+<span class="keyword">import</span> <span class="include">org.hibernate.validator.constraints.*</span>
+<span class="keyword">import</span> <span class="include">org.joda.time.*</span>
+
+<span class="annotation">@DomainClass</span> <span class="annotation">@Entity</span> <span class="annotation">@Canonical</span>
+<span class="type">class</span> <span class="class">Invoice</span> {
+
+  <span class="annotation">@NotBlank</span>
+  <span class="predefined-type">String</span> number
+
+  <span class="annotation">@NotNull</span> <span class="annotation">@Type</span>(type=<span class="string"><span class="delimiter">&quot;</span><span class="content">org.jadira.usertype.dateandtime.joda.PersistentLocalDate</span><span class="delimiter">&quot;</span></span>)
+  LocalDate date
+
+  <span class="annotation">@ElementCollection</span>(fetch=FetchType.EAGER) <span class="annotation">@NotEmpty</span>
+  <span class="predefined-type">List</span>&lt;LineItem&gt; items = <span class="type">[]</span>
+
+  <span class="type">void</span> add(LineItem item) {
+    items &lt;&lt; item
+  }
+
+  <span class="predefined-type">BigDecimal</span> total() {
+    items.sum { <span class="local-variable">it</span>.total() }
+  }
+
+}</code></pre>
+</div>
+</div>
+<div class="listingblock">
+<div class="title">LineItem.groovy</div>
+<div class="content">
+<pre class="CodeRay"><code class="groovy language-groovy"><span class="keyword">package</span> domain
+
+<span class="keyword">import</span> <span class="include">groovy.transform.*</span>
+<span class="keyword">import</span> <span class="include">simplejpa.DomainClass</span>
+<span class="keyword">import</span> <span class="include">javax.persistence.*</span>
+<span class="keyword">import</span> <span class="include">org.hibernate.annotations.Type</span>
+<span class="keyword">import</span> <span class="include">javax.validation.constraints.*</span>
+<span class="keyword">import</span> <span class="include">org.hibernate.validator.constraints.*</span>
+<span class="keyword">import</span> <span class="include">org.joda.time.*</span>
+
+<span class="annotation">@Embeddable</span> <span class="annotation">@Canonical</span>
+<span class="type">class</span> <span class="class">LineItem</span> {
+
+  <span class="annotation">@NotBlank</span> <span class="annotation">@Size</span>(min=<span class="integer">2</span>, max=<span class="integer">100</span>)
+  <span class="predefined-type">String</span> productName
+
+  <span class="annotation">@NotNull</span> <span class="annotation">@Min</span>(value=<span class="integer">1l</span>)
+  <span class="predefined-type">Integer</span> qty
+
+  <span class="annotation">@NotNull</span> <span class="annotation">@Min</span>(value=<span class="integer">0l</span>)
+  <span class="predefined-type">BigDecimal</span> price
+
+  <span class="predefined-type">BigDecimal</span> total() {
+    qty * price
+  }
+
+}</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>Now, you can instruct simple-jpa to generate basic presentation layer (scaffolding):</p>
+</div>
+<div class="literalblock">
+<div class="content">
+<pre>C:\myapp&gt; griffon generate-all * -startupGroup=MainGroup</pre>
+</div>
+</div>
+<div class="admonitionblock tip">
+<table>
+<tr>
+<td class="icon">
+<i class="icon-tip" title="Tip"></i>
+</td>
+<td class="content">
+<div class="paragraph">
+<p>If you change your domain classes later, you can overwrite the generated code by calling:</p>
+</div>
+<div class="literalblock">
+<div class="content">
+<pre>C:\myapp&gt; griffon generate-all * -startupGroup=MainGroup -forceOverwrite</pre>
+</div>
+</div>
+</td>
+</tr>
+</table>
+</div>
+<div class="paragraph">
+<p>Try to run your application:</p>
+</div>
+<div class="literalblock">
+<div class="content">
+<pre>C:\myapp&gt; griffon run-app</pre>
+</div>
+</div>
+<div class="paragraph">
+<p>You&#8217;ve just created Swing-based Java application that uses JPA.  It is a working application!  You can add new record,
+  edit or delete existing record.  You can search for existing records.  You can also double-click on table row to
+  modify line items.</p>
+</div>
+<div class="imageblock">
+<div class="content">
+<img src="../images/getting_started.PNG" alt="getting started">
+</div>
+</div>
+<div class="paragraph">
+<p>If you close and re-run your application, tables will be recreated to reflect the latest change in domain classes.  You can
+ disable this by remove the following line from <code>griffon-app/conf/metainf/persistence.xml</code>:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="CodeRay"><code class="xml language-xml"><span class="tag">&lt;property</span> <span class="attribute-name">name</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">javax.persistence.schema-generation.database.action</span><span class="delimiter">&quot;</span></span> <span class="attribute-name">value</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">drop-and-create</span><span class="delimiter">&quot;</span></span> <span class="tag">/&gt;</span></code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>If you think logger is too noisy, you change <code>log4j</code> configuration in <code>griffon-app/conf/Config.groovy</code> into:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="CodeRay"><code class="groovy language-groovy">log4j = {
+   appenders {
+      console <span class="key">name</span>: <span class="string"><span class="delimiter">'</span><span class="content">stdout</span><span class="delimiter">'</span></span>, <span class="key">layout</span>: pattern(<span class="key">conversionPattern</span>: <span class="string"><span class="delimiter">'</span><span class="content">%d [%t] %-5p %c - %m%n</span><span class="delimiter">'</span></span>)
+   }
+
+   root {
+      error <span class="string"><span class="delimiter">'</span><span class="content">stdout</span><span class="delimiter">'</span></span>
+   }
+}</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>Now if you close and re-run your application, existing records are still there because they&#8217;re persisted in <code>C:\mydb</code> by
+  Apache Derby.</p>
+</div>
+<div class="paragraph">
+<p>Want to learn more about programming with simple-jpa?  Close your application and execute the following script:</p>
+</div>
+<div class="literalblock">
+<div class="content">
+<pre>C:\myapp&gt; griffon simple-jpa-console</pre>
+</div>
+</div>
+<div class="paragraph">
+<p>This will launch Groovy Console where you can input Groovy code and execute them on the fly.  Click on <em>simple-jpa</em>,
+<em>MVC Groups</em> in the menu bar and place a checkmark in <em>invoice</em> MVC group.  Type the following code and press Ctrl + R
+to run it:</p>
+</div>
+<div class="imageblock">
+<div class="content">
+<img src="../images/getting_started_simple_jpa_console.PNG" alt="getting started simple jpa console">
+</div>
+</div>
+<div class="paragraph">
+<p>Try to delete existing code in Groovy console (without closing or relaunching a new console) and type a different one, such as:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="CodeRay"><code class="groovy language-groovy">invoiceController.findAllInvoice()</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>Press Ctrl + R to execute this script and the result will be displayed right away.  By using <code>simple-jpa-console</code>,
+you easily test the result of finders or experiment on the right JP QL without relaunching your application.</p>
+</div>
 </div>
 </div>
 <div class="sect1">
@@ -4588,12 +4845,6 @@ before test method begins.</p>
 </div>
 </div>
 <div class="sect1">
-<h2 id="deployment">11. Deployment</h2>
-<div class="sectionbody">
-
-</div>
-</div>
-<div class="sect1">
 <h2 id="script">Appendix A: Script</h2>
 <div class="sectionbody">
 <div class="paragraph">
@@ -5108,7 +5359,7 @@ DDD generator rather than create them manually using this command.</p>
 </div>
 <div id="footer">
 <div id="footer-text">
-Last updated 2015-02-01 16:49:19 ICT
+Last updated 2015-02-02 00:41:59 ICT
 </div>
 <div id="mask"></div>
 <script type="text/javascript">

@@ -1,1 +1,206 @@
 == Getting Started
+
+This section will help you write your first simple-jpa application.  You should have installed JDK 7 and Griffon 1.5 if you haven't done so.
+You can find more information about Griffon's installation in http://griffon.codehaus.org/guide/latest/guide/gettingStarted.html.
+
+simple-jpa binary is compiled using Groovy 2.3 while the latest Griffon shipped with Groovy 2.2.  Unfortunately,
+Groovy 2.3 binary is not backward compatible with previous version.  If you run simple-jpa in Griffon 1.5, you
+ will encouter strange `Exception` such as `java.lang.NoClassDefFoundError: org/codehaus/groovy/runtime/typehandling/ShortTypeHandling`.
+To fix this, you can either upgrade Griffon to use Groovy 2.3 or rebuild simple-jpa from source.  See http://www.jroller.com/aalmiray/entry/running_griffon_with_an_alternate for
+ more information on upgrading Groovy used by Griffon.
+
+TIP: The article explains how to edit `griffon-cli-1.5.0.jar` by using CLI.  As an alternative, you can
+also open `griffon-cli-1.5.0.jar` in 7zip, right click `build.properties` and select 'Edit'.
+
+You can execute the following command to determine Groovy version used by Griffon:
+
+....
+C:\> griffon -v
+....
+
+If Griffon has been setup properly, you are ready to create your first Griffon application:
+
+....
+C:\> griffon create-app myapp
+....
+
+Griffon creates and stores your new project in a folder named `myapp`.  You should move to this folder:
+
+....
+C:\> cd myapp
+....
+
+Install simple-jpa plugin by executing the following script:
+
+....
+C:\myapp> griffon install-plugin simple-jpa
+....
+
+The first thing to do when using simple-jpa is calling `create-simple-jpa` to setup persistence layer in your application.
+ Don't forget to make sure your database server is ready.  If you don't have a database server installed in your computer,
+ you can use Apache Derby as embedded database by executing the following script:
+
+....
+C:\myapp> griffon create-simple-jpa -user=steven -password=12345 -database=C:/mydb -jdbc=derby-embedded
+....
+
+You don't need to install anything to use Apache Derby as embedded database because it is embedded in your application.
+Your data will be stored in `C:\mydb`.  If you accidentally delete this folder, you need to recreate this folder by
+appending `create=true` to JDBC URL in `griffon-app\conf\metainf\persistence.xml`:
+
+[source,xml]
+----
+<property name="javax.persistence.jdbc.url" value="jdbc:derby:C:/mydb;create=true" />
+----
+
+Lets create your first domain classes:
+
+....
+C:\myapp> griffon create-domain-class Invoice LineItem
+....
+
+You can their properties and methods by changing the content of `Invoice.groovy` and `LineItem.groovy` in `C:\myapp\src\main\domain`:
+
+[source,groovy]
+.Invoice.groovy
+----
+package domain
+
+import groovy.transform.*
+import simplejpa.DomainClass
+import javax.persistence.*
+import org.hibernate.annotations.Type
+import javax.validation.constraints.*
+import org.hibernate.validator.constraints.*
+import org.joda.time.*
+
+@DomainClass @Entity @Canonical
+class Invoice {
+
+  @NotBlank
+  String number
+
+  @NotNull @Type(type="org.jadira.usertype.dateandtime.joda.PersistentLocalDate")
+  LocalDate date
+
+  @ElementCollection(fetch=FetchType.EAGER) @NotEmpty
+  List<LineItem> items = []
+
+  void add(LineItem item) {
+    items << item
+  }
+
+  BigDecimal total() {
+    items.sum { it.total() }
+  }
+
+}
+----
+
+[source,groovy]
+.LineItem.groovy
+----
+package domain
+
+import groovy.transform.*
+import simplejpa.DomainClass
+import javax.persistence.*
+import org.hibernate.annotations.Type
+import javax.validation.constraints.*
+import org.hibernate.validator.constraints.*
+import org.joda.time.*
+
+@Embeddable @Canonical
+class LineItem {
+
+  @NotBlank @Size(min=2, max=100)
+  String productName
+
+  @NotNull @Min(value=1l)
+  Integer qty
+
+  @NotNull @Min(value=0l)
+  BigDecimal price
+
+  BigDecimal total() {
+    qty * price
+  }
+
+}
+----
+
+Now, you can instruct simple-jpa to generate basic presentation layer (scaffolding):
+
+....
+C:\myapp> griffon generate-all * -startupGroup=MainGroup
+....
+
+[TIP]
+====
+If you change your domain classes later, you can overwrite the generated code by calling:
+
+....
+C:\myapp> griffon generate-all * -startupGroup=MainGroup -forceOverwrite
+....
+====
+
+Try to run your application:
+
+....
+C:\myapp> griffon run-app
+....
+
+You've just created Swing-based Java application that uses JPA.  It is a working application!  You can add new record,
+  edit or delete existing record.  You can search for existing records.  You can also double-click on table row to
+  modify line items.
+
+image::getting_started.PNG[]
+
+If you close and re-run your application, tables will be recreated to reflect the latest change in domain classes.  You can
+ disable this by remove the following line from `griffon-app/conf/metainf/persistence.xml`:
+
+[source,xml]
+----
+<property name="javax.persistence.schema-generation.database.action" value="drop-and-create" />
+----
+
+If you think logger is too noisy, you change `log4j` configuration in `griffon-app/conf/Config.groovy` into:
+
+[source,groovy]
+----
+log4j = {
+   appenders {
+      console name: 'stdout', layout: pattern(conversionPattern: '%d [%t] %-5p %c - %m%n')
+   }
+
+   root {
+      error 'stdout'
+   }
+}
+----
+
+Now if you close and re-run your application, existing records are still there because they're persisted in `C:\mydb` by
+  Apache Derby.
+
+Want to learn more about programming with simple-jpa?  Close your application and execute the following script:
+
+....
+C:\myapp> griffon simple-jpa-console
+....
+
+This will launch Groovy Console where you can input Groovy code and execute them on the fly.  Click on 'simple-jpa',
+'MVC Groups' in the menu bar and place a checkmark in 'invoice' MVC group.  Type the following code and press Ctrl + R
+to run it:
+
+image::getting_started_simple_jpa_console.PNG[]
+
+Try to delete existing code in Groovy console (without closing or relaunching a new console) and type a different one, such as:
+
+[source,groovy]
+----
+invoiceController.findAllInvoice()
+----
+
+Press Ctrl + R to execute this script and the result will be displayed right away.  By using `simple-jpa-console`,
+you easily test the result of finders or experiment on the right JP QL without relaunching your application.
+
