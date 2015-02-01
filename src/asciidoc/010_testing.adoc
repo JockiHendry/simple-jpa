@@ -1,1 +1,189 @@
 == Testing
+
+=== Unit Test
+
+In unit test, you're usually testing domain classes.  This test should never requires database connection.  Unfortunately,
+ sometimes domain class may depends on persistence methods in repository, for example:
+
+[source,groovy]
+.InvoiceRepository.groovy
+----
+class RegistrationRepository {
+
+  // This methods hits database to retrieve last number and increase it by one.
+  Integer nextNumber() {
+    ...
+  }
+
+}
+----
+
+[source,groovy]
+.Registration.groovy
+----
+class Registration {
+
+  String reserveNumber(Integer input) {
+    ...
+    def repo = SimpleJpaUtil.instance.repositoryManager.getRepository('RegistrationRepository')
+    def number = repo.nextNumber()
+    ...
+  }
+
+}
+----
+
+You can't test `Registration.reserveNumber()` directly because it calls `RegistrationRepository.nextNumber()` that requires
+access to database.  For example, the following unit test will fail:
+
+[source,groovy]
+.RegistrationTests.groovy
+----
+class RegistrationTests extends GriffonUnitTestCase {
+
+  void testReserveNumber() {
+      Registration r = new Registration()
+      assertEquals('REG-001', r.reserveNumber(1))
+  }
+
+}
+----
+
+To solve this problem, you need to create a stub repository, for example:
+
+[source,groovy]
+.RegistrationTests.groovy
+----
+class RegistrationTests extends GriffonUnitTestCase {
+
+  void setUp() {
+    super.setUp()
+    super.registerMetaClass(NumberingRepository)
+    NumberingRepository.metaClass.reserveNumber = {
+        // stub for reserveNumber() that always return 0.
+        return 0
+    }
+    StubRepositoryManager stubRepositories = new StubRepositoryManager()
+    stubRepositories.instances['NumberingRepository'] = new NumberingRepository()
+    SimpleJpaUtil.instance.repositoryManager = stubRepositories
+  }
+
+  void testReserveNumber() {
+    Registration r = new Registration()
+    assertEquals('REG-001', r.reserveNumber(1))
+  }
+
+}
+----
+
+=== Integration Test
+
+simple-jpa provides `DbUnitTestCase` to help you in performing integration testing that actually hits database.  `DbUnitTestCase`
+ uses DbUnit to populate databases with certain records for every test case.   The following sample show a basic usage of
+ `DbUnitTestCase`:
+
+[source,groovy]
+.InvoiceTest.groovy
+----
+class InvoiceTest extends DbUnitTestCase {
+
+  InvoiceRepository invoiceRepository
+
+  protected void setUp() {
+     super.setUp()
+     setUpDatabase('/project/data.xlsx')
+     invoiceRepository = SimpleJpaUtil.instance.repositoryManager.findRepository('Invoice')
+  }
+
+  void testDelete() {
+     Invoice newInvoice = invoiceRepository.findInvoiceById(-1l)
+     invoiceRepository.remove(newInvoice)
+     newInvoice = invoiceRepository.findInvoiceById(-1l)
+     assertNull(newInvoice)
+  }
+
+}
+----
+
+When you execute the test by using `griffon test-app`, `setUpDatabase()` is called before executing test methods.  By default,
+  `setUpDatabase()` performs a clean insert (`DatabaseOperation.CLEAN_INSERT`) on database.  Tables contents are deleted first then
+  new records are inserted based on the value in `/project/data.xlsx`.  Because this process is repeated for every test methods,
+  you can assume that database is in the expected state when test methods begin.
+
+`DbUnitTestCase` supports the following format as data source:
+
+* Microsoft Excel binary format if filename ends with `.xls`.  Every sheets represents a table.  Rows are table records and columns are
+table columns.
+
+* Microsoft Excel XML format (the newer version) if filename ends with `.xlsx`.
+
+* XML file if filename ends with `.xml`.
+
+* If `DbUnitTestCase` can't decide the type of data source, it assumes the data source is in CSV format.
+
+`DbUnitTestCase` also executes the following SQL files if it founds them in root package:
+
+* `before.sql` is executed before cleaning and executing test method.
+* `clean.sql` is executed  before inserting data to database.
+* `after.sql` is executed after database has been populated.  Test method begins after this script is executed.
+
+TIP: To avoid problem related to foreign key constraints, you can drop your table manually in `before.sql` or `clean.sql` in
+ the correct order.  If you use MySQL Server, you can use `SET FOREIGN_KEY_CHECKS=0` to disable foreign key constraints and
+  `SET FOREIGN_KEY_CHECKS=1` to enable foreign key constraints.
+
+By default, `DbUnitTestCase` performs `DatabaseOperation.CLEAN_INSERT` for every methods.  You can change this by setting
+ `insertOperation` with a different value, for example:
+
+[source,groovy]
+----
+class InvoiceTest extends DbUnitTestCase {
+
+  protected void setUp() {
+     super.setUp()
+     setUpDatabase('/project/data.xlsx', null, false, DatabaseOperation.UPDATE)
+  }
+
+}
+----
+
+For advanced use case, you can always override or execute public methods provided by `DbUnitTestCase`:
+
+* `loadMVC(mvcGroup)`
++
+Create MVCGroup instance specified by the name.  You can then use `model`, `view` and `controller` property to
+access this MVC instance members.
+
+* `beforeSetupDatabase()`
++
+Use this method to execute `before.sql` if it is found in root package.  This method is called at the beginning of test method.
+
+* `cleanDataset()`
++
+Use this method to execute `clean.sql` if it is found in root package.  This method is called before `insertOperation` is executed.
+
+* `afterSetupDatabase()`
++
+Use this method to execute `after.sql` if it is found in root package.  This method is called after `insertOperation` is executed and
+before test method begins.
+
+* `execute(list)`
++
+Execute a list of SQL statements.
+
+* `cleanInsert()`
++
+Perform a `DatabaseOperation.CLEAN_INSERT` based on current data source.
+
+* `truncateTable()`
++
+Perform a `DatabaseOperation.TRUNCATE_TABLE` based on current data source.
+
+* `deleteAll()`
++
+Perform a `DatabaseOperation.DELETE_ALL` based on current data source.
+
+* `refresh()`
++
+Perform a `DatabaseOperation.REFRESH` based on current data source.
+
+

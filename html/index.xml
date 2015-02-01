@@ -3243,7 +3243,197 @@ increase performance by setting this value to <literal>false</literal>.</simpara
 </section>
 <section xml:id="testing">
 <title>Testing</title>
+<section xml:id="unit-test">
+<title>Unit Test</title>
+<simpara>In unit test, you&#8217;re usually testing domain classes.  This test should never requires database connection.  Unfortunately,
+ sometimes domain class may depends on persistence methods in repository, for example:</simpara>
+<formalpara>
+<title>InvoiceRepository.groovy</title>
+<para>
+<programlisting language="groovy" linenumbering="unnumbered">class RegistrationRepository {
 
+  // This methods hits database to retrieve last number and increase it by one.
+  Integer nextNumber() {
+    ...
+  }
+
+}</programlisting>
+</para>
+</formalpara>
+<formalpara>
+<title>Registration.groovy</title>
+<para>
+<programlisting language="groovy" linenumbering="unnumbered">class Registration {
+
+  String reserveNumber(Integer input) {
+    ...
+    def repo = SimpleJpaUtil.instance.repositoryManager.getRepository('RegistrationRepository')
+    def number = repo.nextNumber()
+    ...
+  }
+
+}</programlisting>
+</para>
+</formalpara>
+<simpara>You can&#8217;t test <literal>Registration.reserveNumber()</literal> directly because it calls <literal>RegistrationRepository.nextNumber()</literal> that requires
+access to database.  For example, the following unit test will fail:</simpara>
+<formalpara>
+<title>RegistrationTests.groovy</title>
+<para>
+<programlisting language="groovy" linenumbering="unnumbered">class RegistrationTests extends GriffonUnitTestCase {
+
+  void testReserveNumber() {
+      Registration r = new Registration()
+      assertEquals('REG-001', r.reserveNumber(1))
+  }
+
+}</programlisting>
+</para>
+</formalpara>
+<simpara>To solve this problem, you need to create a stub repository, for example:</simpara>
+<formalpara>
+<title>RegistrationTests.groovy</title>
+<para>
+<programlisting language="groovy" linenumbering="unnumbered">class RegistrationTests extends GriffonUnitTestCase {
+
+  void setUp() {
+    super.setUp()
+    super.registerMetaClass(NumberingRepository)
+    NumberingRepository.metaClass.reserveNumber = {
+        // stub for reserveNumber() that always return 0.
+        return 0
+    }
+    StubRepositoryManager stubRepositories = new StubRepositoryManager()
+    stubRepositories.instances['NumberingRepository'] = new NumberingRepository()
+    SimpleJpaUtil.instance.repositoryManager = stubRepositories
+  }
+
+  void testReserveNumber() {
+    Registration r = new Registration()
+    assertEquals('REG-001', r.reserveNumber(1))
+  }
+
+}</programlisting>
+</para>
+</formalpara>
+</section>
+<section xml:id="integration-test">
+<title>Integration Test</title>
+<simpara>simple-jpa provides <literal>DbUnitTestCase</literal> to help you in performing integration testing that actually hits database.  <literal>DbUnitTestCase</literal>
+ uses DbUnit to populate databases with certain records for every test case.   The following sample show a basic usage of
+ <literal>DbUnitTestCase</literal>:</simpara>
+<formalpara>
+<title>InvoiceTest.groovy</title>
+<para>
+<programlisting language="groovy" linenumbering="unnumbered">class InvoiceTest extends DbUnitTestCase {
+
+  InvoiceRepository invoiceRepository
+
+  protected void setUp() {
+     super.setUp()
+     setUpDatabase('/project/data.xlsx')
+     invoiceRepository = SimpleJpaUtil.instance.repositoryManager.findRepository('Invoice')
+  }
+
+  void testDelete() {
+     Invoice newInvoice = invoiceRepository.findInvoiceById(-1l)
+     invoiceRepository.remove(newInvoice)
+     newInvoice = invoiceRepository.findInvoiceById(-1l)
+     assertNull(newInvoice)
+  }
+
+}</programlisting>
+</para>
+</formalpara>
+<simpara>When you execute the test by using <literal>griffon test-app</literal>, <literal>setUpDatabase()</literal> is called before executing test methods.  By default,
+  <literal>setUpDatabase()</literal> performs a clean insert (<literal>DatabaseOperation.CLEAN_INSERT</literal>) on database.  Tables contents are deleted first then
+  new records are inserted based on the value in <literal>/project/data.xlsx</literal>.  Because this process is repeated for every test methods,
+  you can assume that database is in the expected state when test methods begin.</simpara>
+<simpara><literal>DbUnitTestCase</literal> supports the following format as data source:</simpara>
+<itemizedlist>
+<listitem>
+<simpara>Microsoft Excel binary format if filename ends with <literal>.xls</literal>.  Every sheets represents a table.  Rows are table records and columns are
+table columns.</simpara>
+</listitem>
+<listitem>
+<simpara>Microsoft Excel XML format (the newer version) if filename ends with <literal>.xlsx</literal>.</simpara>
+</listitem>
+<listitem>
+<simpara>XML file if filename ends with <literal>.xml</literal>.</simpara>
+</listitem>
+<listitem>
+<simpara>If <literal>DbUnitTestCase</literal> can&#8217;t decide the type of data source, it assumes the data source is in CSV format.</simpara>
+</listitem>
+</itemizedlist>
+<simpara><literal>DbUnitTestCase</literal> also executes the following SQL files if it founds them in root package:</simpara>
+<itemizedlist>
+<listitem>
+<simpara><literal>before.sql</literal> is executed before cleaning and executing test method.</simpara>
+</listitem>
+<listitem>
+<simpara><literal>clean.sql</literal> is executed  before inserting data to database.</simpara>
+</listitem>
+<listitem>
+<simpara><literal>after.sql</literal> is executed after database has been populated.  Test method begins after this script is executed.</simpara>
+</listitem>
+</itemizedlist>
+<tip>
+<simpara>To avoid problem related to foreign key constraints, you can drop your table manually in <literal>before.sql</literal> or <literal>clean.sql</literal> in
+ the correct order.  If you use MySQL Server, you can use <literal>SET FOREIGN_KEY_CHECKS=0</literal> to disable foreign key constraints and
+  <literal>SET FOREIGN_KEY_CHECKS=1</literal> to enable foreign key constraints.</simpara>
+</tip>
+<simpara>By default, <literal>DbUnitTestCase</literal> performs <literal>DatabaseOperation.CLEAN_INSERT</literal> for every methods.  You can change this by setting
+ <literal>insertOperation</literal> with a different value, for example:</simpara>
+<programlisting language="groovy" linenumbering="unnumbered">class InvoiceTest extends DbUnitTestCase {
+
+  protected void setUp() {
+     super.setUp()
+     setUpDatabase('/project/data.xlsx', null, false, DatabaseOperation.UPDATE)
+  }
+
+}</programlisting>
+<simpara>For advanced use case, you can always override or execute public methods provided by <literal>DbUnitTestCase</literal>:</simpara>
+<itemizedlist>
+<listitem>
+<simpara><literal>loadMVC(mvcGroup)</literal></simpara>
+<simpara>Create MVCGroup instance specified by the name.  You can then use <literal>model</literal>, <literal>view</literal> and <literal>controller</literal> property to
+access this MVC instance members.</simpara>
+</listitem>
+<listitem>
+<simpara><literal>beforeSetupDatabase()</literal></simpara>
+<simpara>Use this method to execute <literal>before.sql</literal> if it is found in root package.  This method is called at the beginning of test method.</simpara>
+</listitem>
+<listitem>
+<simpara><literal>cleanDataset()</literal></simpara>
+<simpara>Use this method to execute <literal>clean.sql</literal> if it is found in root package.  This method is called before <literal>insertOperation</literal> is executed.</simpara>
+</listitem>
+<listitem>
+<simpara><literal>afterSetupDatabase()</literal></simpara>
+<simpara>Use this method to execute <literal>after.sql</literal> if it is found in root package.  This method is called after <literal>insertOperation</literal> is executed and
+before test method begins.</simpara>
+</listitem>
+<listitem>
+<simpara><literal>execute(list)</literal></simpara>
+<simpara>Execute a list of SQL statements.</simpara>
+</listitem>
+<listitem>
+<simpara><literal>cleanInsert()</literal></simpara>
+<simpara>Perform a <literal>DatabaseOperation.CLEAN_INSERT</literal> based on current data source.</simpara>
+</listitem>
+<listitem>
+<simpara><literal>truncateTable()</literal></simpara>
+<simpara>Perform a <literal>DatabaseOperation.TRUNCATE_TABLE</literal> based on current data source.</simpara>
+</listitem>
+<listitem>
+<simpara><literal>deleteAll()</literal></simpara>
+<simpara>Perform a <literal>DatabaseOperation.DELETE_ALL</literal> based on current data source.</simpara>
+</listitem>
+<listitem>
+<simpara><literal>refresh()</literal></simpara>
+<simpara>Perform a <literal>DatabaseOperation.REFRESH</literal> based on current data source.</simpara>
+</listitem>
+</itemizedlist>
+</section>
 </section>
 <section xml:id="deployment">
 <title>Deployment</title>

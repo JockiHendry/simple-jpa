@@ -82,6 +82,12 @@
 </ul>
 </li>
 <li><a href="#testing">10. Testing</a></li>
+<li>
+<ul class="sectlevel2">
+<li><a href="#unit-test">10.1. Unit Test</a></li>
+<li><a href="#integration-test">10.2. Integration Test</a></li>
+</ul>
+</li>
 <li><a href="#deployment">11. Deployment</a></li>
 <li><a href="#script">Appendix A: Script</a></li>
 <li>
@@ -4333,7 +4339,252 @@ increase performance by setting this value to <code>false</code>.</p></td>
 <div class="sect1">
 <h2 id="testing">10. Testing</h2>
 <div class="sectionbody">
+<div class="sect2">
+<h3 id="unit-test">10.1. Unit Test</h3>
+<div class="paragraph">
+<p>In unit test, you&#8217;re usually testing domain classes.  This test should never requires database connection.  Unfortunately,
+ sometimes domain class may depends on persistence methods in repository, for example:</p>
+</div>
+<div class="listingblock">
+<div class="title">InvoiceRepository.groovy</div>
+<div class="content">
+<pre class="CodeRay"><code class="groovy language-groovy"><span class="type">class</span> <span class="class">RegistrationRepository</span> {
 
+  <span class="comment">// This methods hits database to retrieve last number and increase it by one.</span>
+  <span class="predefined-type">Integer</span> nextNumber() {
+    ...
+  }
+
+}</code></pre>
+</div>
+</div>
+<div class="listingblock">
+<div class="title">Registration.groovy</div>
+<div class="content">
+<pre class="CodeRay"><code class="groovy language-groovy"><span class="type">class</span> <span class="class">Registration</span> {
+
+  <span class="predefined-type">String</span> reserveNumber(<span class="predefined-type">Integer</span> input) {
+    ...
+    def repo = SimpleJpaUtil.instance.repositoryManager.getRepository(<span class="string"><span class="delimiter">'</span><span class="content">RegistrationRepository</span><span class="delimiter">'</span></span>)
+    <span class="keyword">def</span> number = repo.nextNumber()
+    ...
+  }
+
+}</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>You can&#8217;t test <code>Registration.reserveNumber()</code> directly because it calls <code>RegistrationRepository.nextNumber()</code> that requires
+access to database.  For example, the following unit test will fail:</p>
+</div>
+<div class="listingblock">
+<div class="title">RegistrationTests.groovy</div>
+<div class="content">
+<pre class="CodeRay"><code class="groovy language-groovy"><span class="type">class</span> <span class="class">RegistrationTests</span> <span class="directive">extends</span> GriffonUnitTestCase {
+
+  <span class="type">void</span> testReserveNumber() {
+      Registration r = <span class="keyword">new</span> Registration()
+      assertEquals(<span class="string"><span class="delimiter">'</span><span class="content">REG-001</span><span class="delimiter">'</span></span>, r.reserveNumber(<span class="integer">1</span>))
+  }
+
+}</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>To solve this problem, you need to create a stub repository, for example:</p>
+</div>
+<div class="listingblock">
+<div class="title">RegistrationTests.groovy</div>
+<div class="content">
+<pre class="CodeRay"><code class="groovy language-groovy"><span class="type">class</span> <span class="class">RegistrationTests</span> <span class="directive">extends</span> GriffonUnitTestCase {
+
+  <span class="type">void</span> setUp() {
+    <span class="local-variable">super</span>.setUp()
+    <span class="local-variable">super</span>.registerMetaClass(NumberingRepository)
+    NumberingRepository.metaClass.reserveNumber = {
+        <span class="comment">// stub for reserveNumber() that always return 0.</span>
+        <span class="keyword">return</span> <span class="integer">0</span>
+    }
+    StubRepositoryManager stubRepositories = <span class="keyword">new</span> StubRepositoryManager()
+    stubRepositories.instances[<span class="string"><span class="delimiter">'</span><span class="content">NumberingRepository</span><span class="delimiter">'</span></span>] = <span class="keyword">new</span> NumberingRepository()
+    SimpleJpaUtil.instance.repositoryManager = stubRepositories
+  }
+
+  <span class="type">void</span> testReserveNumber() {
+    Registration r = <span class="keyword">new</span> Registration()
+    assertEquals(<span class="string"><span class="delimiter">'</span><span class="content">REG-001</span><span class="delimiter">'</span></span>, r.reserveNumber(<span class="integer">1</span>))
+  }
+
+}</code></pre>
+</div>
+</div>
+</div>
+<div class="sect2">
+<h3 id="integration-test">10.2. Integration Test</h3>
+<div class="paragraph">
+<p>simple-jpa provides <code>DbUnitTestCase</code> to help you in performing integration testing that actually hits database.  <code>DbUnitTestCase</code>
+ uses DbUnit to populate databases with certain records for every test case.   The following sample show a basic usage of
+ <code>DbUnitTestCase</code>:</p>
+</div>
+<div class="listingblock">
+<div class="title">InvoiceTest.groovy</div>
+<div class="content">
+<pre class="CodeRay"><code class="groovy language-groovy"><span class="type">class</span> <span class="class">InvoiceTest</span> <span class="directive">extends</span> DbUnitTestCase {
+
+  InvoiceRepository invoiceRepository
+
+  <span class="directive">protected</span> <span class="type">void</span> setUp() {
+     <span class="local-variable">super</span>.setUp()
+     setUpDatabase(<span class="string"><span class="delimiter">'</span><span class="content">/project/data.xlsx</span><span class="delimiter">'</span></span>)
+     invoiceRepository = SimpleJpaUtil.instance.repositoryManager.findRepository(<span class="string"><span class="delimiter">'</span><span class="content">Invoice</span><span class="delimiter">'</span></span>)
+  }
+
+  <span class="type">void</span> testDelete() {
+     Invoice newInvoice = invoiceRepository.findInvoiceById(-<span class="integer">1l</span>)
+     invoiceRepository.remove(newInvoice)
+     newInvoice = invoiceRepository.findInvoiceById(-<span class="integer">1l</span>)
+     assertNull(newInvoice)
+  }
+
+}</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>When you execute the test by using <code>griffon test-app</code>, <code>setUpDatabase()</code> is called before executing test methods.  By default,
+  <code>setUpDatabase()</code> performs a clean insert (<code>DatabaseOperation.CLEAN_INSERT</code>) on database.  Tables contents are deleted first then
+  new records are inserted based on the value in <code>/project/data.xlsx</code>.  Because this process is repeated for every test methods,
+  you can assume that database is in the expected state when test methods begin.</p>
+</div>
+<div class="paragraph">
+<p><code>DbUnitTestCase</code> supports the following format as data source:</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p>Microsoft Excel binary format if filename ends with <code>.xls</code>.  Every sheets represents a table.  Rows are table records and columns are
+table columns.</p>
+</li>
+<li>
+<p>Microsoft Excel XML format (the newer version) if filename ends with <code>.xlsx</code>.</p>
+</li>
+<li>
+<p>XML file if filename ends with <code>.xml</code>.</p>
+</li>
+<li>
+<p>If <code>DbUnitTestCase</code> can&#8217;t decide the type of data source, it assumes the data source is in CSV format.</p>
+</li>
+</ul>
+</div>
+<div class="paragraph">
+<p><code>DbUnitTestCase</code> also executes the following SQL files if it founds them in root package:</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p><code>before.sql</code> is executed before cleaning and executing test method.</p>
+</li>
+<li>
+<p><code>clean.sql</code> is executed  before inserting data to database.</p>
+</li>
+<li>
+<p><code>after.sql</code> is executed after database has been populated.  Test method begins after this script is executed.</p>
+</li>
+</ul>
+</div>
+<div class="admonitionblock tip">
+<table>
+<tr>
+<td class="icon">
+<i class="icon-tip" title="Tip"></i>
+</td>
+<td class="content">
+To avoid problem related to foreign key constraints, you can drop your table manually in <code>before.sql</code> or <code>clean.sql</code> in
+ the correct order.  If you use MySQL Server, you can use <code>SET FOREIGN_KEY_CHECKS=0</code> to disable foreign key constraints and
+  <code>SET FOREIGN_KEY_CHECKS=1</code> to enable foreign key constraints.
+</td>
+</tr>
+</table>
+</div>
+<div class="paragraph">
+<p>By default, <code>DbUnitTestCase</code> performs <code>DatabaseOperation.CLEAN_INSERT</code> for every methods.  You can change this by setting
+ <code>insertOperation</code> with a different value, for example:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="CodeRay"><code class="groovy language-groovy"><span class="type">class</span> <span class="class">InvoiceTest</span> <span class="directive">extends</span> DbUnitTestCase {
+
+  <span class="directive">protected</span> <span class="type">void</span> setUp() {
+     <span class="local-variable">super</span>.setUp()
+     setUpDatabase(<span class="string"><span class="delimiter">'</span><span class="content">/project/data.xlsx</span><span class="delimiter">'</span></span>, <span class="predefined-constant">null</span>, <span class="predefined-constant">false</span>, DatabaseOperation.UPDATE)
+  }
+
+}</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>For advanced use case, you can always override or execute public methods provided by <code>DbUnitTestCase</code>:</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p><code>loadMVC(mvcGroup)</code></p>
+<div class="paragraph">
+<p>Create MVCGroup instance specified by the name.  You can then use <code>model</code>, <code>view</code> and <code>controller</code> property to
+access this MVC instance members.</p>
+</div>
+</li>
+<li>
+<p><code>beforeSetupDatabase()</code></p>
+<div class="paragraph">
+<p>Use this method to execute <code>before.sql</code> if it is found in root package.  This method is called at the beginning of test method.</p>
+</div>
+</li>
+<li>
+<p><code>cleanDataset()</code></p>
+<div class="paragraph">
+<p>Use this method to execute <code>clean.sql</code> if it is found in root package.  This method is called before <code>insertOperation</code> is executed.</p>
+</div>
+</li>
+<li>
+<p><code>afterSetupDatabase()</code></p>
+<div class="paragraph">
+<p>Use this method to execute <code>after.sql</code> if it is found in root package.  This method is called after <code>insertOperation</code> is executed and
+before test method begins.</p>
+</div>
+</li>
+<li>
+<p><code>execute(list)</code></p>
+<div class="paragraph">
+<p>Execute a list of SQL statements.</p>
+</div>
+</li>
+<li>
+<p><code>cleanInsert()</code></p>
+<div class="paragraph">
+<p>Perform a <code>DatabaseOperation.CLEAN_INSERT</code> based on current data source.</p>
+</div>
+</li>
+<li>
+<p><code>truncateTable()</code></p>
+<div class="paragraph">
+<p>Perform a <code>DatabaseOperation.TRUNCATE_TABLE</code> based on current data source.</p>
+</div>
+</li>
+<li>
+<p><code>deleteAll()</code></p>
+<div class="paragraph">
+<p>Perform a <code>DatabaseOperation.DELETE_ALL</code> based on current data source.</p>
+</div>
+</li>
+<li>
+<p><code>refresh()</code></p>
+<div class="paragraph">
+<p>Perform a <code>DatabaseOperation.REFRESH</code> based on current data source.</p>
+</div>
+</li>
+</ul>
+</div>
+</div>
 </div>
 </div>
 <div class="sect1">
