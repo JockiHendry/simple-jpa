@@ -1,0 +1,247 @@
+== Transaction
+
+simple-jpa uses `EntityManager` per transaction strategy.  A new `EntityManager` is created when transaction begins and
+  it is destroyed when transaction is finished.  Using `EntityManager` in Griffon is a bit tricky since `EntityManager`
+  is not thread-safe while Griffon may execute code in different thread.  To solve this problem, simple-jpa creates
+  a new `EntityManager` for each different threads.
+
+=== @Transaction Annotation
+
+You can use `@Transaction` annotation to wrap a method in transaction.  This annotation should only be used on artifacts
+ that have been injected by <<persistence-methods>>.  Using `@Transaction` on artifacts that don't have persistence methods
+  will raise errors.
+
+The following code show the basic usage of `@Transaction`:
+
+[source,groovy]
+----
+class MyRepository {
+
+  @Transaction
+  void register() {
+   ...
+  }
+
+}
+----
+
+You can also apply `@Transaction` to all methods in the class by simply add the annotation at class level.
+
+[source,groovy]
+----
+@Transaction
+class MyRepository {
+
+  void register() {
+     ...
+  }
+
+  void unregister() {
+     ...
+  }
+
+}
+----
+
+`@Transaction` accepts a value that can be `Policy.NORMAL` or `Policy.SKIP`.
+
+`Policy.NORMAL` (default value) supports nested transaction.  If `methodA()` calls `methodB()` and both methods
+are annotated by `@Transaction`, they are executed in the same transaction.  If one of `methodA()` and `methodB()`
+raises an `Exception`, none of their queries will be committed.
+
+[source,groovy]
+.MyRepository.groovy
+----
+@Transaction
+class MyRepository {
+
+    void methodA() {
+        MyEntity entityA = new MyEntity('Entity A')
+        persist(entityA)
+        methodB()
+    }
+
+    void methodB() {
+        MyEntity entityB = new MyEntity('Entity B')
+        persist(entityB)
+        throw new RuntimeException('Something fails here!')
+    }
+
+}
+----
+
+[source,groovy]
+.MyController.groovy
+----
+class MyController {
+
+    MyRepository myRepository
+
+    def test = {
+        // Both entityA and entityB are not persisted to database
+        // because methodB() fails with Exception.
+        myRepository.methodA()
+    }
+
+}
+----
+
+Nested transaction only work if methods are called from within the same thread.  If `methodB()` is executed by using
+method such as `app.execFuture()` or `app.eventAsync()`, simple-jpa can't guarantee it will be part of caller
+transaction.  This is especially true if thread pool is involved.
+
+[source,groovy]
+.MyRepository.groovy
+----
+@Transaction
+class MyRepository {
+
+    def app
+
+    void methodA() {
+        MyEntity entityA = new MyEntity('Entity A')
+        persist(entityA)
+        app.execFuture { methodB() }
+    }
+
+    void methodB() {
+        MyEntity entityB = new MyEntity('Entity B')
+        persist(entityB)
+        throw new RuntimeException('Something fails here!')
+    }
+
+}
+----
+
+[source,groovy]
+.MyController.groovy
+----
+class MyController {
+
+    MyRepository myRepository
+
+    def test = {
+        // entityA is persisted to database but
+        // entityB is *NOT* persisted to database!
+        myRepository.methodA()
+    }
+
+}
+----
+
+TIP: To avoid unexpected random errors such as duplicate primary key or missing entity, don't use multithreading
+in persistence layer!
+
+`Policy.SKIP` is used to tell simple-jpa to not apply transaction AST transformation to the annotated method.  This can
+ be useful if you use `@Transaction` at class level and want to avoid wrapping few methods in transaction.
+
+[source,groovy]
+.MyController.groovy
+----
+@Transaction
+class MyController {
+
+    MyRepository myRepository
+
+    def create = {
+        // Calling this closure will start a new transaction
+        // or continue existing transaction if caller is in transaction.
+    }
+
+    def remove = {
+        // Calling this closure will start a new transaction
+        // or continue existing transaction if caller is in transaction.
+    }
+
+    @Transaction(Transaction.Policy.SKIP)
+    def calculate = {
+        // Calling this closure will *NOT* start a new transaction!
+        // If caller is in transaction, it will be part of that transaction.
+    }
+
+}
+----
+
+=== Transaction Methods
+
+You can also create transaction without using `@Transaction` annotation.  This can be done by calling transaction methods
+ manually.  Because transaction methods is part of persistence methods, they are only available in injected artifacts.  The
+ following is list of transaction methods:
+
+* `beginTransaction()`
++
+Use this method to mark the beginning of new transaction.
+
+* `commitTransaction()`
++
+Use this method to commit current transaction.  This method will destroys `EntityManager` if current transaction is not
+ nested.
+
+* `rollbackTransaction()`
++
+Use this method to rollback current transaction.  This method will destroys `EntityManager`.
+
+* `withTransaction(closure)`
++
+Execute closure inside transaction.  Inside this closure, you can directly call persistence methods.
+
+For example, if controllers are injected with persistence methods, you can use the following code to create new transaction:
+
+[source,groovy]
+.MyController.groovy
+----
+class MyController {
+
+  def save = {
+    beginTransaction()
+      try {
+        ... // perform works here
+        commitTransaction()
+      } catch (Exception ex) {
+        rollbackTransaction()
+      }
+  }
+
+}
+----
+
+`withTransaction()` allows you to wrap a closure inside transaction.  For example, you can replace the previous sample
+code into:
+
+[source,groovy]
+.MyController.groovy
+----
+class MyController {
+
+  def save = {
+    withTransaction {
+      ... // perform works here
+    }
+  }
+
+}
+----
+
+You can always call persistence methods directly inside the closure.  This is very useful if you call `withTransaction`
+ from another class, for example:
+
+[source,groovy]
+----
+class MyDomainClass {
+
+   MyRepository myRepository
+
+   public BigDecimal calculate() {
+      ...
+      myRepository.withTransaction {
+         ...
+         executeQuery("FROM Invoice i WHERE i.dueDate > :date", aDate)
+         ...
+      }
+      ...
+   }
+
+}
+----
+
+

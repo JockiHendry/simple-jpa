@@ -59,7 +59,8 @@
 <li><a href="#transaction">7. Transaction</a></li>
 <li>
 <ul class="sectlevel2">
-<li><a href="#transaction-2">7.1. Transaction</a></li>
+<li><a href="#transaction-annotation">7.1. @Transaction Annotation</a></li>
+<li><a href="#transaction-methods">7.2. Transaction Methods</a></li>
 </ul>
 </li>
 <li><a href="#auditing">8. Auditing</a></li>
@@ -89,30 +90,25 @@
 <li><a href="#auditing-2">11.3. Auditing</a></li>
 </ul>
 </li>
-<li><a href="#script">Appendix C: Script</a></li>
+<li><a href="#script">Appendix B: Script</a></li>
 <li>
 <ul class="sectlevel2">
-<li><a href="#create-simple-jpa">C.1. create-simple-jpa</a></li>
-<li><a href="#create-domain-class">C.2. create-domain-class</a></li>
-<li><a href="#generate-all">C.3. generate-all</a></li>
-<li><a href="#install-templates">C.4. install-templates</a></li>
-<li><a href="#simple-jpa-console">C.5. simple-jpa-console</a></li>
-<li><a href="#generate-schema">C.6. generate-schema</a></li>
-<li><a href="#obfuscate">C.7. obfuscate</a></li>
-<li><a href="#create-repository">C.8. create-repository</a></li>
-<li><a href="#transaction-3">Appendix B: @Transaction</a></li>
+<li><a href="#create-simple-jpa">B.1. create-simple-jpa</a></li>
+<li><a href="#create-domain-class">B.2. create-domain-class</a></li>
+<li><a href="#generate-all">B.3. generate-all</a></li>
+<li><a href="#install-templates">B.4. install-templates</a></li>
+<li><a href="#simple-jpa-console">B.5. simple-jpa-console</a></li>
+<li><a href="#generate-schema">B.6. generate-schema</a></li>
+<li><a href="#obfuscate">B.7. obfuscate</a></li>
+<li><a href="#create-repository">B.8. create-repository</a></li>
 </ul>
 </li>
-<li><a href="#methods">Appendix D: Methods</a></li>
+<li><a href="#methods">Appendix C: Methods</a></li>
 <li>
 <ul class="sectlevel2">
-<li><a href="#begintransaction">D.1. beginTransaction()</a></li>
-<li><a href="#committransaction">D.2. commitTransaction()</a></li>
-<li><a href="#executenamedquery">D.3. executeNamedQuery()</a></li>
-<li><a href="#executenativequery">D.4. executeNativeQuery()</a></li>
-<li><a href="#executequery">D.5. executeQuery()</a></li>
-<li><a href="#rollbacktransaction">D.6. rollbackTransaction()</a></li>
-<li><a href="#withtransaction">D.7. withTransaction()</a></li>
+<li><a href="#executenamedquery">C.1. executeNamedQuery()</a></li>
+<li><a href="#executenativequery">C.2. executeNativeQuery()</a></li>
+<li><a href="#executequery">C.3. executeQuery()</a></li>
 </ul>
 </li>
 </ul>
@@ -744,6 +740,12 @@ provided by simple-jpa.  You can create a new repository by using <code>griffon 
 </div>
 </li>
 <li>
+<p>Transaction methods</p>
+<div class="paragraph">
+<p>See <a href="#transaction-methods">Transaction Methods</a> for more information.</p>
+</div>
+</li>
+<li>
 <p>All public methods of <code>EntityManager</code>.</p>
 <div class="paragraph">
 <p>simple-jpa exposes all public methods of <code>EntityManager</code> to injected class.  This means you can directly call methods such
@@ -752,6 +754,18 @@ These methods can&#8217;t be renamed.</p>
 </div>
 </li>
 </ul>
+</div>
+<div class="admonitionblock tip">
+<table>
+<tr>
+<td class="icon">
+<i class="icon-tip" title="Tip"></i>
+</td>
+<td class="content">
+All persistence methods are public so you can still call them from different class.
+</td>
+</tr>
+</table>
 </div>
 <div class="paragraph">
 <p>To avoid conflict with existing methods in injected class, simple-jpa can add prefix to persistence methods.  For example,
@@ -3195,26 +3209,30 @@ DialogUtils.showMVCGroup(<span class="string"><span class="delimiter">'</span><s
 <h2 id="transaction">7. Transaction</h2>
 <div class="sectionbody">
 <div class="paragraph">
-<p>Enhanced artifacts will have
- persistence related method injected to them.  These methods are usually used to manage entity (instance of class marked
- by <code>@Entity</code> annotation).
- class.</p>
+<p>simple-jpa uses <code>EntityManager</code> per transaction strategy.  A new <code>EntityManager</code> is created when transaction begins and
+  it is destroyed when transaction is finished.  Using <code>EntityManager</code> in Griffon is a bit tricky since <code>EntityManager</code>
+  is not thread-safe while Griffon may execute code in different thread.  To solve this problem, simple-jpa creates
+  a new <code>EntityManager</code> for each different threads.</p>
 </div>
 <div class="sect2">
-<h3 id="transaction-2">7.1. Transaction</h3>
+<h3 id="transaction-annotation">7.1. @Transaction Annotation</h3>
 <div class="paragraph">
-<p>Using <code>EntityManager</code> in Griffon is a bit tricky since <code>EntityManager</code> is not thread-safe while Griffon may execute
-code in different thread.  To solve this problem, simple-jpa will create new <code>EntityManager</code> when the same code
-is executed from different thread.  Since version 0.8, simple-jpa adopted <code>EntityManager</code> per transaction strategy.</p>
+<p>You can use <code>@Transaction</code> annotation to wrap a method in transaction.  This annotation should only be used on artifacts
+ that have been injected by <a href="#persistence-methods">Persistence Methods</a>.  Using <code>@Transaction</code> on artifacts that don&#8217;t have persistence methods
+  will raise errors.</p>
 </div>
 <div class="paragraph">
-<p>You can use <code>@Transaction</code> annotation to wrap a method in transaction.</p>
+<p>The following code show the basic usage of <code>@Transaction</code>:</p>
 </div>
 <div class="listingblock">
 <div class="content">
-<pre class="CodeRay"><code class="groovy language-groovy"><span class="annotation">@Transaction</span>
-<span class="type">void</span> register() {
-  ...
+<pre class="CodeRay"><code class="groovy language-groovy"><span class="type">class</span> <span class="class">MyRepository</span> {
+
+  <span class="annotation">@Transaction</span>
+  <span class="type">void</span> register() {
+   ...
+  }
+
 }</code></pre>
 </div>
 </div>
@@ -3366,6 +3384,105 @@ in persistence layer!
         <span class="comment">// Calling this closure will *NOT* start a new transaction!</span>
         <span class="comment">// If caller is in transaction, it will be part of that transaction.</span>
     }
+
+}</code></pre>
+</div>
+</div>
+</div>
+<div class="sect2">
+<h3 id="transaction-methods">7.2. Transaction Methods</h3>
+<div class="paragraph">
+<p>You can also create transaction without using <code>@Transaction</code> annotation.  This can be done by calling transaction methods
+ manually.  Because transaction methods is part of persistence methods, they are only available in injected artifacts.  The
+ following is list of transaction methods:</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p><code>beginTransaction()</code></p>
+<div class="paragraph">
+<p>Use this method to mark the beginning of new transaction.</p>
+</div>
+</li>
+<li>
+<p><code>commitTransaction()</code></p>
+<div class="paragraph">
+<p>Use this method to commit current transaction.  This method will destroys <code>EntityManager</code> if current transaction is not
+ nested.</p>
+</div>
+</li>
+<li>
+<p><code>rollbackTransaction()</code></p>
+<div class="paragraph">
+<p>Use this method to rollback current transaction.  This method will destroys <code>EntityManager</code>.</p>
+</div>
+</li>
+<li>
+<p><code>withTransaction(closure)</code></p>
+<div class="paragraph">
+<p>Execute closure inside transaction.  Inside this closure, you can directly call persistence methods.</p>
+</div>
+</li>
+</ul>
+</div>
+<div class="paragraph">
+<p>For example, if controllers are injected with persistence methods, you can use the following code to create new transaction:</p>
+</div>
+<div class="listingblock">
+<div class="title">MyController.groovy</div>
+<div class="content">
+<pre class="CodeRay"><code class="groovy language-groovy"><span class="type">class</span> <span class="class">MyController</span> {
+
+  <span class="keyword">def</span> save = {
+    beginTransaction()
+      <span class="keyword">try</span> {
+        ... <span class="comment">// perform works here</span>
+        commitTransaction()
+      } <span class="keyword">catch</span> (<span class="exception">Exception</span> ex) {
+        rollbackTransaction()
+      }
+  }
+
+}</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p><code>withTransaction()</code> allows you to wrap a closure inside transaction.  For example, you can replace the previous sample
+code into:</p>
+</div>
+<div class="listingblock">
+<div class="title">MyController.groovy</div>
+<div class="content">
+<pre class="CodeRay"><code class="groovy language-groovy"><span class="type">class</span> <span class="class">MyController</span> {
+
+  <span class="keyword">def</span> save = {
+    withTransaction {
+      ... <span class="comment">// perform works here</span>
+    }
+  }
+
+}</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>You can always call persistence methods directly inside the closure.  This is very useful if you call <code>withTransaction</code>
+ from another class, for example:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="CodeRay"><code class="groovy language-groovy"><span class="type">class</span> <span class="class">MyDomainClass</span> {
+
+   MyRepository myRepository
+
+   <span class="directive">public</span> <span class="predefined-type">BigDecimal</span> calculate() {
+      ...
+      myRepository.withTransaction {
+         ...
+         executeQuery(<span class="string"><span class="delimiter">&quot;</span><span class="content">FROM Invoice i WHERE i.dueDate &gt; :date</span><span class="delimiter">&quot;</span></span>, aDate)
+         ...
+      }
+      ...
+   }
 
 }</code></pre>
 </div>
@@ -4001,7 +4118,7 @@ instance of <code>org.jdesktop.swingx.auth.LoginService</code>.</p>
 </div>
 </div>
 <div class="sect1">
-<h2 id="script">Appendix C: Script</h2>
+<h2 id="script">Appendix B: Script</h2>
 <div class="sectionbody">
 <div class="paragraph">
 <p>simple-jpa scripts can be called just like any Griffon&#8217;s commands:</p>
@@ -4020,7 +4137,7 @@ instance of <code>org.jdesktop.swingx.auth.LoginService</code>.</p>
 </div>
 </div>
 <div class="sect2">
-<h3 id="create-simple-jpa">C.1. create-simple-jpa</h3>
+<h3 id="create-simple-jpa">B.1. create-simple-jpa</h3>
 <div class="paragraph">
 <p>This command is usually the first command that will be invoked before working with Java Persistence API (JPA).
 It will create persistence.xml and orm.xml in current project. It will also create some resource files that are commonly
@@ -4119,7 +4236,7 @@ database schema: ha), uses Hibernate JPA, and will not check if required user an
 </div>
 </div>
 <div class="sect2">
-<h3 id="create-domain-class">C.2. create-domain-class</h3>
+<h3 id="create-domain-class">B.2. create-domain-class</h3>
 <div class="paragraph">
 <p>This command will create a new empty domain class and register it in persistence context file. Before creating domain
 class, the project must has <code>persistence.xml</code> file in <code>metainf</code> directory. To generate required files for working with
@@ -4185,7 +4302,7 @@ is <code>domain</code>.</p>
 </div>
 </div>
 <div class="sect2">
-<h3 id="generate-all">C.3. generate-all</h3>
+<h3 id="generate-all">B.3. generate-all</h3>
 <div class="paragraph">
 <p>This command will create a new <code>MVCGroup</code> based on a domain class. The generated MVCGroup (consists of a view, a model
 and a controller) has the ability to perform CRUD operations on a domain class. This command can also generate a startup
@@ -4308,7 +4425,7 @@ MVCGroup as startup:</p>
 </div>
 </div>
 <div class="sect2">
-<h3 id="install-templates">C.4. install-templates</h3>
+<h3 id="install-templates">B.4. install-templates</h3>
 <div class="paragraph">
 <p>This command will add templates used by simple-jpa to current project in <code>/src/templates/artifacts</code>. This command is
 useful for changing templates that is used by simple-jpa generator. Developer can edit the templates and the next
@@ -4332,7 +4449,7 @@ invocation of simple-jpa generator will based on them.</p>
 </div>
 </div>
 <div class="sect2">
-<h3 id="simple-jpa-console">C.5. simple-jpa-console</h3>
+<h3 id="simple-jpa-console">B.5. simple-jpa-console</h3>
 <div class="paragraph">
 <p>This command will launch Groovy Console loaded with Griffon and simple-jpa. Developer can use this command to test or
 execute code interactively.</p>
@@ -4364,7 +4481,7 @@ To display list of available variables, select <strong>Script</strong>, <strong>
 </div>
 </div>
 <div class="sect2">
-<h3 id="generate-schema">C.6. generate-schema</h3>
+<h3 id="generate-schema">B.6. generate-schema</h3>
 <div class="paragraph">
 <p>This command will generate database schema based on current domain models mapping to database or scripts. Developer can
 use this command to retrieve SQL scripts that can be used to populate new database schema for current application.</p>
@@ -4439,7 +4556,7 @@ initialize database (for example, populating tables with initial data).</p>
 </div>
 </div>
 <div class="sect2">
-<h3 id="obfuscate">C.7. obfuscate</h3>
+<h3 id="obfuscate">B.7. obfuscate</h3>
 <div class="paragraph">
 <p>Use this command to generate obfuscated value that can be added to configuration file or simplejpa.properties. This is
 useful to hide sensitive information such as database password from novice users.</p>
@@ -4485,7 +4602,7 @@ configurations that accepts string value. For example, it can be used in <code>C
 </div>
 </div>
 <div class="sect2">
-<h3 id="create-repository">C.8. create-repository</h3>
+<h3 id="create-repository">B.8. create-repository</h3>
 <div class="paragraph">
 <p>Use this command to create a new repository.  It is recommended to generate repository automatically by using
 DDD generator rather than create them manually using this command.</p>
@@ -4510,162 +4627,13 @@ DDD generator rather than create them manually using this command.</p>
 </div>
 </div>
 </div>
-<div class="sect2">
-<h3 id="transaction-3">Appendix B: @Transaction</h3>
-<div class="paragraph">
-<p><code>@Transaction</code> annotation can be used to annotate a class, a closure field, or a method. It will cause the method or
-closure to be wrapped in database transaction. Using <code>@Transaction</code> on a class will make all execution of methods or
-closure fields in the class to be wrapped in database transaction. If there are both <code>@Transaction</code> annotation in a
-method/closure field and its class, only annotation in method will be used.</p>
-</div>
-<div class="paragraph">
-<p><code>@Transaction</code> can only be used in Griffon&#8217;s artifact (controllers or services) and domain classes (must be located
-inside <code>griffon.simplejpa.domain.package</code>).</p>
-</div>
-<div class="paragraph">
-<p><code>@Transaction</code> annotation value can be one of <code>Policy.NORMAL</code>, <code>Policy.SKIP_PROPAGATION</code>, and <code>Policy.SKIP</code>. The
-default value is <code>Policy.NORMAL</code>.</p>
-</div>
-<div class="paragraph">
-<p>A <code>Policy.NORMAL</code> transaction will join the previous transaction if it is called from another transaction. This will
-enable transaction propagation. For example, the following code will not save any objects to database because
-<code>processA()</code>, <code>processB()</code>, and <code>processC()</code> is part of one transaction and if any of them fails, all operations will
-rollback:</p>
-</div>
-<div class="listingblock">
-<div class="content">
-<pre class="CodeRay"><code class="groovy language-groovy"><span class="annotation">@Transaction</span>
-<span class="type">class</span> <span class="class">AController</span> {
-
-    <span class="keyword">def</span> <span class="function">processC</span>() {
-            <span class="keyword">throw</span> <span class="keyword">new</span> <span class="exception">RuntimeException</span>(<span class="string"><span class="delimiter">&quot;</span><span class="content">Suddenly there is an error here!</span><span class="delimiter">&quot;</span></span>)
-    }
-
-    <span class="keyword">def</span> <span class="function">processB</span>() {
-            ADomainClass b = <span class="keyword">new</span> ADomainClass()
-        persist(b)
-        processC()
-    }
-
-    <span class="keyword">def</span> <span class="function">processA</span>() {
-            ADomainClass a = <span class="keyword">new</span> ADomainClass()
-        persist(a)
-        processB()
-    }
-
-}</code></pre>
-</div>
-</div>
-<div class="paragraph">
-<p>A <code>Policy.SKIP_PROPAGATION</code> transaction will always start a new transaction. It will not join previous transaction.
-For example, the following code will result in <code>a</code> being persisted in database but <code>b</code> will be ignored:</p>
-</div>
-<div class="listingblock">
-<div class="content">
-<pre class="CodeRay"><code class="groovy language-groovy"><span class="annotation">@Transaction</span>
-<span class="type">class</span> <span class="class">AController</span> {
-
-    <span class="annotation">@Transaction</span>(Transaction.Policy.SKIP_PROPAGATION)
-    <span class="keyword">def</span> <span class="function">processB</span>() {
-            ADomainClass b = <span class="keyword">new</span> ADomainClass()
-        persist(b)
-        processC()
-    }
-
-    <span class="keyword">def</span> <span class="function">processA</span>() {
-            ADomainClass a = <span class="keyword">new</span> ADomainClass()
-        persist(a)
-        processB()
-    }
-
-}</code></pre>
-</div>
-</div>
-<div class="paragraph">
-<p>A <code>Policy.SKIP</code> transaction mean there is no transaction at all (<code>@Transaction</code> will do nothing). It is recommended to
-use this attribute to method or closure fields that don&#8217;t access database, as shown in the sample below:</p>
-</div>
-<div class="listingblock">
-<div class="content">
-<pre class="CodeRay"><code class="groovy language-groovy"><span class="annotation">@Transaction</span>
-<span class="type">class</span> <span class="class">AController</span> {
-
-    <span class="annotation">@Transaction</span>(Transaction.Policy.SKIP)
-    <span class="keyword">def</span> <span class="function">notRecommended</span>() {
-        ADomainClass a = <span class="keyword">new</span> ADomainClass()
-        persist(a)
-        <span class="keyword">throw</span> <span class="keyword">new</span> <span class="exception">RuntimeException</span>(<span class="string"><span class="delimiter">&quot;</span><span class="content">Suddenly fail here!</span><span class="delimiter">&quot;</span></span>)
-        ADomainClass b = <span class="keyword">new</span> ADomainClass()
-        persist(b)
-    }
-
-    <span class="annotation">@Transaction</span>(Transaction.Policy.SKIP)
-    <span class="keyword">def</span> <span class="function">recommended</span>() {
-        <span class="comment">// Use it on method which doesn't require database access</span>
-        model.result = model.number1 + model.number2
-    }
-}</code></pre>
-</div>
-</div>
-<div class="paragraph">
-<p>In the example above, <code>notRecommended()</code> will persist <code>a</code> in the database but not <code>b</code> because an error was encountered
-immediately after persisting <code>a</code>. This is not recommended because it will leave database in inconsistent state.</p>
-</div>
-</div>
 </div>
 </div>
 <div class="sect1">
-<h2 id="methods">Appendix D: Methods</h2>
+<h2 id="methods">Appendix C: Methods</h2>
 <div class="sectionbody">
-<div class="paragraph">
-<p>simple-jpa will inject JPA related methods to all controllers (or other artifacts configured in
-<code>griffon.simplejpa.finders.injectInto</code>). These methods are always public.</p>
-</div>
 <div class="sect2">
-<h3 id="begintransaction">D.1. beginTransaction()</h3>
-<div class="paragraph">
-<p>It is not recommended to call this method directly. This is a low level method that will be called by <code>@Transaction</code>.</p>
-</div>
-<div class="paragraph">
-<p>Use this method to start a new transaction. If resume parameter is true, it will join the previous transaction if
-previous transaction is exists. If newSession parameter is true, this method will destroy previous EntityManager.</p>
-</div>
-<div class="paragraph">
-<p>Example of low level operations using simple-jpa:</p>
-</div>
-<div class="listingblock">
-<div class="content">
-<pre class="CodeRay"><code class="groovy language-groovy">beginTransaction()
-<span class="keyword">def</span> em = getEntityManager()
-... <span class="comment">// perform works with em</span>
-em.close()
-commitTransaction()</code></pre>
-</div>
-</div>
-</div>
-<div class="sect2">
-<h3 id="committransaction">D.2. commitTransaction()</h3>
-<div class="paragraph">
-<p>It is not recommended to call this method directly. This is a low level method that will be called by <code>@Transaction</code>.</p>
-</div>
-<div class="paragraph">
-<p>Use this method to commit a transaction.</p>
-</div>
-<div class="paragraph">
-<p>Example of low level operations using simple-jpa:</p>
-</div>
-<div class="listingblock">
-<div class="content">
-<pre class="CodeRay"><code class="groovy language-groovy">beginTransaction()
-<span class="keyword">def</span> em = getEntityManager()
-... <span class="comment">// perform works with em</span>
-em.close()
-commitTransaction()</code></pre>
-</div>
-</div>
-</div>
-<div class="sect2">
-<h3 id="executenamedquery">D.3. executeNamedQuery()</h3>
+<h3 id="executenamedquery">C.1. executeNamedQuery()</h3>
 <div class="paragraph">
 <p>Use this method to execute JPA named query. This method will return a List that contains the result from named query
 execution. The syntax of this method is:</p>
@@ -4705,7 +4673,7 @@ execution. The syntax of this method is:</p>
 </div>
 </div>
 <div class="sect2">
-<h3 id="executenativequery">D.4. executeNativeQuery()</h3>
+<h3 id="executenativequery">C.2. executeNativeQuery()</h3>
 <div class="paragraph">
 <p>Use this method to execute native SQL. This is a low level query method (from JPA point of view) so it is better to use
 <code>executeQuery()</code> if possible. This method will return a <code>List</code> that contains the result from SQL execution.</p>
@@ -4731,7 +4699,7 @@ execution. The syntax of this method is:</p>
 </div>
 </div>
 <div class="sect2">
-<h3 id="executequery">D.5. executeQuery()</h3>
+<h3 id="executequery">C.3. executeQuery()</h3>
 <div class="paragraph">
 <p>Use this method to execute JP QL. This method will return a List that contains the result from JP QL execution.
 The syntax of this method is:</p>
@@ -4753,50 +4721,12 @@ The syntax of this method is:</p>
 </div>
 </div>
 </div>
-<div class="sect2">
-<h3 id="rollbacktransaction">D.6. rollbackTransaction()</h3>
-<div class="paragraph">
-<p>It is not recommended to call this method directly. This is a low level method that will be called by <code>@Transaction</code>.</p>
-</div>
-<div class="paragraph">
-<p>Use this method to rollback a transaction and clear the EntityManager.</p>
-</div>
-<div class="paragraph">
-<p>Example of low level operations using simple-jpa:</p>
-</div>
-<div class="listingblock">
-<div class="content">
-<pre class="CodeRay"><code class="groovy language-groovy">beginTransaction()
-<span class="keyword">def</span> em = getEntityManager()
-... <span class="comment">// perform works with em</span>
-rollbackTransaction()
-em.close()</code></pre>
-</div>
-</div>
-</div>
-<div class="sect2">
-<h3 id="withtransaction">D.7. withTransaction()</h3>
-<div class="paragraph">
-<p>This method will execute a closure as one transaction. The code inside the closure can call simple-jpa dynamic methods directly.</p>
-</div>
-<div class="paragraph">
-<p>Example:</p>
-</div>
-<div class="listingblock">
-<div class="content">
-<pre class="CodeRay"><code class="groovy language-groovy">repository.withTransaction {
-   Student student = findStudentByName(<span class="string"><span class="delimiter">&quot;</span><span class="content">me</span><span class="delimiter">&quot;</span></span>);
-   <span class="keyword">if</span> (student) remove(student)
-}</code></pre>
-</div>
-</div>
-</div>
 </div>
 </div>
 </div>
 <div id="footer">
 <div id="footer-text">
-Last updated 2015-01-30 23:11:13 ICT
+Last updated 2015-02-01 12:39:09 ICT
 </div>
 <div id="mask"></div>
 <script type="text/javascript">

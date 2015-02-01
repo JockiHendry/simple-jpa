@@ -5,7 +5,7 @@
 <article xmlns="http://docbook.org/ns/docbook" xmlns:xlink="http://www.w3.org/1999/xlink" version="5.0" lang="en">
 <info>
 <title><i class="icon-reorder" id='nav-icon'></i> simple-jpa 0.8</title>
-<date>2015-01-30</date>
+<date>2015-02-01</date>
 </info>
 <section xml:id="introduction">
 <title>Introduction</title>
@@ -454,12 +454,19 @@ provided by simple-jpa.  You can create a new repository by using <literal>griff
 <simpara>Returns an <literal>EntityManager</literal> for current session.  This method can&#8217;t be renamed.</simpara>
 </listitem>
 <listitem>
+<simpara>Transaction methods</simpara>
+<simpara>See <xref linkend="transaction-methods"/> for more information.</simpara>
+</listitem>
+<listitem>
 <simpara>All public methods of <literal>EntityManager</literal>.</simpara>
 <simpara>simple-jpa exposes all public methods of <literal>EntityManager</literal> to injected class.  This means you can directly call methods such
 as <literal>lock()</literal>, <literal>refresh()</literal>, or <literal>detach()</literal> in injected class.  For more information about <literal>EntityManager</literal>, see JPA documentation.
 These methods can&#8217;t be renamed.</simpara>
 </listitem>
 </itemizedlist>
+<tip>
+<simpara>All persistence methods are public so you can still call them from different class.</simpara>
+</tip>
 <simpara>To avoid conflict with existing methods in injected class, simple-jpa can add prefix to persistence methods.  For example,
   you can add the following line to <literal>Config.groovy</literal>:</simpara>
 <literallayout class="monospaced">griffon.simplejpa.finders.prefix = 'jpa'</literallayout>
@@ -2437,19 +2444,23 @@ DialogUtils.showMVCGroup('lineItemAsChild', args, view, props) { m, v, c -&gt;
 </section>
 <section xml:id="transaction">
 <title>Transaction</title>
-<simpara>Enhanced artifacts will have
- persistence related method injected to them.  These methods are usually used to manage entity (instance of class marked
- by <literal>@Entity</literal> annotation).
- class.</simpara>
-<section xml:id="transaction-2">
-<title>Transaction</title>
-<simpara>Using <literal>EntityManager</literal> in Griffon is a bit tricky since <literal>EntityManager</literal> is not thread-safe while Griffon may execute
-code in different thread.  To solve this problem, simple-jpa will create new <literal>EntityManager</literal> when the same code
-is executed from different thread.  Since version 0.8, simple-jpa adopted <literal>EntityManager</literal> per transaction strategy.</simpara>
-<simpara>You can use <literal>@Transaction</literal> annotation to wrap a method in transaction.</simpara>
-<programlisting language="groovy" linenumbering="unnumbered">@Transaction
-void register() {
-  ...
+<simpara>simple-jpa uses <literal>EntityManager</literal> per transaction strategy.  A new <literal>EntityManager</literal> is created when transaction begins and
+  it is destroyed when transaction is finished.  Using <literal>EntityManager</literal> in Griffon is a bit tricky since <literal>EntityManager</literal>
+  is not thread-safe while Griffon may execute code in different thread.  To solve this problem, simple-jpa creates
+  a new <literal>EntityManager</literal> for each different threads.</simpara>
+<section xml:id="transaction-annotation">
+<title>@Transaction Annotation</title>
+<simpara>You can use <literal>@Transaction</literal> annotation to wrap a method in transaction.  This annotation should only be used on artifacts
+ that have been injected by <xref linkend="persistence-methods"/>.  Using <literal>@Transaction</literal> on artifacts that don&#8217;t have persistence methods
+  will raise errors.</simpara>
+<simpara>The following code show the basic usage of <literal>@Transaction</literal>:</simpara>
+<programlisting language="groovy" linenumbering="unnumbered">class MyRepository {
+
+  @Transaction
+  void register() {
+   ...
+  }
+
 }</programlisting>
 <simpara>You can also apply <literal>@Transaction</literal> to all methods in the class by simply add the annotation at class level.</simpara>
 <programlisting language="groovy" linenumbering="unnumbered">@Transaction
@@ -2580,6 +2591,83 @@ class MyController {
 }</programlisting>
 </para>
 </formalpara>
+</section>
+<section xml:id="transaction-methods">
+<title>Transaction Methods</title>
+<simpara>You can also create transaction without using <literal>@Transaction</literal> annotation.  This can be done by calling transaction methods
+ manually.  Because transaction methods is part of persistence methods, they are only available in injected artifacts.  The
+ following is list of transaction methods:</simpara>
+<itemizedlist>
+<listitem>
+<simpara><literal>beginTransaction()</literal></simpara>
+<simpara>Use this method to mark the beginning of new transaction.</simpara>
+</listitem>
+<listitem>
+<simpara><literal>commitTransaction()</literal></simpara>
+<simpara>Use this method to commit current transaction.  This method will destroys <literal>EntityManager</literal> if current transaction is not
+ nested.</simpara>
+</listitem>
+<listitem>
+<simpara><literal>rollbackTransaction()</literal></simpara>
+<simpara>Use this method to rollback current transaction.  This method will destroys <literal>EntityManager</literal>.</simpara>
+</listitem>
+<listitem>
+<simpara><literal>withTransaction(closure)</literal></simpara>
+<simpara>Execute closure inside transaction.  Inside this closure, you can directly call persistence methods.</simpara>
+</listitem>
+</itemizedlist>
+<simpara>For example, if controllers are injected with persistence methods, you can use the following code to create new transaction:</simpara>
+<formalpara>
+<title>MyController.groovy</title>
+<para>
+<programlisting language="groovy" linenumbering="unnumbered">class MyController {
+
+  def save = {
+    beginTransaction()
+      try {
+        ... // perform works here
+        commitTransaction()
+      } catch (Exception ex) {
+        rollbackTransaction()
+      }
+  }
+
+}</programlisting>
+</para>
+</formalpara>
+<simpara><literal>withTransaction()</literal> allows you to wrap a closure inside transaction.  For example, you can replace the previous sample
+code into:</simpara>
+<formalpara>
+<title>MyController.groovy</title>
+<para>
+<programlisting language="groovy" linenumbering="unnumbered">class MyController {
+
+  def save = {
+    withTransaction {
+      ... // perform works here
+    }
+  }
+
+}</programlisting>
+</para>
+</formalpara>
+<simpara>You can always call persistence methods directly inside the closure.  This is very useful if you call <literal>withTransaction</literal>
+ from another class, for example:</simpara>
+<programlisting language="groovy" linenumbering="unnumbered">class MyDomainClass {
+
+   MyRepository myRepository
+
+   public BigDecimal calculate() {
+      ...
+      myRepository.withTransaction {
+         ...
+         executeQuery("FROM Invoice i WHERE i.dueDate &gt; :date", aDate)
+         ...
+      }
+      ...
+   }
+
+}</programlisting>
 </section>
 </section>
 <section xml:id="auditing">
@@ -3270,110 +3358,9 @@ DDD generator rather than create them manually using this command.</simpara>
 <simpara>Examples:</simpara>
 <screen>create-repository Invoice</screen>
 </section>
-<section xml:id="transaction-3">
-<title>@Transaction</title>
-<simpara><literal>@Transaction</literal> annotation can be used to annotate a class, a closure field, or a method. It will cause the method or
-closure to be wrapped in database transaction. Using <literal>@Transaction</literal> on a class will make all execution of methods or
-closure fields in the class to be wrapped in database transaction. If there are both <literal>@Transaction</literal> annotation in a
-method/closure field and its class, only annotation in method will be used.</simpara>
-<simpara><literal>@Transaction</literal> can only be used in Griffon&#8217;s artifact (controllers or services) and domain classes (must be located
-inside <literal>griffon.simplejpa.domain.package</literal>).</simpara>
-<simpara><literal>@Transaction</literal> annotation value can be one of <literal>Policy.NORMAL</literal>, <literal>Policy.SKIP_PROPAGATION</literal>, and <literal>Policy.SKIP</literal>. The
-default value is <literal>Policy.NORMAL</literal>.</simpara>
-<simpara>A <literal>Policy.NORMAL</literal> transaction will join the previous transaction if it is called from another transaction. This will
-enable transaction propagation. For example, the following code will not save any objects to database because
-<literal>processA()</literal>, <literal>processB()</literal>, and <literal>processC()</literal> is part of one transaction and if any of them fails, all operations will
-rollback:</simpara>
-<programlisting language="groovy" linenumbering="unnumbered">@Transaction
-class AController {
-
-    def processC() {
-    	throw new RuntimeException("Suddenly there is an error here!")
-    }
-
-    def processB() {
-    	ADomainClass b = new ADomainClass()
-        persist(b)
-        processC()
-    }
-
-    def processA() {
-    	ADomainClass a = new ADomainClass()
-        persist(a)
-        processB()
-    }
-
-}</programlisting>
-<simpara>A <literal>Policy.SKIP_PROPAGATION</literal> transaction will always start a new transaction. It will not join previous transaction.
-For example, the following code will result in <literal>a</literal> being persisted in database but <literal>b</literal> will be ignored:</simpara>
-<programlisting language="groovy" linenumbering="unnumbered">@Transaction
-class AController {
-
-    @Transaction(Transaction.Policy.SKIP_PROPAGATION)
-    def processB() {
-    	ADomainClass b = new ADomainClass()
-        persist(b)
-        processC()
-    }
-
-    def processA() {
-    	ADomainClass a = new ADomainClass()
-        persist(a)
-        processB()
-    }
-
-}</programlisting>
-<simpara>A <literal>Policy.SKIP</literal> transaction mean there is no transaction at all (<literal>@Transaction</literal> will do nothing). It is recommended to
-use this attribute to method or closure fields that don&#8217;t access database, as shown in the sample below:</simpara>
-<programlisting language="groovy" linenumbering="unnumbered">@Transaction
-class AController {
-
-    @Transaction(Transaction.Policy.SKIP)
-    def notRecommended() {
-        ADomainClass a = new ADomainClass()
-        persist(a)
-        throw new RuntimeException("Suddenly fail here!")
-        ADomainClass b = new ADomainClass()
-        persist(b)
-    }
-
-    @Transaction(Transaction.Policy.SKIP)
-    def recommended() {
-        // Use it on method which doesn't require database access
-        model.result = model.number1 + model.number2
-    }
-}</programlisting>
-<simpara>In the example above, <literal>notRecommended()</literal> will persist <literal>a</literal> in the database but not <literal>b</literal> because an error was encountered
-immediately after persisting <literal>a</literal>. This is not recommended because it will leave database in inconsistent state.</simpara>
-</section>
 </appendix>
 <appendix xml:id="methods">
 <title>Methods</title>
-<simpara>simple-jpa will inject JPA related methods to all controllers (or other artifacts configured in
-<literal>griffon.simplejpa.finders.injectInto</literal>). These methods are always public.</simpara>
-<section xml:id="begintransaction">
-<title>beginTransaction()</title>
-<simpara>It is not recommended to call this method directly. This is a low level method that will be called by <literal>@Transaction</literal>.</simpara>
-<simpara>Use this method to start a new transaction. If resume parameter is true, it will join the previous transaction if
-previous transaction is exists. If newSession parameter is true, this method will destroy previous EntityManager.</simpara>
-<simpara>Example of low level operations using simple-jpa:</simpara>
-<programlisting language="groovy" linenumbering="unnumbered">beginTransaction()
-def em = getEntityManager()
-... // perform works with em
-em.close()
-commitTransaction()</programlisting>
-</section>
-<section xml:id="committransaction">
-<title>commitTransaction()</title>
-<simpara>It is not recommended to call this method directly. This is a low level method that will be called by <literal>@Transaction</literal>.</simpara>
-<simpara>Use this method to commit a transaction.</simpara>
-<simpara>Example of low level operations using simple-jpa:</simpara>
-<programlisting language="groovy" linenumbering="unnumbered">beginTransaction()
-def em = getEntityManager()
-... // perform works with em
-em.close()
-commitTransaction()</programlisting>
-</section>
 <section xml:id="executenamedquery">
 <title>executeNamedQuery()</title>
 <simpara>Use this method to execute JPA named query. This method will return a List that contains the result from named query
@@ -3412,26 +3399,6 @@ The syntax of this method is:</simpara>
 <simpara><literal>jpql</literal> is JP QL string that will be executed. <literal>config</literal> is an optional query configuration.</simpara>
 <simpara>Example:</simpara>
 <programlisting language="groovy" linenumbering="unnumbered">def allStudents = executeQuery('FROM Student')</programlisting>
-</section>
-<section xml:id="rollbacktransaction">
-<title>rollbackTransaction()</title>
-<simpara>It is not recommended to call this method directly. This is a low level method that will be called by <literal>@Transaction</literal>.</simpara>
-<simpara>Use this method to rollback a transaction and clear the EntityManager.</simpara>
-<simpara>Example of low level operations using simple-jpa:</simpara>
-<programlisting language="groovy" linenumbering="unnumbered">beginTransaction()
-def em = getEntityManager()
-... // perform works with em
-rollbackTransaction()
-em.close()</programlisting>
-</section>
-<section xml:id="withtransaction">
-<title>withTransaction()</title>
-<simpara>This method will execute a closure as one transaction. The code inside the closure can call simple-jpa dynamic methods directly.</simpara>
-<simpara>Example:</simpara>
-<programlisting language="groovy" linenumbering="unnumbered">repository.withTransaction {
-   Student student = findStudentByName("me");
-   if (student) remove(student)
-}</programlisting>
 </section>
 </appendix>
 </article>

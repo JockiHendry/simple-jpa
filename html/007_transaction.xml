@@ -1,0 +1,238 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?asciidoc-toc?>
+<?asciidoc-numbered?>
+<article xmlns="http://docbook.org/ns/docbook" xmlns:xlink="http://www.w3.org/1999/xlink" version="5.0" lang="en">
+<info>
+<title>Untitled</title>
+<date>2015-02-01</date>
+</info>
+<section xml:id="_transaction">
+<title>Transaction</title>
+<simpara>simple-jpa uses <literal>EntityManager</literal> per transaction strategy.  A new <literal>EntityManager</literal> is created when transaction begins and
+  it is destroyed when transaction is finished.  Using <literal>EntityManager</literal> in Griffon is a bit tricky since <literal>EntityManager</literal>
+  is not thread-safe while Griffon may execute code in different thread.  To solve this problem, simple-jpa creates
+  a new <literal>EntityManager</literal> for each different threads.</simpara>
+<section xml:id="__transaction_annotation">
+<title>@Transaction Annotation</title>
+<simpara>You can use <literal>@Transaction</literal> annotation to wrap a method in transaction.  This annotation should only be used on artifacts
+ that have been injected by <xref linkend="persistence-methods"/>.  Using <literal>@Transaction</literal> on artifacts that don&#8217;t have persistence methods
+  will raise errors.</simpara>
+<simpara>The following code show the basic usage of <literal>@Transaction</literal>:</simpara>
+<programlisting language="groovy" linenumbering="unnumbered">class MyRepository {
+
+  @Transaction
+  void register() {
+   ...
+  }
+
+}</programlisting>
+<simpara>You can also apply <literal>@Transaction</literal> to all methods in the class by simply add the annotation at class level.</simpara>
+<programlisting language="groovy" linenumbering="unnumbered">@Transaction
+class MyRepository {
+
+  void register() {
+     ...
+  }
+
+  void unregister() {
+     ...
+  }
+
+}</programlisting>
+<simpara><literal>@Transaction</literal> accepts a value that can be <literal>Policy.NORMAL</literal> or <literal>Policy.SKIP</literal>.</simpara>
+<simpara><literal>Policy.NORMAL</literal> (default value) supports nested transaction.  If <literal>methodA()</literal> calls <literal>methodB()</literal> and both methods
+are annotated by <literal>@Transaction</literal>, they are executed in the same transaction.  If one of <literal>methodA()</literal> and <literal>methodB()</literal>
+raises an <literal>Exception</literal>, none of their queries will be committed.</simpara>
+<formalpara>
+<title>MyRepository.groovy</title>
+<para>
+<programlisting language="groovy" linenumbering="unnumbered">@Transaction
+class MyRepository {
+
+    void methodA() {
+        MyEntity entityA = new MyEntity('Entity A')
+        persist(entityA)
+        methodB()
+    }
+
+    void methodB() {
+        MyEntity entityB = new MyEntity('Entity B')
+        persist(entityB)
+        throw new RuntimeException('Something fails here!')
+    }
+
+}</programlisting>
+</para>
+</formalpara>
+<formalpara>
+<title>MyController.groovy</title>
+<para>
+<programlisting language="groovy" linenumbering="unnumbered">class MyController {
+
+    MyRepository myRepository
+
+    def test = {
+        // Both entityA and entityB are not persisted to database
+        // because methodB() fails with Exception.
+        myRepository.methodA()
+    }
+
+}</programlisting>
+</para>
+</formalpara>
+<simpara>Nested transaction only work if methods are called from within the same thread.  If <literal>methodB()</literal> is executed by using
+method such as <literal>app.execFuture()</literal> or <literal>app.eventAsync()</literal>, simple-jpa can&#8217;t guarantee it will be part of caller
+transaction.  This is especially true if thread pool is involved.</simpara>
+<formalpara>
+<title>MyRepository.groovy</title>
+<para>
+<programlisting language="groovy" linenumbering="unnumbered">@Transaction
+class MyRepository {
+
+    def app
+
+    void methodA() {
+        MyEntity entityA = new MyEntity('Entity A')
+        persist(entityA)
+        app.execFuture { methodB() }
+    }
+
+    void methodB() {
+        MyEntity entityB = new MyEntity('Entity B')
+        persist(entityB)
+        throw new RuntimeException('Something fails here!')
+    }
+
+}</programlisting>
+</para>
+</formalpara>
+<formalpara>
+<title>MyController.groovy</title>
+<para>
+<programlisting language="groovy" linenumbering="unnumbered">class MyController {
+
+    MyRepository myRepository
+
+    def test = {
+        // entityA is persisted to database but
+        // entityB is *NOT* persisted to database!
+        myRepository.methodA()
+    }
+
+}</programlisting>
+</para>
+</formalpara>
+<tip>
+<simpara>To avoid unexpected random errors such as duplicate primary key or missing entity, don&#8217;t use multithreading
+in persistence layer!</simpara>
+</tip>
+<simpara><literal>Policy.SKIP</literal> is used to tell simple-jpa to not apply transaction AST transformation to the annotated method.  This can
+ be useful if you use <literal>@Transaction</literal> at class level and want to avoid wrapping few methods in transaction.</simpara>
+<formalpara>
+<title>MyController.groovy</title>
+<para>
+<programlisting language="groovy" linenumbering="unnumbered">@Transaction
+class MyController {
+
+    MyRepository myRepository
+
+    def create = {
+        // Calling this closure will start a new transaction
+        // or continue existing transaction if caller is in transaction.
+    }
+
+    def remove = {
+        // Calling this closure will start a new transaction
+        // or continue existing transaction if caller is in transaction.
+    }
+
+    @Transaction(Transaction.Policy.SKIP)
+    def calculate = {
+        // Calling this closure will *NOT* start a new transaction!
+        // If caller is in transaction, it will be part of that transaction.
+    }
+
+}</programlisting>
+</para>
+</formalpara>
+</section>
+<section xml:id="_transaction_methods">
+<title>Transaction Methods</title>
+<simpara>You can also create transaction without using <literal>@Transaction</literal> annotation.  This can be done by calling transaction methods
+ manually.  Because transaction methods is part of persistence methods, they are only available in injected artifacts.  The
+ following is list of transaction methods:</simpara>
+<itemizedlist>
+<listitem>
+<simpara><literal>beginTransaction()</literal></simpara>
+<simpara>Use this method to mark the beginning of new transaction.</simpara>
+</listitem>
+<listitem>
+<simpara><literal>commitTransaction()</literal></simpara>
+<simpara>Use this method to commit current transaction.  This method will destroys <literal>EntityManager</literal> if current transaction is not
+ nested.</simpara>
+</listitem>
+<listitem>
+<simpara><literal>rollbackTransaction()</literal></simpara>
+<simpara>Use this method to rollback current transaction.  This method will destroys <literal>EntityManager</literal>.</simpara>
+</listitem>
+<listitem>
+<simpara><literal>withTransaction(closure)</literal></simpara>
+<simpara>Execute closure inside transaction.  Inside this closure, you can directly call persistence methods.</simpara>
+</listitem>
+</itemizedlist>
+<simpara>For example, if controllers are injected with persistence methods, you can use the following code to create new transaction:</simpara>
+<formalpara>
+<title>MyController.groovy</title>
+<para>
+<programlisting language="groovy" linenumbering="unnumbered">class MyController {
+
+  def save = {
+    beginTransaction()
+      try {
+        ... // perform works here
+        commitTransaction()
+      } catch (Exception ex) {
+        rollbackTransaction()
+      }
+  }
+
+}</programlisting>
+</para>
+</formalpara>
+<simpara><literal>withTransaction()</literal> allows you to wrap a closure inside transaction.  For example, you can replace the previous sample
+code into:</simpara>
+<formalpara>
+<title>MyController.groovy</title>
+<para>
+<programlisting language="groovy" linenumbering="unnumbered">class MyController {
+
+  def save = {
+    withTransaction {
+      ... // perform works here
+    }
+  }
+
+}</programlisting>
+</para>
+</formalpara>
+<simpara>You can always call persistence methods directly inside the closure.  This is very useful if you call <literal>withTransaction</literal>
+ from another class, for example:</simpara>
+<programlisting language="groovy" linenumbering="unnumbered">class MyDomainClass {
+
+   MyRepository myRepository
+
+   public BigDecimal calculate() {
+      ...
+      myRepository.withTransaction {
+         ...
+         executeQuery("FROM Invoice i WHERE i.dueDate &gt; :date", aDate)
+         ...
+      }
+      ...
+   }
+
+}</programlisting>
+</section>
+</section>
+</article>
