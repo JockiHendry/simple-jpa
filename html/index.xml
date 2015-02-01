@@ -2908,117 +2908,337 @@ from database and check if user&#8217;s password is correct.</simpara>
 </section>
 <section xml:id="finders">
 <title>Finders</title>
-<simpara>Finders are dynamic methods that are used to retrieve entities from database. By following their naming pattern, developer can easily execute query for any domain classes.</simpara>
-<section xml:id="query-configuration">
-<title>Query Configuration</title>
-<simpara>All finders except find[DomainClass]By[Attributes]() have query configuration as their parameter. Query configuration is stored in a Map. The possible keys for query configuration are:</simpara>
-<literallayout class="monospaced">excludeSubclass
-flushMode
-excludeDeleted
-orderBy
-orderDirection
-page
-pageSize
-allowDuplicate</literallayout>
-<simpara>If excludeSubclass value is <emphasis>*</emphasis>, it will exclude all subclasses of the domain class. It can also accepts a String that contains comma separated class name to be excluded.</simpara>
-<simpara>For example, assuming Employee has two subclasses: Teacher and Staff, the following finder will return all instances of Employee including all Teacher and all Staff.</simpara>
-<simpara>findAllEmployee()</simpara>
-<simpara>The following finder will return only instance of Employee but not Teacher or Staff:</simpara>
-<simpara>findAllEmployee([excludeSubclass: <emphasis>*</emphasis>])</simpara>
-<simpara>The following finder will return all instance of Employee and all instance of Teacher but excluding all Staff:</simpara>
-<simpara>findAllEmployee([excludeSubclass: <emphasis>Staff</emphasis>])</simpara>
-<simpara>flushMode configuration key accepts FlushModeType.COMMIT or FlushModeType.AUTO. Use this key to override flush mode for specific queries.</simpara>
-<simpara>If excludeDeleted is true, then finder will not return soft deleted entities. An entity is considered as soft deleted if its deleted attribute is not equals to <emphasis>N</emphasis>.</simpara>
-<simpara>orderBy will causes finder to sort results based on certains attributes. To sort based on more than one attribute, use comma separated attribute name as shown in the following:</simpara>
-<simpara>findAllEmployee([orderBy: <emphasis>name,salary</emphasis>])</simpara>
-<simpara>Since simple-jpa 0.7, orderBy accept model__attribute syntax, for example:</simpara>
-<simpara>findAllEmployee([orderBy: <emphasis>department__name</emphasis>])</simpara>
-<simpara>To set order direction, use orderDirection. This key accept <emphasis>asc</emphasis> for ascending order and <emphasis>desc</emphasis> for descending order. For example, the following finder will find all Employee sorted by name and salary in descending order:</simpara>
-<simpara>findAllEmployee([orderBy: <emphasis>name,salary</emphasis>, orderDirection: <emphasis>desc,desc</emphasis>])</simpara>
-<simpara>To limit the result to certain page, set the value for page (starting from 1) and pageSize. If pageSize is not specified, simple-jpa will assume 1 page consists of 10 rows. For example, the following finder will limit the results to the first 3 entities:</simpara>
-<simpara>findAllTeacher([orderBy: <emphasis>salary</emphasis>, page: 1, pageSize: 3])</simpara>
+<simpara>Finders are part of persistence methods that are used to retrieve JPA entities from database.  In addition to static methods,
+simple-jpa also supports dynamic finder.  With dynamic finder, you can find entity based on certain pattern in method name.</simpara>
+<section xml:id="query-methods">
+<title>Query Methods</title>
+<simpara>simple-jpa injects the following query methods:</simpara>
+<itemizedlist>
+<listitem>
+<simpara><literal>executeNamedQuery(namedQuery, map, config)</literal></simpara>
+<simpara>Execute JPA named query.</simpara>
+</listitem>
+<listitem>
+<simpara><literal>executeQuery(jpql, config)</literal></simpara>
+<simpara>Execute JP QL.</simpara>
+</listitem>
+<listitem>
+<simpara><literal>executeNativeQuery(sql)</literal></simpara>
+<simpara>Execute SQL.</simpara>
+</listitem>
+</itemizedlist>
+<simpara>To use named queries, you must defined them first, for example:</simpara>
+<formalpara>
+<title>Invoice.groovy</title>
+<para>
+<programlisting language="groovy" linenumbering="unnumbered">@NamedQuery(name='Invoice.LargeQty', query='''
+	FROM Invoice inv LEFT JOIN inv.items i WHERE i.qty &gt; :limit
+''')
+@DomainClass @Entity @Canonical
+class Invoice {
+
+	...
+
+}</programlisting>
+</para>
+</formalpara>
+<simpara>Now you can call <literal>Invoice.LargeAmount</literal> by using code like:</simpara>
+<programlisting language="groovy" linenumbering="unnumbered">def result = myRepository.executeNamedQuery('Invoice.LargeQty', [limit: 500])
+println "Invoices with large qty in one of their items:"
+println result.collect { it.number }.join(',')</programlisting>
+<simpara>Named queries are parsed when application is launched.  Although they make application startup slower, they are quick to
+ serve you when you need them because they&#8217;re prepared.</simpara>
+<simpara>As an alternative to named query, you can always directly call JP QL by using <literal>executeQuery()</literal>, for example:</simpara>
+<programlisting language="groovy" linenumbering="unnumbered">def result = myRepository.executeQuery(
+   'FROM Invoice inv LEFT JOIN inv.items i  WHERE i.qty &gt; :limit',
+   [:], [limit: 500])</programlisting>
+<tip>
+<simpara>Don&#8217;t forget that you can use <literal>simple-jpa-console</literal> script to launch Groovy console to try query methods described
+ in this chapter.</simpara>
+</tip>
+<simpara>JPA can hurt performance if your query return a very large result.  This is because JPA provider needs to translate
+ every rows from native SQL query into object (entities).  Creating a lot of objects in a short time may leads to
+ memory shortage in heap.  To avoid these problems, you can use <literal>executeNativeQuery()</literal> to execute SQL:</simpara>
+<programlisting language="groovy" linenumbering="unnumbered">def result = myRepository.executeNativeQuery('''
+   SELECT i.number, SUM(li.qty * li.price) AS total
+   FROM Invoice i
+   LEFT JOIN Invoice_Items li ON li.invoice_id = i.id
+   GROUP BY i.number
+''')
+// result is an array
+println result[0][0]  // print first column of first record
+println result[0][1]  // print second column of first record
+println result[1][0]  // print first column of second record
+println result[1][1]  // print second column of second record</programlisting>
+<tip>
+<simpara>Don&#8217;t use <literal>executeNativeQuery()</literal> if not necessary.  Your code become prone to mismatch between query and domain
+classes. If you find yourself create a lot of SQL queries, you need to consider to use native SQL approach instead of JPA.</simpara>
+</tip>
 </section>
-<section xml:id="basic-finder">
-<title>Basic Finder</title>
-<simpara>This finder will return a List that contains all instances of a domain class. If no instances are found, it will return an empty List.</simpara>
-<simpara>Example:</simpara>
-<simpara>def allStudents = findAllStudent()
-def allTeachers = findAllTeacher()</simpara>
-<simpara>This finder can be used to quickly find instances of domain class based on one or more attributes value using and or or logical operator.</simpara>
-<simpara>For example, the following finder will return all female Student in class <emphasis>A3</emphasis>:</simpara>
-<simpara>List result = findAllStudentByAnd([classRoom: <emphasis>A3</emphasis>, gender: <emphasis>F</emphasis>])</simpara>
-<simpara>The following finder will return a Student whose name is Steven and class is <emphasis>A3</emphasis> (if it is not found, the finder will return null value):</simpara>
-<simpara>Student s = findStudentByAnd([name: <emphasis>Steven</emphasis>, classRoom: <emphasis>A3</emphasis>])</simpara>
-<simpara>An alternative syntax for this finder is:</simpara>
-<simpara>Student s = findByAnd(Student, [name: <emphasis>Steven</emphasis>, classRoom: <emphasis>A3</emphasis>])</simpara>
-<simpara>This is the most flexible finder. It allows complex searching in one method call. For example, this finder will search all female Student in class <emphasis>A3</emphasis>:</simpara>
-<simpara>List result1 = findAllStudentByClassRoomEqAndGenderEq(<emphasis>A3</emphasis>,<emphasis>F</emphasis>)
-List result2 = findAllStudentByClassRoomAndGender(<emphasis>A3</emphasis>, <emphasis>F</emphasis>)</simpara>
-<simpara>The default operator used for comparison is eq (equality) if operator is not specified. The following is list of supported operators:</simpara>
-<literallayout class="monospaced">greaterThanEqualTo or ge
-lessThanEqualTo or le
-greaterThan or gt
-lessThan or lt
-isNotMember
-isNotEmpty
-isNotNull
-notEqual or ne
-isMember
-isEmpty
-isNull
-like
-notLike
-between
-equal or eq</literallayout>
-<simpara>For example, the following finder will return all Student in class room <emphasis>A3</emphasis> whose score is less than 70:</simpara>
-<simpara>List result = findAllStudentByClassRoomAndScoreLt(<emphasis>A3</emphasis>, 70)</simpara>
-<simpara>The following finder will return only one Student whose name contains <emphasis>jack</emphasis> or null if not found:</simpara>
-<simpara>Student s = findStudentByNameLike(<emphasis>%jack%</emphasis>)</simpara>
+<section xml:id="dynamic-finder">
+<title>Dynamic Finder</title>
+<simpara>Dynamic finder works by following certain pattern in method name.  For example, if you want to select all <literal>Invoice</literal>, you
+can call the following method:</simpara>
+<programlisting language="groovy" linenumbering="unnumbered">List result = myRepository.findAllInvoice()
+println result.collect { it.number }.join(',')</programlisting>
+<simpara>Finder starts with <literal>findAll</literal> always return a <literal>List</literal>.  If nothing is found, it returns an empty <literal>List</literal>.</simpara>
+<simpara>You can add a criteria by using adding <literal>by</literal> to the finder followed by property name, for example:</simpara>
+<programlisting language="groovy" linenumbering="unnumbered">List result = myRepository.findAllInvoiceByNumber('INV02')
+println result.collect { it.number }.join(',')</programlisting>
+<simpara>If you want to return only a single instance, drop <literal>all</literal> from the finder name, for example:</simpara>
+<programlisting language="groovy" linenumbering="unnumbered">Invoice result = myRepository.findInvoiceByNumber('INV02')
+println result?.number</programlisting>
+<simpara>The finder returns an instance of <literal>Invoice</literal> or <literal>null</literal> if nothing is found.</simpara>
+<simpara>You can combine multiple criteria by using logical operator <literal>and</literal> and <literal>or</literal>, for example:</simpara>
+<programlisting language="groovy" linenumbering="unnumbered">myRepository.findAllInvoiceByNumberAndDate('INV02', LocalDate.parse('2015-02-01'))</programlisting>
+<simpara>In the previous examples, you&#8217;ve searched based on equality (<literal>eq</literal>).  simple-jpa dynamic finders also supports different
+  operators such as:</simpara>
+<itemizedlist>
+<listitem>
+<simpara><literal>greaterThanEqualTo</literal> or <literal>ge</literal></simpara>
+</listitem>
+<listitem>
+<simpara><literal>lessThanEqualTo</literal> or <literal>le</literal></simpara>
+</listitem>
+<listitem>
+<simpara><literal>greaterThan</literal> or <literal>gt</literal></simpara>
+</listitem>
+<listitem>
+<simpara><literal>lessThan</literal> or <literal>lt</literal></simpara>
+</listitem>
+<listitem>
+<simpara><literal>isNotMember</literal></simpara>
+</listitem>
+<listitem>
+<simpara><literal>isNotEmpty</literal></simpara>
+</listitem>
+<listitem>
+<simpara><literal>isNotNull</literal></simpara>
+</listitem>
+<listitem>
+<simpara><literal>notEqual</literal> or <literal>ne</literal></simpara>
+</listitem>
+<listitem>
+<simpara><literal>isMember</literal></simpara>
+</listitem>
+<listitem>
+<simpara><literal>isEmpty</literal></simpara>
+</listitem>
+<listitem>
+<simpara><literal>isNull</literal></simpara>
+</listitem>
+<listitem>
+<simpara><literal>like</literal></simpara>
+</listitem>
+<listitem>
+<simpara><literal>notLike</literal></simpara>
+</listitem>
+<listitem>
+<simpara><literal>between</literal></simpara>
+</listitem>
+</itemizedlist>
+<simpara>For example, to search for all invoices created in this month, you can use the following code:</simpara>
+<programlisting language="groovy" linenumbering="unnumbered">def dateBegin = LocalDate.now().dayOfMonth().withMinimumValue()
+def dateEnd = LocalDate.now().dayOfMonth().withMaximumValue()
+def result = myRepository.findAllInvoiceByDateBetween(dateBegin, dateEnd)</programlisting>
+<simpara>In this another example, you find products by name using <literal>like</literal> operator:</simpara>
+<programlisting language="groovy" linenumbering="unnumbered">myRepository.findAllProductByNameLike('A%')</programlisting>
+<simpara>You can search for nested properties by using double underscore (<literal>__</literal>) as separator.  For example, the following
+query finds all products based on supplier&#8217;s location:</simpara>
+<programlisting language="groovy" linenumbering="unnumbered">myRepository.findAllProductBySupplier__City__NameLike('a city%')</programlisting>
 </section>
 <section xml:id="dsl-finder">
-<title>DSL Finder</title>
-<simpara>This finder will perform a query based on closure (Dsl). For example, the following finder will return all Student in class room <emphasis>A3</emphasis> whose score is less than 70:</simpara>
-<simpara>List result = findAllStudentByDsl {
-    classRoom eq(<emphasis>A3</emphasis>)
+<title>Dsl Finder</title>
+<simpara>In addition to using dynamic finder, you can also perform query by using Dsl finder.  Such finder requires a closure as
+ argument.  The following code show how to use Dsl Finder:</simpara>
+<programlisting language="groovy" linenumbering="unnumbered">def dateBegin = LocalDate.now().dayOfMonth().withMinimumValue()
+def dateEnd = LocalDate.now().dayOfMonth().withMaximumValue()
+myRepository.findAllInvoiceByDsl {
+    number eq('INV02')
     and()
-    score lt(70)
-}</simpara>
-<simpara>Note that it is important to separate these conditions and logical operator by line.</simpara>
-<simpara>The benefit of using Dsl closure is developer can build the query conditions on the fly. For example, it is typical to perform searching based on one or more user selection in view:</simpara>
-<simpara>List result = findAllInvoiceByDsl {
-    if (model.txtNumber) {
-       number like("%${txtNumber}%")
-    }
-    if (model.selectedSupplier) {
-       and()
-       supplier eq(selectedSupplier)
-    }
-    if (model.paid) {
-       and()
-       paid eq(true)
-    }
-}</simpara>
-<simpara>An alternative syntax for this finder is:</simpara>
-<simpara>List result = findByDsl(Student) {
-    classRoom eq(<emphasis>A3</emphasis>)
-    and()
-    score lt(70)
-}</simpara>
-<simpara>Since version 0.5.2, this method can accept nested path by separating them using double underscores (__). For example, to find Orders based on their OrderItem&#8217;s Category, use the following code:</simpara>
-<simpara>List result = findOrderByDsl {
-    orderItem<emphasis>category</emphasis>name eq(<emphasis>CAT1</emphasis>)
-}</simpara>
-<simpara>Since version 0.7, this DSL allow isIn operator. For example:</simpara>
-<simpara>List result = findOrderByDsl {
-    orderItem__category isIn([<emphasis>CAT1</emphasis>, <emphasis>CAT2</emphasis>, <emphasis>CAT3</emphasis>])
-}</simpara>
+    date between(dateBegin, dateEnd)
+}</programlisting>
+<simpara>The advantage of using Dsl closure is you can build the query conditions based on certain condition.   You can also add
+ any code inside the closure.  For example, the following code add query condition only if certain variables are not null:</simpara>
+<programlisting language="groovy" linenumbering="unnumbered">def dateBeginSearch = LocalDate.now().dayOfMonth().withMinimumValue()
+def dateEndSearch = LocalDate.now().dayOfMonth().withMaximumValue()
+def numberSearch = null
+myRepository.findAllInvoiceByDsl {
+  if (numberSearch) {
+    number eq(numberSearch)
+  }
+  if (dateBeginSearch &amp;&amp; dateEndSearch) {
+    date between(dateBeginSearch, dateEndSearch)
+  }
+}</programlisting>
+<simpara>You can also use nested properties by using double underscores (<literal>__</literal>) as separator, for example:</simpara>
+<programlisting language="groovy" linenumbering="unnumbered">myRepository.findAllProductByDsl {
+  supplier__name isIn(['supplier a', 'supplier b'])
+  and()
+  name eq('A product')
+}</programlisting>
 </section>
-<section xml:id="using-named-entity-graph">
-<title>Using Named Entity Graph</title>
-<simpara>Since simple-jpa 0.7, most finders now accept Fetch[Graph]. This will allow user to use a defined named entity graph in finders. To use this feature, JPA 2.1 provider is required. User can define named entity graphs by using @NamedEntityGraph annotation.</simpara>
-<simpara>For example:</simpara>
-<simpara>List result = findOrderByIdFetchItems(<emphasis>ORDER-1</emphasis>)</simpara>
-<simpara>will find Order with id equals to "ORDER-1" and fecth the result using Items entity graph. To use the code, a named entity graph called Items must be defined.</simpara>
+<section xml:id="named-entity-graph">
+<title>Named Entity Graph</title>
+<simpara>Named entity graph is a new feature in JPA 2.1.  It allows you to define a flexible fetch graph without modifying your
+current query.  For example, you can define named entity graph such as:</simpara>
+<formalpara>
+<title>Invoice.groovy</title>
+<para>
+<programlisting language="groovy" linenumbering="unnumbered">package domain
+
+// import statements are not shown
+
+@NamedEntityGraph(name='Invoice.Items', attributeNodes=[
+  @NamedAttributeNode('items')
+])
+@DomainClass @Entity @Canonical(excludes='items')
+class Invoice {
+
+  @NotEmpty @Size(min=5, max=5)
+  String number
+
+  @NotNull @Type(type="org.jadira.usertype.dateandtime.joda.PersistentLocalDate")
+  LocalDate date
+
+  @ElementCollection @OrderColumn @NotEmpty
+  List&lt;LineItem&gt; items = []
+
+  void add(LineItem item) {
+    items &lt;&lt; item
+  }
+
+  BigDecimal total() {
+    items.sum { it.total() }
+  }
+
+}</programlisting>
+</para>
+</formalpara>
+<simpara>If you want to use named entity graph in simple-jpa finders, you should always start the name with domain class name
+ followed by a period (<literal>.</literal>) before the actual name.  To use named entity graph, add <literal>fetch</literal> or <literal>load</literal> to dynamic finder,
+ for example:</simpara>
+<programlisting language="groovy" linenumbering="unnumbered">// items is lazy loaded.  It will trigger SQL query when code refer to it.
+// result is not safe to be passed to outside transaction because
+// SQL query is required to retrieve items.
+def result = myRepository.findAllInvoice()
+
+// items has been loaded.
+// anotherResult is safe to be passed to outside transaction because
+// items is safe to read from anywhere.
+def anotherResult = myRepository.findAllInvoiceFetchItems()</programlisting>
+<simpara>In addition to using <literal>fetch</literal> in dynamic finder, you can also use named entity graph by passing them query configuration
+ using <literal>fetchGraph</literal> or <literal>loadGraph</literal> as key.  See <xref linkend="query-configuration"/> for more information.</simpara>
+</section>
+<section xml:id="query-configuration">
+<title>Query Configuration</title>
+<simpara>Most of finder methods described so far can receive a configuration parameter in form of <literal>Map</literal>.  You can use the following
+ values as its keys:</simpara>
+<itemizedlist>
+<listitem>
+<simpara><literal>excludeSubclass</literal></simpara>
+<simpara>The value must be a string.  Normal query returns all instances of current class and its subclasses.  For example, if <literal>Employee</literal>
+ has three subclasses <literal>Teacher</literal>, <literal>Researcher</literal>, and <literal>Staff</literal>, then <literal>findAllEmploye()</literal> returns instances of  <literal>Employee</literal>, <literal>Teacher</literal>,
+ <literal>Researcher</literal> and <literal>Staff</literal>.  If you want to return only <literal>Teacher</literal> and <literal>Staff</literal>, you can use the following code:</simpara>
+<programlisting language="groovy" linenumbering="unnumbered">myRepository.findAllEmployee([excludeSubclass: 'Researcher'])</programlisting>
+<simpara>Assuming <literal>Employee</literal> is not an abstract class and it have instances, then you can use following code to only return instances
+of <literal>Employee</literal>:</simpara>
+<programlisting language="groovy" linenumbering="unnumbered">myRepository.findAllEmployee([excludeSubclass: '*'])</programlisting>
+</listitem>
+<listitem>
+<simpara><literal>flushMode</literal></simpara>
+<simpara>The value must be one of <literal>FlushModeType.COMMIT</literal> or <literal>FlushModeType.AUTO</literal>.  Use this key to override flush mode for current query.</simpara>
+</listitem>
+<listitem>
+<simpara><literal>excludeDeleted</literal></simpara>
+<simpara>The value is a boolean (<literal>true</literal> or <literal>false</literal>).  If it is <literal>true</literal>, query will not return soft deleted entities. An entity is
+considered as soft deleted if its <literal>deleted</literal> property is equals to <literal>'Y'</literal>.</simpara>
+</listitem>
+<listitem>
+<simpara><literal>orderBy</literal></simpara>
+<simpara>The value must be a string.  Use this key to sort current query.  If you have multiple attributes to sort, separate them by comma,
+ for example:</simpara>
+<programlisting language="groovy" linenumbering="unnumbered">myRepository.findAllInvoice([orderBy: 'number,date'])</programlisting>
+<simpara>If you want to sort by nested property, use double underscore (<literal>__</literal>) as separator.</simpara>
+</listitem>
+<listitem>
+<simpara><literal>orderDirection</literal></simpara>
+<simpara>The value must be one of the following string: <literal>asc</literal> or <literal>desc</literal>.  This key is used to specify the direction of order in <literal>orderBy</literal>.
+For example, the following query will find all invoices sorted by number in ascending direction and date in descending direction:</simpara>
+<programlisting language="groovy" linenumbering="unnumbered">myRepository.findAllInvoice([orderBy: 'number,date', orderDirection: 'asc,desc'])</programlisting>
+</listitem>
+<listitem>
+<simpara><literal>page</literal></simpara>
+<simpara>The value must be a number starting from <literal>1</literal>.  Use this key together with <literal>pageSize</literal> to limit query result.  Default value for
+<literal>page</literal> is <literal>1</literal>.</simpara>
+</listitem>
+<listitem>
+<simpara><literal>pageSize</literal></simpara>
+<simpara>The value must be a positive number.  Use this key to set the size for current page.  If <literal>page</literal> is specified but <literal>pageSize</literal>
+ is not set, then it is assumed to be <literal>10</literal>.  If both <literal>page</literal> and <literal>pageSize</literal> is not specified, there will be no limit for this query.</simpara>
+<simpara>For example, to retrieve only 3 first invoices, you can use the following configuration:</simpara>
+<programlisting language="groovy" linenumbering="unnumbered">myRepository.findAllInvoice([pageSize:3])</programlisting>
+</listitem>
+<listitem>
+<simpara><literal>allowDuplicate</literal></simpara>
+<simpara>The value is a boolean (<literal>true</literal> or <literal>false</literal>).  Set it to <literal>true</literal> to never returns duplicate entities.  This configuration adds
+ <literal>SELECT DISTINCT</literal> to current query.</simpara>
+</listitem>
+<listitem>
+<simpara><literal>fetchGraph</literal></simpara>
+<simpara>This key accepts a <literal>String</literal> or an instance of <literal>EntityGraph</literal> created by using <literal>entityManager.createEntityGraph()</literal>.  If you
+ have defined named entity graph called <literal>Invoice.Items</literal>, you can use it in finders like:</simpara>
+<programlisting language="groovy" linenumbering="unnumbered">myRepository.findAllInvoice([fetchGraph: 'Invoice.Items'])</programlisting>
+<simpara>Or, you can also build the named entity graph in runtime such as in this sample:</simpara>
+<programlisting language="groovy" linenumbering="unnumbered">myRepository.withTransaction {
+    def em = getEntityManager()
+    def g = em.createEntityGraph(Invoice)
+    g.addAttributeNodes('items')
+    findAllInvoice([fetchGraph: g])
+}</programlisting>
+</listitem>
+<listitem>
+<simpara><literal>loadGraph</literal></simpara>
+<simpara>This key accepts a <literal>String</literal> or an instance of <literal>EntityGraph</literal> created by using <literal>entityManager.createEntityGraph()</literal>.  See
+ the description of <literal>fetchGraph</literal> for more information.</simpara>
+</listitem>
+</itemizedlist>
+<simpara>You can also add some of the query configurations described above in <literal>Config.groovy</literal>.  This way the configuration is
+ globally applied to all finders that can accepts it.  The following table lists all query configurations that
+  can be added in <literal>Config.groovy</literal>:</simpara>
+<table frame="all" rowsep="1" colsep="1">
+<title>Query Configuration In <literal>Config.groovy</literal></title>
+<tgroup cols="3">
+<colspec colname="col_1" colwidth="33*"/>
+<colspec colname="col_2" colwidth="33*"/>
+<colspec colname="col_3" colwidth="33*"/>
+<thead>
+<row>
+<entry align="left" valign="top">Name</entry>
+<entry align="left" valign="top">Default Value</entry>
+<entry align="left" valign="top">Description</entry>
+</row>
+</thead>
+<tbody>
+<row>
+<entry align="left" valign="top"><simpara><literal>griffon.simplejpa.entityManager.defaultFlushMode</literal></simpara></entry>
+<entry align="left" valign="top"><simpara><literal>FlushModeType.AUTO</literal></simpara></entry>
+<entry align="left" valign="top"><simpara>You can also change the flush mode to <literal>FlushModeType.COMMIT</literal> (or just <literal>'COMMIT'</literal>).</simpara></entry>
+</row>
+<row>
+<entry align="left" valign="top"><simpara><literal>griffon.simplejpa.finders.alwaysExcludeSoftDeleted</literal></simpara></entry>
+<entry align="left" valign="top"><simpara><literal>false</literal></simpara></entry>
+<entry align="left" valign="top"><simpara>If this value is <literal>true</literal>, finders will not return soft deleted entities.</simpara></entry>
+</row>
+<row>
+<entry align="left" valign="top"><simpara><literal>griffon.simplejpa.finders.alwaysAllowDuplicate</literal></simpara></entry>
+<entry align="left" valign="top"><simpara><literal>true</literal></simpara></entry>
+<entry align="left" valign="top"><simpara>The default value always add <literal>SELECT DISTINCT</literal> to the generated query.  If you don&#8217;t need this feature, you can
+increase performance by setting this value to <literal>false</literal>.</simpara></entry>
+</row>
+</tbody>
+</tgroup>
+</table>
 </section>
 </section>
 <section xml:id="testing">
@@ -3027,41 +3247,7 @@ equal or eq</literallayout>
 </section>
 <section xml:id="deployment">
 <title>Deployment</title>
-<section xml:id="default-flush-mode">
-<title>Default Flush Mode</title>
-<simpara>Use this configuration key to change the default <literal>flushMode</literal> for all EntityManager in application. The possible values
-for flushMode is <literal><emphasis>COMMIT</emphasis></literal> and <literal><emphasis>AUTO</emphasis></literal>. The default value for <literal>flushMode</literal> is depends on JPA provider.</simpara>
-<simpara>For example, the following configuration line will set <literal>flushMode</literal> for all EntityManager to <literal>DefaultFlushModeType.COMMIT</literal>:</simpara>
-<programlisting language="groovy" linenumbering="unnumbered">griffon.simplejpa.entityManager.defaultFlushMode = 'COMMIT'</programlisting>
-<simpara>Default flushMode can be overriden in certain queries by using <literal>flushMode</literal> query configuration.</simpara>
-</section>
-<section xml:id="soft-delete">
-<title>Soft Delete</title>
-<simpara>If the value for this configuration key is <literal>true</literal>, simple-jpa finders will not return soft deleted objects. A soft
-deleted object is an object whose deleted attribute is not equals to <literal><emphasis>N</emphasis></literal>. The deleted attribute is available on all
-domain classes that have <literal>@DomainClass</literal> annotation. To soft delete an domain object, use <literal>softDelete()</literal> method.</simpara>
-<simpara>Note that developer can still retrieve soft deleted objects by using <literal>executeQuery()</literal>, <literal>executeNativeQuery()</literal>, or
-passing <literal>false</literal> to <literal>excludeDeleted</literal> query configuration.</simpara>
-<simpara>By default, the value for this configuration key is <literal>false</literal>. To enable it, add the following line to <literal>Config.groovy</literal>:</simpara>
-<screen>griffon.simplejpa.finders.alwaysExcludeSoftDeleted = true</screen>
-</section>
-<section xml:id="finders-2">
-<title>Finders</title>
-<simpara>Since simple-jpa 0.7, by default, duplicate entities returned by finders will be ignored. To allow finders to return
-duplicate entities, add the following line:</simpara>
-<programlisting language="groovy" linenumbering="unnumbered">griffon.simplejpa.finders.alwaysAllowDuplicate = true</programlisting>
-</section>
-<section xml:id="auditing-2">
-<title>Auditing</title>
-<simpara>To display a login dialog at startup time, set a service name for <literal>griffon.simplejpa.auditing.loginService</literal>.  This service must be an
-instance of <literal>org.jdesktop.swingx.auth.LoginService</literal>.</simpara>
-<formalpara>
-<title>Config.groovy</title>
-<para>
-<programlisting language="groovy" linenumbering="unnumbered">griffon.simplejpa.auditing.loginService = 'DatabaseLoginService'</programlisting>
-</para>
-</formalpara>
-</section>
+
 </section>
 <appendix xml:id="script">
 <title>Script</title>
@@ -3357,48 +3543,6 @@ DDD generator rather than create them manually using this command.</simpara>
 <simpara>This command will create new repository class in <literal>griffon-app/repositories</literal>.</simpara>
 <simpara>Examples:</simpara>
 <screen>create-repository Invoice</screen>
-</section>
-</appendix>
-<appendix xml:id="methods">
-<title>Methods</title>
-<section xml:id="executenamedquery">
-<title>executeNamedQuery()</title>
-<simpara>Use this method to execute JPA named query. This method will return a List that contains the result from named query
-execution. The syntax of this method is:</simpara>
-<programlisting language="groovy" linenumbering="unnumbered">def executeNamedQuery(String namedQuery, Map args, Map config = [:])</programlisting>
-<simpara><literal>namedQuery</literal> is the name of JPA named query that will be executed. <literal>args</literal> is a <literal>Map</literal> that stores query parameter values.
-<literal>config</literal> is an optional query configuration.</simpara>
-<simpara>This is an example of JPA Named Query declaration:</simpara>
-<programlisting language="groovy" linenumbering="unnumbered">@NamedQuery(name='Product.CalculateTotal', query='''
-    SELECT SUM(i.qty) FROM items i WHERE
-    i.product = :product AND (i.date &lt;= :endDate)
-'''
-class Product {
-
-}</programlisting>
-<simpara>To call the named query declared above, use the following code:</simpara>
-<programlisting language="groovy" linenumbering="unnumbered">Product p = findProductByCode('P001')
-def total = executeNamedQuery('Product.CalculateTotal',
-    [product: p, endDate: LocalDate.now()])[0]</programlisting>
-</section>
-<section xml:id="executenativequery">
-<title>executeNativeQuery()</title>
-<simpara>Use this method to execute native SQL. This is a low level query method (from JPA point of view) so it is better to use
-<literal>executeQuery()</literal> if possible. This method will return a <literal>List</literal> that contains the result from SQL execution.</simpara>
-<simpara>The syntax of this method is:</simpara>
-<programlisting language="groovy" linenumbering="unnumbered">def executeNativeQuery (String sql, Map config = [:])</programlisting>
-<simpara><literal>sql</literal> is SQL string that will be executed. <literal>config</literal> is an optional query configuration.</simpara>
-<simpara>Example:</simpara>
-<programlisting language="groovy" linenumbering="unnumbered">def mysqlDbUser = executeNativeQuery('SELECT user()')[0]</programlisting>
-</section>
-<section xml:id="executequery">
-<title>executeQuery()</title>
-<simpara>Use this method to execute JP QL. This method will return a List that contains the result from JP QL execution.
-The syntax of this method is:</simpara>
-<programlisting language="groovy" linenumbering="unnumbered">def executeQuery (String jpql, Map config = [:], Map args = [:])</programlisting>
-<simpara><literal>jpql</literal> is JP QL string that will be executed. <literal>config</literal> is an optional query configuration.</simpara>
-<simpara>Example:</simpara>
-<programlisting language="groovy" linenumbering="unnumbered">def allStudents = executeQuery('FROM Student')</programlisting>
 </section>
 </appendix>
 </article>

@@ -1,163 +1,395 @@
 == Finders
 
-Finders are dynamic methods that are used to retrieve entities from database. By following their naming pattern, developer can easily execute query for any domain classes.
+Finders are part of persistence methods that are used to retrieve JPA entities from database.  In addition to static methods,
+simple-jpa also supports dynamic finder.  With dynamic finder, you can find entity based on certain pattern in method name.
+
+=== Query Methods
+
+simple-jpa injects the following query methods:
+
+* `executeNamedQuery(namedQuery, map, config)`
++
+Execute JPA named query.
+
+* `executeQuery(jpql, config)`
++
+Execute JP QL.
+
+* `executeNativeQuery(sql)`
++
+Execute SQL.
+
+To use named queries, you must defined them first, for example:
+
+[source,groovy]
+.Invoice.groovy
+----
+@NamedQuery(name='Invoice.LargeQty', query='''
+	FROM Invoice inv LEFT JOIN inv.items i WHERE i.qty > :limit
+''')
+@DomainClass @Entity @Canonical
+class Invoice {
+
+	...
+
+}
+----
+
+Now you can call `Invoice.LargeAmount` by using code like:
+
+[source,groovy]
+----
+def result = myRepository.executeNamedQuery('Invoice.LargeQty', [limit: 500])
+println "Invoices with large qty in one of their items:"
+println result.collect { it.number }.join(',')
+----
+
+Named queries are parsed when application is launched.  Although they make application startup slower, they are quick to
+ serve you when you need them because they're prepared.
+
+As an alternative to named query, you can always directly call JP QL by using `executeQuery()`, for example:
+
+[source,groovy]
+----
+def result = myRepository.executeQuery(
+   'FROM Invoice inv LEFT JOIN inv.items i  WHERE i.qty > :limit',
+   [:], [limit: 500])
+----
+
+TIP:  Don't forget that you can use `simple-jpa-console` script to launch Groovy console to try query methods described
+ in this chapter.
+
+JPA can hurt performance if your query return a very large result.  This is because JPA provider needs to translate
+ every rows from native SQL query into object (entities).  Creating a lot of objects in a short time may leads to
+ memory shortage in heap.  To avoid these problems, you can use `executeNativeQuery()` to execute SQL:
+
+[source,groovy]
+----
+
+def result = myRepository.executeNativeQuery('''
+   SELECT i.number, SUM(li.qty * li.price) AS total
+   FROM Invoice i
+   LEFT JOIN Invoice_Items li ON li.invoice_id = i.id
+   GROUP BY i.number
+''')
+// result is an array
+println result[0][0]  // print first column of first record
+println result[0][1]  // print second column of first record
+println result[1][0]  // print first column of second record
+println result[1][1]  // print second column of second record
+----
+
+TIP: Don't use `executeNativeQuery()` if not necessary.  Your code become prone to mismatch between query and domain
+classes. If you find yourself create a lot of SQL queries, you need to consider to use native SQL approach instead of JPA.
+
+=== Dynamic Finder
+
+Dynamic finder works by following certain pattern in method name.  For example, if you want to select all `Invoice`, you
+can call the following method:
+
+[source,groovy]
+----
+List result = myRepository.findAllInvoice()
+println result.collect { it.number }.join(',')
+----
+
+Finder starts with `findAll` always return a `List`.  If nothing is found, it returns an empty `List`.
+
+You can add a criteria by using adding `by` to the finder followed by property name, for example:
+
+[source,groovy]
+----
+List result = myRepository.findAllInvoiceByNumber('INV02')
+println result.collect { it.number }.join(',')
+----
+
+If you want to return only a single instance, drop `all` from the finder name, for example:
+
+[source,groovy]
+----
+Invoice result = myRepository.findInvoiceByNumber('INV02')
+println result?.number
+----
+
+The finder returns an instance of `Invoice` or `null` if nothing is found.
+
+You can combine multiple criteria by using logical operator `and` and `or`, for example:
+
+[source,groovy]
+----
+myRepository.findAllInvoiceByNumberAndDate('INV02', LocalDate.parse('2015-02-01'))
+----
+
+In the previous examples, you've searched based on equality (`eq`).  simple-jpa dynamic finders also supports different
+  operators such as:
+
+* `greaterThanEqualTo` or `ge`
+* `lessThanEqualTo` or `le`
+* `greaterThan` or `gt`
+* `lessThan` or `lt`
+* `isNotMember`
+* `isNotEmpty`
+* `isNotNull`
+* `notEqual` or `ne`
+* `isMember`
+* `isEmpty`
+* `isNull`
+* `like`
+* `notLike`
+* `between`
+
+For example, to search for all invoices created in this month, you can use the following code:
+
+[source,groovy]
+----
+def dateBegin = LocalDate.now().dayOfMonth().withMinimumValue()
+def dateEnd = LocalDate.now().dayOfMonth().withMaximumValue()
+def result = myRepository.findAllInvoiceByDateBetween(dateBegin, dateEnd)
+----
+
+In this another example, you find products by name using `like` operator:
+
+[source,groovy]
+----
+myRepository.findAllProductByNameLike('A%')
+----
+
+You can search for nested properties by using double underscore (`__`) as separator.  For example, the following
+query finds all products based on supplier's location:
+
+[source,groovy]
+----
+myRepository.findAllProductBySupplier__City__NameLike('a city%')
+----
+
+=== Dsl Finder
+
+In addition to using dynamic finder, you can also perform query by using Dsl finder.  Such finder requires a closure as
+ argument.  The following code show how to use Dsl Finder:
+
+[source,groovy]
+----
+def dateBegin = LocalDate.now().dayOfMonth().withMinimumValue()
+def dateEnd = LocalDate.now().dayOfMonth().withMaximumValue()
+myRepository.findAllInvoiceByDsl {
+    number eq('INV02')
+    and()
+    date between(dateBegin, dateEnd)
+}
+----
+
+The advantage of using Dsl closure is you can build the query conditions based on certain condition.   You can also add
+ any code inside the closure.  For example, the following code add query condition only if certain variables are not null:
+
+[source,groovy]
+----
+def dateBeginSearch = LocalDate.now().dayOfMonth().withMinimumValue()
+def dateEndSearch = LocalDate.now().dayOfMonth().withMaximumValue()
+def numberSearch = null
+myRepository.findAllInvoiceByDsl {
+  if (numberSearch) {
+    number eq(numberSearch)
+  }
+  if (dateBeginSearch && dateEndSearch) {
+    date between(dateBeginSearch, dateEndSearch)
+  }
+}
+----
+
+You can also use nested properties by using double underscores (`__`) as separator, for example:
+
+[source,groovy]
+----
+myRepository.findAllProductByDsl {
+  supplier__name isIn(['supplier a', 'supplier b'])
+  and()
+  name eq('A product')
+}
+----
+
+=== Named Entity Graph
+
+Named entity graph is a new feature in JPA 2.1.  It allows you to define a flexible fetch graph without modifying your
+current query.  For example, you can define named entity graph such as:
+
+[source,groovy]
+.Invoice.groovy
+----
+package domain
+
+// import statements are not shown
+
+@NamedEntityGraph(name='Invoice.Items', attributeNodes=[
+  @NamedAttributeNode('items')
+])
+@DomainClass @Entity @Canonical(excludes='items')
+class Invoice {
+
+  @NotEmpty @Size(min=5, max=5)
+  String number
+
+  @NotNull @Type(type="org.jadira.usertype.dateandtime.joda.PersistentLocalDate")
+  LocalDate date
+
+  @ElementCollection @OrderColumn @NotEmpty
+  List<LineItem> items = []
+
+  void add(LineItem item) {
+    items << item
+  }
+
+  BigDecimal total() {
+    items.sum { it.total() }
+  }
+
+}
+----
+
+If you want to use named entity graph in simple-jpa finders, you should always start the name with domain class name
+ followed by a period (`.`) before the actual name.  To use named entity graph, add `fetch` or `load` to dynamic finder,
+ for example:
+
+[source,groovy]
+----
+// items is lazy loaded.  It will trigger SQL query when code refer to it.
+// result is not safe to be passed to outside transaction because
+// SQL query is required to retrieve items.
+def result = myRepository.findAllInvoice()
+
+// items has been loaded.
+// anotherResult is safe to be passed to outside transaction because
+// items is safe to read from anywhere.
+def anotherResult = myRepository.findAllInvoiceFetchItems()
+----
+
+In addition to using `fetch` in dynamic finder, you can also use named entity graph by passing them query configuration
+ using `fetchGraph` or `loadGraph` as key.  See <<query-configuration>> for more information.
 
 === Query Configuration
 
-All finders except find[DomainClass]By[Attributes]() have query configuration as their parameter. Query configuration is stored in a Map. The possible keys for query configuration are:
+Most of finder methods described so far can receive a configuration parameter in form of `Map`.  You can use the following
+ values as its keys:
 
-    excludeSubclass
-    flushMode
-    excludeDeleted
-    orderBy
-    orderDirection
-    page
-    pageSize
-    allowDuplicate
+* `excludeSubclass`
++
+The value must be a string.  Normal query returns all instances of current class and its subclasses.  For example, if `Employee`
+ has three subclasses `Teacher`, `Researcher`, and `Staff`, then `findAllEmploye()` returns instances of  `Employee`, `Teacher`,
+ `Researcher` and `Staff`.  If you want to return only `Teacher` and `Staff`, you can use the following code:
++
+[source,groovy]
+----
+myRepository.findAllEmployee([excludeSubclass: 'Researcher'])
+----
++
+Assuming `Employee` is not an abstract class and it have instances, then you can use following code to only return instances
+of `Employee`:
++
+[source,groovy]
+----
+myRepository.findAllEmployee([excludeSubclass: '*'])
+----
 
-If excludeSubclass value is '*', it will exclude all subclasses of the domain class. It can also accepts a String that contains comma separated class name to be excluded.
+* `flushMode`
++
+The value must be one of `FlushModeType.COMMIT` or `FlushModeType.AUTO`.  Use this key to override flush mode for current query.
 
-For example, assuming Employee has two subclasses: Teacher and Staff, the following finder will return all instances of Employee including all Teacher and all Staff.
+* `excludeDeleted`
++
+The value is a boolean (`true` or `false`).  If it is `true`, query will not return soft deleted entities. An entity is
+considered as soft deleted if its `deleted` property is equals to `'Y'`.
 
-findAllEmployee()
+* `orderBy`
++
+The value must be a string.  Use this key to sort current query.  If you have multiple attributes to sort, separate them by comma,
+ for example:
++
+[source,groovy]
+----
+myRepository.findAllInvoice([orderBy: 'number,date'])
+----
++
+If you want to sort by nested property, use double underscore (`__`) as separator.
 
-The following finder will return only instance of Employee but not Teacher or Staff:
+* `orderDirection`
++
+The value must be one of the following string: `asc` or `desc`.  This key is used to specify the direction of order in `orderBy`.
+For example, the following query will find all invoices sorted by number in ascending direction and date in descending direction:
++
+[source,groovy]
+----
+myRepository.findAllInvoice([orderBy: 'number,date', orderDirection: 'asc,desc'])
+----
 
-findAllEmployee([excludeSubclass: '*'])
+* `page`
++
+The value must be a number starting from `1`.  Use this key together with `pageSize` to limit query result.  Default value for
+`page` is `1`.
++
 
-The following finder will return all instance of Employee and all instance of Teacher but excluding all Staff:
+* `pageSize`
++
+The value must be a positive number.  Use this key to set the size for current page.  If `page` is specified but `pageSize`
+ is not set, then it is assumed to be `10`.  If both `page` and `pageSize` is not specified, there will be no limit for this query.
++
+For example, to retrieve only 3 first invoices, you can use the following configuration:
++
+[source,groovy]
+----
+myRepository.findAllInvoice([pageSize:3])
+----
 
-findAllEmployee([excludeSubclass: 'Staff'])
+* `allowDuplicate`
++
+The value is a boolean (`true` or `false`).  Set it to `true` to never returns duplicate entities.  This configuration adds
+ `SELECT DISTINCT` to current query.
 
-flushMode configuration key accepts FlushModeType.COMMIT or FlushModeType.AUTO. Use this key to override flush mode for specific queries.
-
-If excludeDeleted is true, then finder will not return soft deleted entities. An entity is considered as soft deleted if its deleted attribute is not equals to 'N'.
-
-orderBy will causes finder to sort results based on certains attributes. To sort based on more than one attribute, use comma separated attribute name as shown in the following:
-
-findAllEmployee([orderBy: 'name,salary'])
-
-Since simple-jpa 0.7, orderBy accept model__attribute syntax, for example:
-
-findAllEmployee([orderBy: 'department__name'])
-
-To set order direction, use orderDirection. This key accept 'asc' for ascending order and 'desc' for descending order. For example, the following finder will find all Employee sorted by name and salary in descending order:
-
-findAllEmployee([orderBy: 'name,salary', orderDirection: 'desc,desc'])
-
-To limit the result to certain page, set the value for page (starting from 1) and pageSize. If pageSize is not specified, simple-jpa will assume 1 page consists of 10 rows. For example, the following finder will limit the results to the first 3 entities:
-
-findAllTeacher([orderBy: 'salary', page: 1, pageSize: 3])
-
-=== Basic Finder
-
-This finder will return a List that contains all instances of a domain class. If no instances are found, it will return an empty List.
-
-Example:
-
-def allStudents = findAllStudent()
-def allTeachers = findAllTeacher()
-
-This finder can be used to quickly find instances of domain class based on one or more attributes value using and or or logical operator.
-
-For example, the following finder will return all female Student in class 'A3':
-
-List result = findAllStudentByAnd([classRoom: 'A3', gender: 'F'])
-
-The following finder will return a Student whose name is Steven and class is 'A3' (if it is not found, the finder will return null value):
-
-Student s = findStudentByAnd([name: 'Steven', classRoom: 'A3'])
-
-An alternative syntax for this finder is:
-
-Student s = findByAnd(Student, [name: 'Steven', classRoom: 'A3'])
-
-This is the most flexible finder. It allows complex searching in one method call. For example, this finder will search all female Student in class 'A3':
-
-List result1 = findAllStudentByClassRoomEqAndGenderEq('A3','F')
-List result2 = findAllStudentByClassRoomAndGender('A3', 'F')
-
-The default operator used for comparison is eq (equality) if operator is not specified. The following is list of supported operators:
-
-    greaterThanEqualTo or ge
-    lessThanEqualTo or le
-    greaterThan or gt
-    lessThan or lt
-    isNotMember
-    isNotEmpty
-    isNotNull
-    notEqual or ne
-    isMember
-    isEmpty
-    isNull
-    like
-    notLike
-    between
-    equal or eq
-
-For example, the following finder will return all Student in class room 'A3' whose score is less than 70:
-
-List result = findAllStudentByClassRoomAndScoreLt('A3', 70)
-
-The following finder will return only one Student whose name contains 'jack' or null if not found:
-
-Student s = findStudentByNameLike('%jack%')
-
-=== DSL Finder
-
-This finder will perform a query based on closure (Dsl). For example, the following finder will return all Student in class room 'A3' whose score is less than 70:
-
-List result = findAllStudentByDsl {
-    classRoom eq('A3')
-    and()
-    score lt(70)
+* `fetchGraph`
++
+This key accepts a `String` or an instance of `EntityGraph` created by using `entityManager.createEntityGraph()`.  If you
+ have defined named entity graph called `Invoice.Items`, you can use it in finders like:
++
+[source,groovy]
+----
+myRepository.findAllInvoice([fetchGraph: 'Invoice.Items'])
+----
++
+Or, you can also build the named entity graph in runtime such as in this sample:
++
+[source,groovy]
+----
+myRepository.withTransaction {
+    def em = getEntityManager()
+    def g = em.createEntityGraph(Invoice)
+    g.addAttributeNodes('items')
+    findAllInvoice([fetchGraph: g])
 }
+----
 
-Note that it is important to separate these conditions and logical operator by line.
+* `loadGraph`
++
+This key accepts a `String` or an instance of `EntityGraph` created by using `entityManager.createEntityGraph()`.  See
+ the description of `fetchGraph` for more information.
 
-The benefit of using Dsl closure is developer can build the query conditions on the fly. For example, it is typical to perform searching based on one or more user selection in view:
+You can also add some of the query configurations described above in `Config.groovy`.  This way the configuration is
+ globally applied to all finders that can accepts it.  The following table lists all query configurations that
+  can be added in `Config.groovy`:
 
-List result = findAllInvoiceByDsl {
-    if (model.txtNumber) {
-       number like("%${txtNumber}%")
-    }
-    if (model.selectedSupplier) {
-       and()
-       supplier eq(selectedSupplier)
-    }
-    if (model.paid) {
-       and()
-       paid eq(true)
-    }
-}
+.Query Configuration In `Config.groovy`
+|===
+|Name | Default Value | Description
 
-An alternative syntax for this finder is:
+|`griffon.simplejpa.entityManager.defaultFlushMode`
+|`FlushModeType.AUTO`
+|You can also change the flush mode to `FlushModeType.COMMIT` (or just `'COMMIT'`).
 
-List result = findByDsl(Student) {
-    classRoom eq('A3')
-    and()
-    score lt(70)
-}
+|`griffon.simplejpa.finders.alwaysExcludeSoftDeleted`
+|`false`
+|If this value is `true`, finders will not return soft deleted entities.
 
-Since version 0.5.2, this method can accept nested path by separating them using double underscores (__). For example, to find Orders based on their OrderItem's Category, use the following code:
+|`griffon.simplejpa.finders.alwaysAllowDuplicate`
+|`true`
+|The default value always add `SELECT DISTINCT` to the generated query.  If you don't need this feature, you can
+increase performance by setting this value to `false`.
+|===
 
-List result = findOrderByDsl {
-    orderItem__category__name eq('CAT1')
-}
-
-Since version 0.7, this DSL allow isIn operator. For example:
-
-List result = findOrderByDsl {
-    orderItem__category isIn(['CAT1', 'CAT2', 'CAT3'])
-}
-
-=== Using Named Entity Graph
-
-Since simple-jpa 0.7, most finders now accept Fetch[Graph]. This will allow user to use a defined named entity graph in finders. To use this feature, JPA 2.1 provider is required. User can define named entity graphs by using @NamedEntityGraph annotation.
-
-For example:
-
-List result = findOrderByIdFetchItems('ORDER-1')
-
-will find Order with id equals to "ORDER-1" and fecth the result using Items entity graph. To use the code, a named entity graph called Items must be defined.
 

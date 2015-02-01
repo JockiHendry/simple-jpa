@@ -74,41 +74,26 @@
 <li><a href="#finders">9. Finders</a></li>
 <li>
 <ul class="sectlevel2">
-<li><a href="#query-configuration">9.1. Query Configuration</a></li>
-<li><a href="#basic-finder">9.2. Basic Finder</a></li>
-<li><a href="#dsl-finder">9.3. DSL Finder</a></li>
-<li><a href="#using-named-entity-graph">9.4. Using Named Entity Graph</a></li>
+<li><a href="#query-methods">9.1. Query Methods</a></li>
+<li><a href="#dynamic-finder">9.2. Dynamic Finder</a></li>
+<li><a href="#dsl-finder">9.3. Dsl Finder</a></li>
+<li><a href="#named-entity-graph">9.4. Named Entity Graph</a></li>
+<li><a href="#query-configuration">9.5. Query Configuration</a></li>
 </ul>
 </li>
 <li><a href="#testing">10. Testing</a></li>
 <li><a href="#deployment">11. Deployment</a></li>
+<li><a href="#script">Appendix A: Script</a></li>
 <li>
 <ul class="sectlevel2">
-<li><a href="#default-flush-mode">Appendix A: Default Flush Mode</a></li>
-<li><a href="#soft-delete">11.1. Soft Delete</a></li>
-<li><a href="#finders-2">11.2. Finders</a></li>
-<li><a href="#auditing-2">11.3. Auditing</a></li>
-</ul>
-</li>
-<li><a href="#script">Appendix B: Script</a></li>
-<li>
-<ul class="sectlevel2">
-<li><a href="#create-simple-jpa">B.1. create-simple-jpa</a></li>
-<li><a href="#create-domain-class">B.2. create-domain-class</a></li>
-<li><a href="#generate-all">B.3. generate-all</a></li>
-<li><a href="#install-templates">B.4. install-templates</a></li>
-<li><a href="#simple-jpa-console">B.5. simple-jpa-console</a></li>
-<li><a href="#generate-schema">B.6. generate-schema</a></li>
-<li><a href="#obfuscate">B.7. obfuscate</a></li>
-<li><a href="#create-repository">B.8. create-repository</a></li>
-</ul>
-</li>
-<li><a href="#methods">Appendix C: Methods</a></li>
-<li>
-<ul class="sectlevel2">
-<li><a href="#executenamedquery">C.1. executeNamedQuery()</a></li>
-<li><a href="#executenativequery">C.2. executeNativeQuery()</a></li>
-<li><a href="#executequery">C.3. executeQuery()</a></li>
+<li><a href="#create-simple-jpa">A.1. create-simple-jpa</a></li>
+<li><a href="#create-domain-class">A.2. create-domain-class</a></li>
+<li><a href="#generate-all">A.3. generate-all</a></li>
+<li><a href="#install-templates">A.4. install-templates</a></li>
+<li><a href="#simple-jpa-console">A.5. simple-jpa-console</a></li>
+<li><a href="#generate-schema">A.6. generate-schema</a></li>
+<li><a href="#obfuscate">A.7. obfuscate</a></li>
+<li><a href="#create-repository">A.8. create-repository</a></li>
 </ul>
 </li>
 </ul>
@@ -3773,7 +3758,7 @@ that is derived from <code>org.jdesktop.swingx.auth.LoginService</code> is requi
 </td>
 <td class="content">
 <div class="paragraph">
-<p>If you add <code>@Transaction</code> to <code>DatabaseLoginService</code> and add the following line to <code>Config.groovy</code> (See <a href="#finders-2">Finders</a> for more information):</p>
+<p>If you add <code>@Transaction</code> to <code>DatabaseLoginService</code> and add the following line to <code>Config.groovy</code> (See <a href="#finders-2">[finders-2]</a> for more information):</p>
 </div>
 <div class="listingblock">
 <div class="title">Config.groovy</div>
@@ -3820,226 +3805,528 @@ from database and check if user&#8217;s password is correct.</p>
 <h2 id="finders">9. Finders</h2>
 <div class="sectionbody">
 <div class="paragraph">
-<p>Finders are dynamic methods that are used to retrieve entities from database. By following their naming pattern, developer can easily execute query for any domain classes.</p>
+<p>Finders are part of persistence methods that are used to retrieve JPA entities from database.  In addition to static methods,
+simple-jpa also supports dynamic finder.  With dynamic finder, you can find entity based on certain pattern in method name.</p>
 </div>
 <div class="sect2">
-<h3 id="query-configuration">9.1. Query Configuration</h3>
+<h3 id="query-methods">9.1. Query Methods</h3>
 <div class="paragraph">
-<p>All finders except find[DomainClass]By[Attributes]() have query configuration as their parameter. Query configuration is stored in a Map. The possible keys for query configuration are:</p>
+<p>simple-jpa injects the following query methods:</p>
 </div>
-<div class="literalblock">
+<div class="ulist">
+<ul>
+<li>
+<p><code>executeNamedQuery(namedQuery, map, config)</code></p>
+<div class="paragraph">
+<p>Execute JPA named query.</p>
+</div>
+</li>
+<li>
+<p><code>executeQuery(jpql, config)</code></p>
+<div class="paragraph">
+<p>Execute JP QL.</p>
+</div>
+</li>
+<li>
+<p><code>executeNativeQuery(sql)</code></p>
+<div class="paragraph">
+<p>Execute SQL.</p>
+</div>
+</li>
+</ul>
+</div>
+<div class="paragraph">
+<p>To use named queries, you must defined them first, for example:</p>
+</div>
+<div class="listingblock">
+<div class="title">Invoice.groovy</div>
 <div class="content">
-<pre>excludeSubclass
-flushMode
-excludeDeleted
-orderBy
-orderDirection
-page
-pageSize
-allowDuplicate</pre>
+<pre class="CodeRay"><code class="groovy language-groovy"><span class="annotation">@NamedQuery</span>(name=<span class="string"><span class="delimiter">'</span><span class="content">Invoice.LargeQty</span><span class="delimiter">'</span></span>, query=<span class="string"><span class="delimiter">'''</span><span class="content">
+        FROM Invoice inv LEFT JOIN inv.items i WHERE i.qty &gt; :limit
+</span><span class="delimiter">'''</span></span>)
+<span class="annotation">@DomainClass</span> <span class="annotation">@Entity</span> <span class="annotation">@Canonical</span>
+<span class="type">class</span> <span class="class">Invoice</span> {
+
+        ...
+
+}</code></pre>
 </div>
 </div>
 <div class="paragraph">
-<p>If excludeSubclass value is <em>*</em>, it will exclude all subclasses of the domain class. It can also accepts a String that contains comma separated class name to be excluded.</p>
+<p>Now you can call <code>Invoice.LargeAmount</code> by using code like:</p>
 </div>
-<div class="paragraph">
-<p>For example, assuming Employee has two subclasses: Teacher and Staff, the following finder will return all instances of Employee including all Teacher and all Staff.</p>
-</div>
-<div class="paragraph">
-<p>findAllEmployee()</p>
-</div>
-<div class="paragraph">
-<p>The following finder will return only instance of Employee but not Teacher or Staff:</p>
-</div>
-<div class="paragraph">
-<p>findAllEmployee([excludeSubclass: <em>*</em>])</p>
-</div>
-<div class="paragraph">
-<p>The following finder will return all instance of Employee and all instance of Teacher but excluding all Staff:</p>
-</div>
-<div class="paragraph">
-<p>findAllEmployee([excludeSubclass: <em>Staff</em>])</p>
-</div>
-<div class="paragraph">
-<p>flushMode configuration key accepts FlushModeType.COMMIT or FlushModeType.AUTO. Use this key to override flush mode for specific queries.</p>
-</div>
-<div class="paragraph">
-<p>If excludeDeleted is true, then finder will not return soft deleted entities. An entity is considered as soft deleted if its deleted attribute is not equals to <em>N</em>.</p>
-</div>
-<div class="paragraph">
-<p>orderBy will causes finder to sort results based on certains attributes. To sort based on more than one attribute, use comma separated attribute name as shown in the following:</p>
-</div>
-<div class="paragraph">
-<p>findAllEmployee([orderBy: <em>name,salary</em>])</p>
-</div>
-<div class="paragraph">
-<p>Since simple-jpa 0.7, orderBy accept model__attribute syntax, for example:</p>
-</div>
-<div class="paragraph">
-<p>findAllEmployee([orderBy: <em>department__name</em>])</p>
-</div>
-<div class="paragraph">
-<p>To set order direction, use orderDirection. This key accept <em>asc</em> for ascending order and <em>desc</em> for descending order. For example, the following finder will find all Employee sorted by name and salary in descending order:</p>
-</div>
-<div class="paragraph">
-<p>findAllEmployee([orderBy: <em>name,salary</em>, orderDirection: <em>desc,desc</em>])</p>
-</div>
-<div class="paragraph">
-<p>To limit the result to certain page, set the value for page (starting from 1) and pageSize. If pageSize is not specified, simple-jpa will assume 1 page consists of 10 rows. For example, the following finder will limit the results to the first 3 entities:</p>
-</div>
-<div class="paragraph">
-<p>findAllTeacher([orderBy: <em>salary</em>, page: 1, pageSize: 3])</p>
-</div>
-</div>
-<div class="sect2">
-<h3 id="basic-finder">9.2. Basic Finder</h3>
-<div class="paragraph">
-<p>This finder will return a List that contains all instances of a domain class. If no instances are found, it will return an empty List.</p>
-</div>
-<div class="paragraph">
-<p>Example:</p>
-</div>
-<div class="paragraph">
-<p>def allStudents = findAllStudent()
-def allTeachers = findAllTeacher()</p>
-</div>
-<div class="paragraph">
-<p>This finder can be used to quickly find instances of domain class based on one or more attributes value using and or or logical operator.</p>
-</div>
-<div class="paragraph">
-<p>For example, the following finder will return all female Student in class <em>A3</em>:</p>
-</div>
-<div class="paragraph">
-<p>List result = findAllStudentByAnd([classRoom: <em>A3</em>, gender: <em>F</em>])</p>
-</div>
-<div class="paragraph">
-<p>The following finder will return a Student whose name is Steven and class is <em>A3</em> (if it is not found, the finder will return null value):</p>
-</div>
-<div class="paragraph">
-<p>Student s = findStudentByAnd([name: <em>Steven</em>, classRoom: <em>A3</em>])</p>
-</div>
-<div class="paragraph">
-<p>An alternative syntax for this finder is:</p>
-</div>
-<div class="paragraph">
-<p>Student s = findByAnd(Student, [name: <em>Steven</em>, classRoom: <em>A3</em>])</p>
-</div>
-<div class="paragraph">
-<p>This is the most flexible finder. It allows complex searching in one method call. For example, this finder will search all female Student in class <em>A3</em>:</p>
-</div>
-<div class="paragraph">
-<p>List result1 = findAllStudentByClassRoomEqAndGenderEq(<em>A3</em>,<em>F</em>)
-List result2 = findAllStudentByClassRoomAndGender(<em>A3</em>, <em>F</em>)</p>
-</div>
-<div class="paragraph">
-<p>The default operator used for comparison is eq (equality) if operator is not specified. The following is list of supported operators:</p>
-</div>
-<div class="literalblock">
+<div class="listingblock">
 <div class="content">
-<pre>greaterThanEqualTo or ge
-lessThanEqualTo or le
-greaterThan or gt
-lessThan or lt
-isNotMember
-isNotEmpty
-isNotNull
-notEqual or ne
-isMember
-isEmpty
-isNull
-like
-notLike
-between
-equal or eq</pre>
+<pre class="CodeRay"><code class="groovy language-groovy"><span class="keyword">def</span> result = myRepository.executeNamedQuery(<span class="string"><span class="delimiter">'</span><span class="content">Invoice.LargeQty</span><span class="delimiter">'</span></span>, [<span class="key">limit</span>: <span class="integer">500</span>])
+println <span class="string"><span class="delimiter">&quot;</span><span class="content">Invoices with large qty in one of their items:</span><span class="delimiter">&quot;</span></span>
+println result.collect { <span class="local-variable">it</span>.number }.join(<span class="string"><span class="delimiter">'</span><span class="content">,</span><span class="delimiter">'</span></span>)</code></pre>
 </div>
 </div>
 <div class="paragraph">
-<p>For example, the following finder will return all Student in class room <em>A3</em> whose score is less than 70:</p>
+<p>Named queries are parsed when application is launched.  Although they make application startup slower, they are quick to
+ serve you when you need them because they&#8217;re prepared.</p>
 </div>
 <div class="paragraph">
-<p>List result = findAllStudentByClassRoomAndScoreLt(<em>A3</em>, 70)</p>
+<p>As an alternative to named query, you can always directly call JP QL by using <code>executeQuery()</code>, for example:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="CodeRay"><code class="groovy language-groovy"><span class="keyword">def</span> result = myRepository.executeQuery(
+   <span class="string"><span class="delimiter">'</span><span class="content">FROM Invoice inv LEFT JOIN inv.items i  WHERE i.qty &gt; :limit</span><span class="delimiter">'</span></span>,
+   [:], [<span class="key">limit</span>: <span class="integer">500</span>])</code></pre>
+</div>
+</div>
+<div class="admonitionblock tip">
+<table>
+<tr>
+<td class="icon">
+<i class="icon-tip" title="Tip"></i>
+</td>
+<td class="content">
+Don&#8217;t forget that you can use <code>simple-jpa-console</code> script to launch Groovy console to try query methods described
+ in this chapter.
+</td>
+</tr>
+</table>
 </div>
 <div class="paragraph">
-<p>The following finder will return only one Student whose name contains <em>jack</em> or null if not found:</p>
+<p>JPA can hurt performance if your query return a very large result.  This is because JPA provider needs to translate
+ every rows from native SQL query into object (entities).  Creating a lot of objects in a short time may leads to
+ memory shortage in heap.  To avoid these problems, you can use <code>executeNativeQuery()</code> to execute SQL:</p>
 </div>
-<div class="paragraph">
-<p>Student s = findStudentByNameLike(<em>%jack%</em>)</p>
+<div class="listingblock">
+<div class="content">
+<pre class="CodeRay"><code class="groovy language-groovy"><span class="keyword">def</span> result = myRepository.executeNativeQuery(<span class="string"><span class="delimiter">'''</span><span class="content">
+   SELECT i.number, SUM(li.qty * li.price) AS total
+   FROM Invoice i
+   LEFT JOIN Invoice_Items li ON li.invoice_id = i.id
+   GROUP BY i.number
+</span><span class="delimiter">'''</span></span>)
+<span class="comment">// result is an array</span>
+println result[<span class="integer">0</span>][<span class="integer">0</span>]  <span class="comment">// print first column of first record</span>
+println result[<span class="integer">0</span>][<span class="integer">1</span>]  <span class="comment">// print second column of first record</span>
+println result[<span class="integer">1</span>][<span class="integer">0</span>]  <span class="comment">// print first column of second record</span>
+println result[<span class="integer">1</span>][<span class="integer">1</span>]  <span class="comment">// print second column of second record</span></code></pre>
+</div>
+</div>
+<div class="admonitionblock tip">
+<table>
+<tr>
+<td class="icon">
+<i class="icon-tip" title="Tip"></i>
+</td>
+<td class="content">
+Don&#8217;t use <code>executeNativeQuery()</code> if not necessary.  Your code become prone to mismatch between query and domain
+classes. If you find yourself create a lot of SQL queries, you need to consider to use native SQL approach instead of JPA.
+</td>
+</tr>
+</table>
 </div>
 </div>
 <div class="sect2">
-<h3 id="dsl-finder">9.3. DSL Finder</h3>
+<h3 id="dynamic-finder">9.2. Dynamic Finder</h3>
 <div class="paragraph">
-<p>This finder will perform a query based on closure (Dsl). For example, the following finder will return all Student in class room <em>A3</em> whose score is less than 70:</p>
+<p>Dynamic finder works by following certain pattern in method name.  For example, if you want to select all <code>Invoice</code>, you
+can call the following method:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="CodeRay"><code class="groovy language-groovy"><span class="predefined-type">List</span> result = myRepository.findAllInvoice()
+println result.collect { <span class="local-variable">it</span>.number }.join(<span class="string"><span class="delimiter">'</span><span class="content">,</span><span class="delimiter">'</span></span>)</code></pre>
+</div>
 </div>
 <div class="paragraph">
-<p>List result = findAllStudentByDsl {
-    classRoom eq(<em>A3</em>)
-    and()
-    score lt(70)
-}</p>
+<p>Finder starts with <code>findAll</code> always return a <code>List</code>.  If nothing is found, it returns an empty <code>List</code>.</p>
 </div>
 <div class="paragraph">
-<p>Note that it is important to separate these conditions and logical operator by line.</p>
+<p>You can add a criteria by using adding <code>by</code> to the finder followed by property name, for example:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="CodeRay"><code class="groovy language-groovy"><span class="predefined-type">List</span> result = myRepository.findAllInvoiceByNumber(<span class="string"><span class="delimiter">'</span><span class="content">INV02</span><span class="delimiter">'</span></span>)
+println result.collect { <span class="local-variable">it</span>.number }.join(<span class="string"><span class="delimiter">'</span><span class="content">,</span><span class="delimiter">'</span></span>)</code></pre>
+</div>
 </div>
 <div class="paragraph">
-<p>The benefit of using Dsl closure is developer can build the query conditions on the fly. For example, it is typical to perform searching based on one or more user selection in view:</p>
+<p>If you want to return only a single instance, drop <code>all</code> from the finder name, for example:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="CodeRay"><code class="groovy language-groovy">Invoice result = myRepository.findInvoiceByNumber(<span class="string"><span class="delimiter">'</span><span class="content">INV02</span><span class="delimiter">'</span></span>)
+println result?.number</code></pre>
+</div>
 </div>
 <div class="paragraph">
-<p>List result = findAllInvoiceByDsl {
-    if (model.txtNumber) {
-       number like("%${txtNumber}%")
-    }
-    if (model.selectedSupplier) {
-       and()
-       supplier eq(selectedSupplier)
-    }
-    if (model.paid) {
-       and()
-       paid eq(true)
-    }
-}</p>
+<p>The finder returns an instance of <code>Invoice</code> or <code>null</code> if nothing is found.</p>
 </div>
 <div class="paragraph">
-<p>An alternative syntax for this finder is:</p>
+<p>You can combine multiple criteria by using logical operator <code>and</code> and <code>or</code>, for example:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="CodeRay"><code class="groovy language-groovy">myRepository.findAllInvoiceByNumberAndDate(<span class="string"><span class="delimiter">'</span><span class="content">INV02</span><span class="delimiter">'</span></span>, LocalDate.parse(<span class="string"><span class="delimiter">'</span><span class="content">2015-02-01</span><span class="delimiter">'</span></span>))</code></pre>
+</div>
 </div>
 <div class="paragraph">
-<p>List result = findByDsl(Student) {
-    classRoom eq(<em>A3</em>)
-    and()
-    score lt(70)
-}</p>
+<p>In the previous examples, you&#8217;ve searched based on equality (<code>eq</code>).  simple-jpa dynamic finders also supports different
+  operators such as:</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p><code>greaterThanEqualTo</code> or <code>ge</code></p>
+</li>
+<li>
+<p><code>lessThanEqualTo</code> or <code>le</code></p>
+</li>
+<li>
+<p><code>greaterThan</code> or <code>gt</code></p>
+</li>
+<li>
+<p><code>lessThan</code> or <code>lt</code></p>
+</li>
+<li>
+<p><code>isNotMember</code></p>
+</li>
+<li>
+<p><code>isNotEmpty</code></p>
+</li>
+<li>
+<p><code>isNotNull</code></p>
+</li>
+<li>
+<p><code>notEqual</code> or <code>ne</code></p>
+</li>
+<li>
+<p><code>isMember</code></p>
+</li>
+<li>
+<p><code>isEmpty</code></p>
+</li>
+<li>
+<p><code>isNull</code></p>
+</li>
+<li>
+<p><code>like</code></p>
+</li>
+<li>
+<p><code>notLike</code></p>
+</li>
+<li>
+<p><code>between</code></p>
+</li>
+</ul>
 </div>
 <div class="paragraph">
-<p>Since version 0.5.2, this method can accept nested path by separating them using double underscores (__). For example, to find Orders based on their OrderItem&#8217;s Category, use the following code:</p>
+<p>For example, to search for all invoices created in this month, you can use the following code:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="CodeRay"><code class="groovy language-groovy"><span class="keyword">def</span> dateBegin = LocalDate.now().dayOfMonth().withMinimumValue()
+<span class="keyword">def</span> dateEnd = LocalDate.now().dayOfMonth().withMaximumValue()
+<span class="keyword">def</span> result = myRepository.findAllInvoiceByDateBetween(dateBegin, dateEnd)</code></pre>
+</div>
 </div>
 <div class="paragraph">
-<p>List result = findOrderByDsl {
-    orderItem<em>category</em>name eq(<em>CAT1</em>)
-}</p>
+<p>In this another example, you find products by name using <code>like</code> operator:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="CodeRay"><code class="groovy language-groovy">myRepository.findAllProductByNameLike(<span class="string"><span class="delimiter">'</span><span class="content">A%</span><span class="delimiter">'</span></span>)</code></pre>
+</div>
 </div>
 <div class="paragraph">
-<p>Since version 0.7, this DSL allow isIn operator. For example:</p>
+<p>You can search for nested properties by using double underscore (<code>__</code>) as separator.  For example, the following
+query finds all products based on supplier&#8217;s location:</p>
 </div>
-<div class="paragraph">
-<p>List result = findOrderByDsl {
-    orderItem__category isIn([<em>CAT1</em>, <em>CAT2</em>, <em>CAT3</em>])
-}</p>
+<div class="listingblock">
+<div class="content">
+<pre class="CodeRay"><code class="groovy language-groovy">myRepository.findAllProductBySupplier__City__NameLike(<span class="string"><span class="delimiter">'</span><span class="content">a city%</span><span class="delimiter">'</span></span>)</code></pre>
+</div>
 </div>
 </div>
 <div class="sect2">
-<h3 id="using-named-entity-graph">9.4. Using Named Entity Graph</h3>
+<h3 id="dsl-finder">9.3. Dsl Finder</h3>
 <div class="paragraph">
-<p>Since simple-jpa 0.7, most finders now accept Fetch[Graph]. This will allow user to use a defined named entity graph in finders. To use this feature, JPA 2.1 provider is required. User can define named entity graphs by using @NamedEntityGraph annotation.</p>
+<p>In addition to using dynamic finder, you can also perform query by using Dsl finder.  Such finder requires a closure as
+ argument.  The following code show how to use Dsl Finder:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="CodeRay"><code class="groovy language-groovy"><span class="keyword">def</span> dateBegin = LocalDate.now().dayOfMonth().withMinimumValue()
+<span class="keyword">def</span> dateEnd = LocalDate.now().dayOfMonth().withMaximumValue()
+myRepository.findAllInvoiceByDsl {
+    number eq(<span class="string"><span class="delimiter">'</span><span class="content">INV02</span><span class="delimiter">'</span></span>)
+    and()
+    date between(dateBegin, dateEnd)
+}</code></pre>
+</div>
 </div>
 <div class="paragraph">
-<p>For example:</p>
+<p>The advantage of using Dsl closure is you can build the query conditions based on certain condition.   You can also add
+ any code inside the closure.  For example, the following code add query condition only if certain variables are not null:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="CodeRay"><code class="groovy language-groovy"><span class="keyword">def</span> dateBeginSearch = LocalDate.now().dayOfMonth().withMinimumValue()
+<span class="keyword">def</span> dateEndSearch = LocalDate.now().dayOfMonth().withMaximumValue()
+<span class="keyword">def</span> numberSearch = <span class="predefined-constant">null</span>
+myRepository.findAllInvoiceByDsl {
+  <span class="keyword">if</span> (numberSearch) {
+    number eq(numberSearch)
+  }
+  <span class="keyword">if</span> (dateBeginSearch &amp;&amp; dateEndSearch) {
+    date between(dateBeginSearch, dateEndSearch)
+  }
+}</code></pre>
+</div>
 </div>
 <div class="paragraph">
-<p>List result = findOrderByIdFetchItems(<em>ORDER-1</em>)</p>
+<p>You can also use nested properties by using double underscores (<code>__</code>) as separator, for example:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="CodeRay"><code class="groovy language-groovy">myRepository.findAllProductByDsl {
+  supplier__name isIn([<span class="string"><span class="delimiter">'</span><span class="content">supplier a</span><span class="delimiter">'</span></span>, <span class="string"><span class="delimiter">'</span><span class="content">supplier b</span><span class="delimiter">'</span></span>])
+  and()
+  name eq(<span class="string"><span class="delimiter">'</span><span class="content">A product</span><span class="delimiter">'</span></span>)
+}</code></pre>
+</div>
+</div>
+</div>
+<div class="sect2">
+<h3 id="named-entity-graph">9.4. Named Entity Graph</h3>
+<div class="paragraph">
+<p>Named entity graph is a new feature in JPA 2.1.  It allows you to define a flexible fetch graph without modifying your
+current query.  For example, you can define named entity graph such as:</p>
+</div>
+<div class="listingblock">
+<div class="title">Invoice.groovy</div>
+<div class="content">
+<pre class="CodeRay"><code class="groovy language-groovy"><span class="keyword">package</span> domain
+
+<span class="comment">// import statements are not shown</span>
+
+<span class="annotation">@NamedEntityGraph</span>(name=<span class="string"><span class="delimiter">'</span><span class="content">Invoice.Items</span><span class="delimiter">'</span></span>, attributeNodes=[
+  <span class="annotation">@NamedAttributeNode</span>(<span class="string"><span class="delimiter">'</span><span class="content">items</span><span class="delimiter">'</span></span>)
+])
+<span class="annotation">@DomainClass</span> <span class="annotation">@Entity</span> <span class="annotation">@Canonical</span>(excludes=<span class="string"><span class="delimiter">'</span><span class="content">items</span><span class="delimiter">'</span></span>)
+<span class="type">class</span> <span class="class">Invoice</span> {
+
+  <span class="annotation">@NotEmpty</span> <span class="annotation">@Size</span>(min=<span class="integer">5</span>, max=<span class="integer">5</span>)
+  <span class="predefined-type">String</span> number
+
+  <span class="annotation">@NotNull</span> <span class="annotation">@Type</span>(type=<span class="string"><span class="delimiter">&quot;</span><span class="content">org.jadira.usertype.dateandtime.joda.PersistentLocalDate</span><span class="delimiter">&quot;</span></span>)
+  LocalDate date
+
+  <span class="annotation">@ElementCollection</span> <span class="annotation">@OrderColumn</span> <span class="annotation">@NotEmpty</span>
+  <span class="predefined-type">List</span>&lt;LineItem&gt; items = <span class="type">[]</span>
+
+  <span class="type">void</span> add(LineItem item) {
+    items &lt;&lt; item
+  }
+
+  <span class="predefined-type">BigDecimal</span> total() {
+    items.sum { <span class="local-variable">it</span>.total() }
+  }
+
+}</code></pre>
+</div>
 </div>
 <div class="paragraph">
-<p>will find Order with id equals to "ORDER-1" and fecth the result using Items entity graph. To use the code, a named entity graph called Items must be defined.</p>
+<p>If you want to use named entity graph in simple-jpa finders, you should always start the name with domain class name
+ followed by a period (<code>.</code>) before the actual name.  To use named entity graph, add <code>fetch</code> or <code>load</code> to dynamic finder,
+ for example:</p>
 </div>
+<div class="listingblock">
+<div class="content">
+<pre class="CodeRay"><code class="groovy language-groovy"><span class="comment">// items is lazy loaded.  It will trigger SQL query when code refer to it.</span>
+<span class="comment">// result is not safe to be passed to outside transaction because</span>
+<span class="comment">// SQL query is required to retrieve items.</span>
+<span class="keyword">def</span> result = myRepository.findAllInvoice()
+
+<span class="comment">// items has been loaded.</span>
+<span class="comment">// anotherResult is safe to be passed to outside transaction because</span>
+<span class="comment">// items is safe to read from anywhere.</span>
+<span class="keyword">def</span> anotherResult = myRepository.findAllInvoiceFetchItems()</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>In addition to using <code>fetch</code> in dynamic finder, you can also use named entity graph by passing them query configuration
+ using <code>fetchGraph</code> or <code>loadGraph</code> as key.  See <a href="#query-configuration">Query Configuration</a> for more information.</p>
+</div>
+</div>
+<div class="sect2">
+<h3 id="query-configuration">9.5. Query Configuration</h3>
+<div class="paragraph">
+<p>Most of finder methods described so far can receive a configuration parameter in form of <code>Map</code>.  You can use the following
+ values as its keys:</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p><code>excludeSubclass</code></p>
+<div class="paragraph">
+<p>The value must be a string.  Normal query returns all instances of current class and its subclasses.  For example, if <code>Employee</code>
+ has three subclasses <code>Teacher</code>, <code>Researcher</code>, and <code>Staff</code>, then <code>findAllEmploye()</code> returns instances of  <code>Employee</code>, <code>Teacher</code>,
+ <code>Researcher</code> and <code>Staff</code>.  If you want to return only <code>Teacher</code> and <code>Staff</code>, you can use the following code:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="CodeRay"><code class="groovy language-groovy">myRepository.findAllEmployee([<span class="key">excludeSubclass</span>: <span class="string"><span class="delimiter">'</span><span class="content">Researcher</span><span class="delimiter">'</span></span>])</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>Assuming <code>Employee</code> is not an abstract class and it have instances, then you can use following code to only return instances
+of <code>Employee</code>:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="CodeRay"><code class="groovy language-groovy">myRepository.findAllEmployee([<span class="key">excludeSubclass</span>: <span class="string"><span class="delimiter">'</span><span class="content">*</span><span class="delimiter">'</span></span>])</code></pre>
+</div>
+</div>
+</li>
+<li>
+<p><code>flushMode</code></p>
+<div class="paragraph">
+<p>The value must be one of <code>FlushModeType.COMMIT</code> or <code>FlushModeType.AUTO</code>.  Use this key to override flush mode for current query.</p>
+</div>
+</li>
+<li>
+<p><code>excludeDeleted</code></p>
+<div class="paragraph">
+<p>The value is a boolean (<code>true</code> or <code>false</code>).  If it is <code>true</code>, query will not return soft deleted entities. An entity is
+considered as soft deleted if its <code>deleted</code> property is equals to <code>'Y'</code>.</p>
+</div>
+</li>
+<li>
+<p><code>orderBy</code></p>
+<div class="paragraph">
+<p>The value must be a string.  Use this key to sort current query.  If you have multiple attributes to sort, separate them by comma,
+ for example:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="CodeRay"><code class="groovy language-groovy">myRepository.findAllInvoice([<span class="key">orderBy</span>: <span class="string"><span class="delimiter">'</span><span class="content">number,date</span><span class="delimiter">'</span></span>])</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>If you want to sort by nested property, use double underscore (<code>__</code>) as separator.</p>
+</div>
+</li>
+<li>
+<p><code>orderDirection</code></p>
+<div class="paragraph">
+<p>The value must be one of the following string: <code>asc</code> or <code>desc</code>.  This key is used to specify the direction of order in <code>orderBy</code>.
+For example, the following query will find all invoices sorted by number in ascending direction and date in descending direction:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="CodeRay"><code class="groovy language-groovy">myRepository.findAllInvoice([<span class="key">orderBy</span>: <span class="string"><span class="delimiter">'</span><span class="content">number,date</span><span class="delimiter">'</span></span>, <span class="key">orderDirection</span>: <span class="string"><span class="delimiter">'</span><span class="content">asc,desc</span><span class="delimiter">'</span></span>])</code></pre>
+</div>
+</div>
+</li>
+<li>
+<p><code>page</code></p>
+<div class="paragraph">
+<p>The value must be a number starting from <code>1</code>.  Use this key together with <code>pageSize</code> to limit query result.  Default value for
+<code>page</code> is <code>1</code>.</p>
+</div>
+</li>
+<li>
+<p><code>pageSize</code></p>
+<div class="paragraph">
+<p>The value must be a positive number.  Use this key to set the size for current page.  If <code>page</code> is specified but <code>pageSize</code>
+ is not set, then it is assumed to be <code>10</code>.  If both <code>page</code> and <code>pageSize</code> is not specified, there will be no limit for this query.</p>
+</div>
+<div class="paragraph">
+<p>For example, to retrieve only 3 first invoices, you can use the following configuration:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="CodeRay"><code class="groovy language-groovy">myRepository.findAllInvoice([<span class="key">pageSize</span>:<span class="integer">3</span>])</code></pre>
+</div>
+</div>
+</li>
+<li>
+<p><code>allowDuplicate</code></p>
+<div class="paragraph">
+<p>The value is a boolean (<code>true</code> or <code>false</code>).  Set it to <code>true</code> to never returns duplicate entities.  This configuration adds
+ <code>SELECT DISTINCT</code> to current query.</p>
+</div>
+</li>
+<li>
+<p><code>fetchGraph</code></p>
+<div class="paragraph">
+<p>This key accepts a <code>String</code> or an instance of <code>EntityGraph</code> created by using <code>entityManager.createEntityGraph()</code>.  If you
+ have defined named entity graph called <code>Invoice.Items</code>, you can use it in finders like:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="CodeRay"><code class="groovy language-groovy">myRepository.findAllInvoice([<span class="key">fetchGraph</span>: <span class="string"><span class="delimiter">'</span><span class="content">Invoice.Items</span><span class="delimiter">'</span></span>])</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>Or, you can also build the named entity graph in runtime such as in this sample:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="CodeRay"><code class="groovy language-groovy">myRepository.withTransaction {
+    <span class="keyword">def</span> em = getEntityManager()
+    <span class="keyword">def</span> g = em.createEntityGraph(Invoice)
+    g.addAttributeNodes(<span class="string"><span class="delimiter">'</span><span class="content">items</span><span class="delimiter">'</span></span>)
+    findAllInvoice([<span class="key">fetchGraph</span>: g])
+}</code></pre>
+</div>
+</div>
+</li>
+<li>
+<p><code>loadGraph</code></p>
+<div class="paragraph">
+<p>This key accepts a <code>String</code> or an instance of <code>EntityGraph</code> created by using <code>entityManager.createEntityGraph()</code>.  See
+ the description of <code>fetchGraph</code> for more information.</p>
+</div>
+</li>
+</ul>
+</div>
+<div class="paragraph">
+<p>You can also add some of the query configurations described above in <code>Config.groovy</code>.  This way the configuration is
+ globally applied to all finders that can accepts it.  The following table lists all query configurations that
+  can be added in <code>Config.groovy</code>:</p>
+</div>
+<table class="tableblock frame-all grid-all" style="width: 100%;">
+<caption class="title">Table 13. Query Configuration In <code>Config.groovy</code></caption>
+<colgroup>
+<col style="width: 33%;">
+<col style="width: 33%;">
+<col style="width: 33%;">
+</colgroup>
+<thead>
+<tr>
+<th class="tableblock halign-left valign-top">Name</th>
+<th class="tableblock halign-left valign-top">Default Value</th>
+<th class="tableblock halign-left valign-top">Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>griffon.simplejpa.entityManager.defaultFlushMode</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>FlushModeType.AUTO</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">You can also change the flush mode to <code>FlushModeType.COMMIT</code> (or just <code>'COMMIT'</code>).</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>griffon.simplejpa.finders.alwaysExcludeSoftDeleted</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>false</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">If this value is <code>true</code>, finders will not return soft deleted entities.</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>griffon.simplejpa.finders.alwaysAllowDuplicate</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>true</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">The default value always add <code>SELECT DISTINCT</code> to the generated query.  If you don&#8217;t need this feature, you can
+increase performance by setting this value to <code>false</code>.</p></td>
+</tr>
+</tbody>
+</table>
 </div>
 </div>
 </div>
@@ -4052,73 +4339,11 @@ equal or eq</pre>
 <div class="sect1">
 <h2 id="deployment">11. Deployment</h2>
 <div class="sectionbody">
-<div class="sect2">
-<h3 id="default-flush-mode">Appendix A: Default Flush Mode</h3>
-<div class="paragraph">
-<p>Use this configuration key to change the default <code>flushMode</code> for all EntityManager in application. The possible values
-for flushMode is <code><em>COMMIT</em></code> and <code><em>AUTO</em></code>. The default value for <code>flushMode</code> is depends on JPA provider.</p>
-</div>
-<div class="paragraph">
-<p>For example, the following configuration line will set <code>flushMode</code> for all EntityManager to <code>DefaultFlushModeType.COMMIT</code>:</p>
-</div>
-<div class="listingblock">
-<div class="content">
-<pre class="CodeRay"><code class="groovy language-groovy">griffon.simplejpa.entityManager.defaultFlushMode = <span class="string"><span class="delimiter">'</span><span class="content">COMMIT</span><span class="delimiter">'</span></span></code></pre>
-</div>
-</div>
-<div class="paragraph">
-<p>Default flushMode can be overriden in certain queries by using <code>flushMode</code> query configuration.</p>
-</div>
-</div>
-<div class="sect2">
-<h3 id="soft-delete">11.1. Soft Delete</h3>
-<div class="paragraph">
-<p>If the value for this configuration key is <code>true</code>, simple-jpa finders will not return soft deleted objects. A soft
-deleted object is an object whose deleted attribute is not equals to <code><em>N</em></code>. The deleted attribute is available on all
-domain classes that have <code>@DomainClass</code> annotation. To soft delete an domain object, use <code>softDelete()</code> method.</p>
-</div>
-<div class="paragraph">
-<p>Note that developer can still retrieve soft deleted objects by using <code>executeQuery()</code>, <code>executeNativeQuery()</code>, or
-passing <code>false</code> to <code>excludeDeleted</code> query configuration.</p>
-</div>
-<div class="paragraph">
-<p>By default, the value for this configuration key is <code>false</code>. To enable it, add the following line to <code>Config.groovy</code>:</p>
-</div>
-<div class="listingblock">
-<div class="content">
-<pre class="CodeRay"><code>griffon.simplejpa.finders.alwaysExcludeSoftDeleted = true</code></pre>
-</div>
-</div>
-</div>
-<div class="sect2">
-<h3 id="finders-2">11.2. Finders</h3>
-<div class="paragraph">
-<p>Since simple-jpa 0.7, by default, duplicate entities returned by finders will be ignored. To allow finders to return
-duplicate entities, add the following line:</p>
-</div>
-<div class="listingblock">
-<div class="content">
-<pre class="CodeRay"><code class="groovy language-groovy">griffon.simplejpa.finders.alwaysAllowDuplicate = <span class="predefined-constant">true</span></code></pre>
-</div>
-</div>
-</div>
-<div class="sect2">
-<h3 id="auditing-2">11.3. Auditing</h3>
-<div class="paragraph">
-<p>To display a login dialog at startup time, set a service name for <code>griffon.simplejpa.auditing.loginService</code>.  This service must be an
-instance of <code>org.jdesktop.swingx.auth.LoginService</code>.</p>
-</div>
-<div class="listingblock">
-<div class="title">Config.groovy</div>
-<div class="content">
-<pre class="CodeRay"><code class="groovy language-groovy">griffon.simplejpa.auditing.loginService = <span class="string"><span class="delimiter">'</span><span class="content">DatabaseLoginService</span><span class="delimiter">'</span></span></code></pre>
-</div>
-</div>
-</div>
+
 </div>
 </div>
 <div class="sect1">
-<h2 id="script">Appendix B: Script</h2>
+<h2 id="script">Appendix A: Script</h2>
 <div class="sectionbody">
 <div class="paragraph">
 <p>simple-jpa scripts can be called just like any Griffon&#8217;s commands:</p>
@@ -4137,7 +4362,7 @@ instance of <code>org.jdesktop.swingx.auth.LoginService</code>.</p>
 </div>
 </div>
 <div class="sect2">
-<h3 id="create-simple-jpa">B.1. create-simple-jpa</h3>
+<h3 id="create-simple-jpa">A.1. create-simple-jpa</h3>
 <div class="paragraph">
 <p>This command is usually the first command that will be invoked before working with Java Persistence API (JPA).
 It will create persistence.xml and orm.xml in current project. It will also create some resource files that are commonly
@@ -4236,7 +4461,7 @@ database schema: ha), uses Hibernate JPA, and will not check if required user an
 </div>
 </div>
 <div class="sect2">
-<h3 id="create-domain-class">B.2. create-domain-class</h3>
+<h3 id="create-domain-class">A.2. create-domain-class</h3>
 <div class="paragraph">
 <p>This command will create a new empty domain class and register it in persistence context file. Before creating domain
 class, the project must has <code>persistence.xml</code> file in <code>metainf</code> directory. To generate required files for working with
@@ -4302,7 +4527,7 @@ is <code>domain</code>.</p>
 </div>
 </div>
 <div class="sect2">
-<h3 id="generate-all">B.3. generate-all</h3>
+<h3 id="generate-all">A.3. generate-all</h3>
 <div class="paragraph">
 <p>This command will create a new <code>MVCGroup</code> based on a domain class. The generated MVCGroup (consists of a view, a model
 and a controller) has the ability to perform CRUD operations on a domain class. This command can also generate a startup
@@ -4425,7 +4650,7 @@ MVCGroup as startup:</p>
 </div>
 </div>
 <div class="sect2">
-<h3 id="install-templates">B.4. install-templates</h3>
+<h3 id="install-templates">A.4. install-templates</h3>
 <div class="paragraph">
 <p>This command will add templates used by simple-jpa to current project in <code>/src/templates/artifacts</code>. This command is
 useful for changing templates that is used by simple-jpa generator. Developer can edit the templates and the next
@@ -4449,7 +4674,7 @@ invocation of simple-jpa generator will based on them.</p>
 </div>
 </div>
 <div class="sect2">
-<h3 id="simple-jpa-console">B.5. simple-jpa-console</h3>
+<h3 id="simple-jpa-console">A.5. simple-jpa-console</h3>
 <div class="paragraph">
 <p>This command will launch Groovy Console loaded with Griffon and simple-jpa. Developer can use this command to test or
 execute code interactively.</p>
@@ -4481,7 +4706,7 @@ To display list of available variables, select <strong>Script</strong>, <strong>
 </div>
 </div>
 <div class="sect2">
-<h3 id="generate-schema">B.6. generate-schema</h3>
+<h3 id="generate-schema">A.6. generate-schema</h3>
 <div class="paragraph">
 <p>This command will generate database schema based on current domain models mapping to database or scripts. Developer can
 use this command to retrieve SQL scripts that can be used to populate new database schema for current application.</p>
@@ -4556,7 +4781,7 @@ initialize database (for example, populating tables with initial data).</p>
 </div>
 </div>
 <div class="sect2">
-<h3 id="obfuscate">B.7. obfuscate</h3>
+<h3 id="obfuscate">A.7. obfuscate</h3>
 <div class="paragraph">
 <p>Use this command to generate obfuscated value that can be added to configuration file or simplejpa.properties. This is
 useful to hide sensitive information such as database password from novice users.</p>
@@ -4602,7 +4827,7 @@ configurations that accepts string value. For example, it can be used in <code>C
 </div>
 </div>
 <div class="sect2">
-<h3 id="create-repository">B.8. create-repository</h3>
+<h3 id="create-repository">A.8. create-repository</h3>
 <div class="paragraph">
 <p>Use this command to create a new repository.  It is recommended to generate repository automatically by using
 DDD generator rather than create them manually using this command.</p>
@@ -4629,104 +4854,10 @@ DDD generator rather than create them manually using this command.</p>
 </div>
 </div>
 </div>
-<div class="sect1">
-<h2 id="methods">Appendix C: Methods</h2>
-<div class="sectionbody">
-<div class="sect2">
-<h3 id="executenamedquery">C.1. executeNamedQuery()</h3>
-<div class="paragraph">
-<p>Use this method to execute JPA named query. This method will return a List that contains the result from named query
-execution. The syntax of this method is:</p>
-</div>
-<div class="listingblock">
-<div class="content">
-<pre class="CodeRay"><code class="groovy language-groovy"><span class="keyword">def</span> <span class="function">executeNamedQuery</span>(<span class="predefined-type">String</span> namedQuery, <span class="predefined-type">Map</span> args, <span class="predefined-type">Map</span> config = [:])</code></pre>
-</div>
-</div>
-<div class="paragraph">
-<p><code>namedQuery</code> is the name of JPA named query that will be executed. <code>args</code> is a <code>Map</code> that stores query parameter values.
-<code>config</code> is an optional query configuration.</p>
-</div>
-<div class="paragraph">
-<p>This is an example of JPA Named Query declaration:</p>
-</div>
-<div class="listingblock">
-<div class="content">
-<pre class="CodeRay"><code class="groovy language-groovy"><span class="annotation">@NamedQuery</span>(name=<span class="string"><span class="delimiter">'</span><span class="content">Product.CalculateTotal</span><span class="delimiter">'</span></span>, query=<span class="string"><span class="delimiter">'''</span><span class="content">
-    SELECT SUM(i.qty) FROM items i WHERE
-    i.product = :product AND (i.date &lt;= :endDate)
-</span><span class="delimiter">'''</span></span>
-<span class="type">class</span> <span class="class">Product</span> {
-
-}</code></pre>
-</div>
-</div>
-<div class="paragraph">
-<p>To call the named query declared above, use the following code:</p>
-</div>
-<div class="listingblock">
-<div class="content">
-<pre class="CodeRay"><code class="groovy language-groovy">Product p = findProductByCode(<span class="string"><span class="delimiter">'</span><span class="content">P001</span><span class="delimiter">'</span></span>)
-<span class="keyword">def</span> total = executeNamedQuery(<span class="string"><span class="delimiter">'</span><span class="content">Product.CalculateTotal</span><span class="delimiter">'</span></span>,
-    [<span class="key">product</span>: p, <span class="key">endDate</span>: LocalDate.now()])[<span class="integer">0</span>]</code></pre>
-</div>
-</div>
-</div>
-<div class="sect2">
-<h3 id="executenativequery">C.2. executeNativeQuery()</h3>
-<div class="paragraph">
-<p>Use this method to execute native SQL. This is a low level query method (from JPA point of view) so it is better to use
-<code>executeQuery()</code> if possible. This method will return a <code>List</code> that contains the result from SQL execution.</p>
-</div>
-<div class="paragraph">
-<p>The syntax of this method is:</p>
-</div>
-<div class="listingblock">
-<div class="content">
-<pre class="CodeRay"><code class="groovy language-groovy"><span class="keyword">def</span> <span class="function">executeNativeQuery</span> (<span class="predefined-type">String</span> sql, <span class="predefined-type">Map</span> config = [:])</code></pre>
-</div>
-</div>
-<div class="paragraph">
-<p><code>sql</code> is SQL string that will be executed. <code>config</code> is an optional query configuration.</p>
-</div>
-<div class="paragraph">
-<p>Example:</p>
-</div>
-<div class="listingblock">
-<div class="content">
-<pre class="CodeRay"><code class="groovy language-groovy"><span class="keyword">def</span> mysqlDbUser = executeNativeQuery(<span class="string"><span class="delimiter">'</span><span class="content">SELECT user()</span><span class="delimiter">'</span></span>)[<span class="integer">0</span>]</code></pre>
-</div>
-</div>
-</div>
-<div class="sect2">
-<h3 id="executequery">C.3. executeQuery()</h3>
-<div class="paragraph">
-<p>Use this method to execute JP QL. This method will return a List that contains the result from JP QL execution.
-The syntax of this method is:</p>
-</div>
-<div class="listingblock">
-<div class="content">
-<pre class="CodeRay"><code class="groovy language-groovy"><span class="keyword">def</span> <span class="function">executeQuery</span> (<span class="predefined-type">String</span> jpql, <span class="predefined-type">Map</span> config = [:], <span class="predefined-type">Map</span> args = [:])</code></pre>
-</div>
-</div>
-<div class="paragraph">
-<p><code>jpql</code> is JP QL string that will be executed. <code>config</code> is an optional query configuration.</p>
-</div>
-<div class="paragraph">
-<p>Example:</p>
-</div>
-<div class="listingblock">
-<div class="content">
-<pre class="CodeRay"><code class="groovy language-groovy"><span class="keyword">def</span> allStudents = executeQuery(<span class="string"><span class="delimiter">'</span><span class="content">FROM Student</span><span class="delimiter">'</span></span>)</code></pre>
-</div>
-</div>
-</div>
-</div>
-</div>
 </div>
 <div id="footer">
 <div id="footer-text">
-Last updated 2015-02-01 12:39:09 ICT
+Last updated 2015-02-01 16:49:19 ICT
 </div>
 <div id="mask"></div>
 <script type="text/javascript">

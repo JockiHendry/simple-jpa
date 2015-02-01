@@ -5,7 +5,7 @@
 <article xmlns="http://docbook.org/ns/docbook" xmlns:xlink="http://www.w3.org/1999/xlink" version="5.0" lang="en">
 <info>
 <title>Untitled</title>
-<date>2014-08-18</date>
+<date>2015-02-01</date>
 </info>
 <appendix xml:id="_script">
 <title>Script</title>
@@ -82,11 +82,13 @@ if they are not exists:</simpara>
     -rootPassword=secret</screen>
 <simpara>The following command will do the same as the previous one:</simpara>
 <screen>griffon create-simple-jpa -user=steven -password=12345 -database=sample
-    -provider=hibernate -databaseType=mysql -rootPassword=secret</screen>
+    -provider=hibernate -jdbc=mysql -rootPassword=secret</screen>
 <simpara>The following command will generate <literal>persistence.xml</literal> with a connection to MySQL database (user: scott, password: tiger,
 database schema: ha), uses Hibernate JPA, and will not check if required user and schema are available:</simpara>
 <screen>griffon create-simple-jpa -user=scott -password=tiger -database=ha
     -skip-database</screen>
+<simpara>If you use <literal>-jdbc=derby-embedded</literal>, <literal>-database</literal> should be a full path to directory such as
+<emphasis>C:/Users/me/mydb</emphasis>.</simpara>
 </section>
 <section xml:id="_create_domain_class">
 <title>create-domain-class</title>

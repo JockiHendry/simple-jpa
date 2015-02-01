@@ -5,7 +5,7 @@
 <!--[if IE]><meta http-equiv="X-UA-Compatible" content="IE=edge"><![endif]-->
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <meta name="generator" content="Asciidoctor 1.5.0.preview.7">
-<title>Swing Builder</title>
+<title>Script</title>
 <style>
 /* Asciidoctor default stylesheet | MIT License | http://asciidoctor.org */
 article, aside, details, figcaption, figure, footer, header, hgroup, main, nav, section, summary { display: block; }
@@ -385,15 +385,521 @@ span.icon > [class^="icon-"], span.icon > [class*=" icon-"] { cursor: default; }
 </div>
 <div id="content">
 <div class="sect1">
-<h2 id="_swing_builder">Swing Builder</h2>
+<h2 id="_script">Appendix A: Script</h2>
 <div class="sectionbody">
-
+<div class="paragraph">
+<p>simple-jpa scripts can be called just like any Griffon&#8217;s commands:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlight"><code>griffon [command-name] [argument1] [argument2] ...</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>To display more information for a command, call it with <code>-info</code> argument:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlight"><code>griffon [command-name] -info</code></pre>
+</div>
+</div>
+<div class="sect2">
+<h3 id="_create_simple_jpa">create-simple-jpa</h3>
+<div class="paragraph">
+<p>This command is usually the first command that will be invoked before working with Java Persistence API (JPA).
+It will create persistence.xml and orm.xml in current project. It will also create some resource files that are commonly
+required when working with JPA.</p>
+</div>
+<div class="paragraph">
+<p>The syntax for this command is:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlight"><code>create-simple-jpa -user=[databaseUser] -password=[databasePassword]
+    -database=[databaseName] -rootPassword=[databaseRootPassword]
+    -provider=[JPAProvider] -jdbc=[databaseType]</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>or</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlight"><code>create-simple-jpa -user=[databaseUser] -password=[databasePassword]
+    -database=[databaseName] -provider=[JPAProvider]
+    -jdbc=[databaseType] -skipDatabase</code></pre>
+</div>
+</div>
+<div class="dlist">
+<dl>
+<dt class="hdlist1"><code>user</code></dt>
+<dd>
+<p>The name of database user. JPA will establish connection to database by using the specified user name. If user name
+doesn&#8217;t exists, it will be created automatically.</p>
+</dd>
+<dt class="hdlist1"><code>password</code></dt>
+<dd>
+<p>The password used when establishing connection to the database.</p>
+</dd>
+<dt class="hdlist1"><code>database</code></dt>
+<dd>
+<p>The database name or schema name. If this database doesn&#8217;t exists, it will be created automatically.
+The specified user will also be granted privilleges to use this database.</p>
+</dd>
+<dt class="hdlist1"><code>rootPassword</code></dt>
+<dd>
+<p>The password for database root/administrator. To create user and database and grants privilleges, this command requires
+password for root/administrator user. This value will never be stored in project files.</p>
+</dd>
+<dt class="hdlist1"><code>provider</code></dt>
+<dd>
+<p>The name of JPA provider that will be used. The default value for this parameter is <code>hibernate</code>.</p>
+</dd>
+<dt class="hdlist1"><code>jdbc</code></dt>
+<dd>
+<p>The name of JDBC driver that will be used. The default value for this parameter is <code>mysql</code>. The following available
+values are <code>mysql</code> for using MySQL JDBC or <code>derby-embedded</code> for using Apache Derby embedded database JDBC.</p>
+</dd>
+<dt class="hdlist1"><code>skipDatabase</code></dt>
+<dd>
+<p>If this argument exists, <code>create-simple-jpa</code> will not create user and database automatically. It will only write
+to <code>persistence.xml</code> and assume required database schema and user is available.</p>
+</dd>
+</dl>
+</div>
+<div class="paragraph">
+<p>For example, the following command will generate <code>persistence.xml</code> with a connection to MySQL database
+(user: steven, password: 12345, database schema: sample), uses Hibernate JPA, and creates user steven and sample schema
+if they are not exists:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlight"><code>griffon create-simple-jpa -user=steven -password=12345 -database=sample
+    -rootPassword=secret</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>The following command will do the same as the previous one:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlight"><code>griffon create-simple-jpa -user=steven -password=12345 -database=sample
+    -provider=hibernate -jdbc=mysql -rootPassword=secret</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>The following command will generate <code>persistence.xml</code> with a connection to MySQL database (user: scott, password: tiger,
+database schema: ha), uses Hibernate JPA, and will not check if required user and schema are available:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlight"><code>griffon create-simple-jpa -user=scott -password=tiger -database=ha
+    -skip-database</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>If you use <code>-jdbc=derby-embedded</code>, <code>-database</code> should be a full path to directory such as
+<em>C:/Users/me/mydb</em>.</p>
+</div>
+</div>
+<div class="sect2">
+<h3 id="_create_domain_class">create-domain-class</h3>
+<div class="paragraph">
+<p>This command will create a new empty domain class and register it in persistence context file. Before creating domain
+class, the project must has <code>persistence.xml</code> file in <code>metainf</code> directory. To generate required files for working with
+JPA, use <code>create-simple-jpa</code> command.</p>
+</div>
+<div class="paragraph">
+<p>Domain class will be generated in the package specified by <code>griffon.simplejpa.model.package</code> value. The default package
+is <code>domain</code>.</p>
+</div>
+<div class="paragraph">
+<p>To change the default template used for generating domain clasess, execute <code>install-templates</code> command and edit
+<code>SimplaJpaDomainClass.groovy</code>.</p>
+</div>
+<div class="paragraph">
+<p>The syntax for this command is:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlight"><code>create-domain-class [domainClassName]</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>or</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlight"><code>create-domain-class [domainClassName] [domainClassName] ...</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>or</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlight"><code>create-domain-class [domainClassName],[domainClassName], ...</code></pre>
+</div>
+</div>
+<div class="dlist">
+<dl>
+<dt class="hdlist1"><code>domainClassName</code></dt>
+<dd>
+<p>The name of domain class that will be generated.</p>
+</dd>
+</dl>
+</div>
+<div class="paragraph">
+<p>Examples:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlight"><code>griffon create-domain-class Student</code></pre>
+</div>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlight"><code>griffon create-domain-class Teacher Student</code></pre>
+</div>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlight"><code>griffon create-domain-class Teacher,Student</code></pre>
+</div>
+</div>
+</div>
+<div class="sect2">
+<h3 id="_generate_all">generate-all</h3>
+<div class="paragraph">
+<p>This command will create a new <code>MVCGroup</code> based on a domain class. The generated MVCGroup (consists of a view, a model
+and a controller) has the ability to perform CRUD operations on a domain class. This command can also generate a startup
+<code>MVCGroup</code> that act as container for the others.</p>
+</div>
+<div class="paragraph">
+<p>Domain classes should be located in the package specified by <code>griffon.simplejpa.model.package</code> in <code>Config.groovy</code>. The
+default value for package is <code>domain</code>.</p>
+</div>
+<div class="paragraph">
+<p>When the value of <code>griffon.simplejpa.finders.alwaysExcludeSoftDeleted</code> is <code>true</code>, the generated controller will call
+<code>softDelete()</code> instead of <code>remove()</code>.</p>
+</div>
+<div class="paragraph">
+<p>To change the default template used by this command, execute <code>install-templates</code> command and edit the generated template
+files.</p>
+</div>
+<div class="paragraph">
+<p>The syntax for this command is:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlight"><code>generate-all * [-generatedPackage] [-forceOverwrite] [-setStartup]
+    [-skipExcel] [-startupGroup=value]</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>or</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlight"><code>griffon generate-all [domainClassName] [-generatedPackage]
+    [-forceOverwrite] [-setStartup] [-skipExcel]
+    [-startupGroup=value]</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>or</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlight"><code>generate-all [domainClassName] [domainClassName] ...
+    [-generatedPackage] [-forceOverwrite] [-setStartup] [-skipExcel]
+    [-startupGroup=value]</code></pre>
+</div>
+</div>
+<div class="dlist">
+<dl>
+<dt class="hdlist1"><code>domainClassName</code></dt>
+<dd>
+<p>The name of domain class the will be manipulated by the generated <code>MVCGroup</code>. Each domain class
+will have their own <code>MVCGroup</code> generated. If this value is <code>*</code>, then all domain classes will be processed.</p>
+</dd>
+<dt class="hdlist1"><code>generatedPackage</code> (optional)</dt>
+<dd>
+<p>The target package. By default, the value for this parameter is project.</p>
+</dd>
+<dt class="hdlist1"><code>forceOverwrite</code> (optional)</dt>
+<dd>
+<p>If exists, this script will replace existing files without any notifications.</p>
+</dd>
+<dt class="hdlist1"><code>setStartup</code> (optional)</dt>
+<dd>
+<p>If exists, this script will set the generated MVCGroup as startup (the <code>MVCGroup</code> will be launched when program starts).
+If this argument is present when generating more than one MVCGroup, then only the last MVCGroup will be set as startup
+group.</p>
+</dd>
+<dt class="hdlist1"><code>skipExcel</code> (optional)</dt>
+<dd>
+<p>If exists, this script will not create Microsoft Excel file for integration testing (DbUnit).</p>
+</dd>
+<dt class="hdlist1"><code>startupGroup</code> (optional)</dt>
+<dd>
+<p>The name for MVCGroup that serves as startup group. The generated MVCGroup will not based on any domain class, instead
+it will act as a container for the other domain classes&#8217; based MVCGroups.</p>
+</dd>
+</dl>
+</div>
+<div class="paragraph">
+<p>For example, the following command will generate MVCGroup for all domain classes:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlight"><code>griffon generate-all *</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>The following command will generate MVCGroup for all domain classes, overwriting existing files, and set the last
+MVCGroup as startup:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlight"><code>griffon generate-all * -forceOverwrite -setStartup</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>The following command will generate MVCGroup for domain class <code>Student</code>, <code>Teacher</code>, and <code>Classroom</code>:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlight"><code>griffon generate-all Student Teacher Classroom</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>The following command will generate MVCGroup for domain class <code>Student</code> and generate a container MVCGroup which name is
+<code>MainGroup</code>:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlight"><code>griffon generate-all Student -startupGroup=MainGroup</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>The following command will generate a container MVCGroup which name is <code>MainGroup</code>:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlight"><code>griffon generate-all -startupGroup=MainGroup</code></pre>
+</div>
+</div>
+</div>
+<div class="sect2">
+<h3 id="_install_templates">install-templates</h3>
+<div class="paragraph">
+<p>This command will add templates used by simple-jpa to current project in <code>/src/templates/artifacts</code>. This command is
+useful for changing templates that is used by simple-jpa generator. Developer can edit the templates and the next
+invocation of simple-jpa generator will based on them.</p>
+</div>
+<div class="paragraph">
+<p>The syntax for this command is:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlight"><code>install-templates</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>Example:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlight"><code>griffon install-templates</code></pre>
+</div>
+</div>
+</div>
+<div class="sect2">
+<h3 id="_simple_jpa_console">simple-jpa-console</h3>
+<div class="paragraph">
+<p>This command will launch Groovy Console loaded with Griffon and simple-jpa. Developer can use this command to test or
+execute code interactively.</p>
+</div>
+<div class="paragraph">
+<p>For each loaded MVCGroup, there are three variables to refer to its model, view, and controller. For example, if
+MVCGroup name is <code>student</code>, developer can refer to its model, view, or controller by using the following variables:
+<code>studentModel</code>, <code>studentController</code> and <code>studentView</code>. Developer can also use <code>app</code> to refer to GriffonApplication.
+To display list of available variables, select <strong>Script</strong>, <strong>Inspect Variables</strong>.</p>
+</div>
+<div class="paragraph">
+<p>When console is started, it only loads startup MVCGroup. To load the another MVCGroup, select <strong>simple-jpa</strong>, <strong>MVCGroups</strong>.</p>
+</div>
+<div class="paragraph">
+<p>The syntax for this command is:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlight"><code>simple-jpa-console</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>Examples:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlight"><code>griffon simple-jpa-console</code></pre>
+</div>
+</div>
+</div>
+<div class="sect2">
+<h3 id="_generate_schema">generate-schema</h3>
+<div class="paragraph">
+<p>This command will generate database schema based on current domain models mapping to database or scripts. Developer can
+use this command to retrieve SQL scripts that can be used to populate new database schema for current application.</p>
+</div>
+<div class="paragraph">
+<p>The syntax for this command is:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlight"><code>generate-schema -target=database -action=[action]</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>or</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlight"><code>generate-schema -target=database -action=[action] -data=[script.sql]</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>or</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlight"><code>generate-schema -target=script -action=[action]
+                -dropTarget=[script.sql]
+                -createTarget=[script.sql]</code></pre>
+</div>
+</div>
+<div class="dlist">
+<dl>
+<dt class="hdlist1"><code>target</code></dt>
+<dd>
+<p>One of <code>database</code> or <code>script</code>. If target is <code>database</code>, this script will create database objects in the database
+configured in <code>persistence.xml</code>. You shouldn&#8217;t need this target because by default, database objects will be dropped and
+generated when application is launched. If target is <code>script</code>, this command will generate SQL scripts that can be
+executed later (perhaps in a new database schema).</p>
+</dd>
+<dt class="hdlist1"><code>action</code></dt>
+<dd>
+<p>Valid values are <code>none</code>, <code>create</code>, <code>drop-and-create</code>, and <code>drop</code>.</p>
+</dd>
+<dt class="hdlist1"><code>data</code> (optional)</dt>
+<dd>
+<p>Contains SQL script location that will be executed after database objects are created. The purpose of this script is to
+initialize database (for example, populating tables with initial data).</p>
+</dd>
+<dt class="hdlist1"><code>dropTarget</code></dt>
+<dd>
+<p>Available if <code>target</code> is <code>script</code>. This is the value of file that will be generated and contains DDL DROP scripts.</p>
+</dd>
+<dt class="hdlist1"><code>createTarget</code></dt>
+<dd>
+<p>Available if <code>target</code> is <code>script</code>. This is the value of file that will be generated and contains DDL CREATE scripts.</p>
+</dd>
+</dl>
+</div>
+<div class="paragraph">
+<p>Examples:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlight"><code>griffon generate-schema -target=database -action=drop-and-create</code></pre>
+</div>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlight"><code>griffon generate-schema -target=script -action=drop-and-create
+                        -dropTarget=drop.sql -createTarget=target.sql</code></pre>
+</div>
+</div>
+</div>
+<div class="sect2">
+<h3 id="_obfuscate">obfuscate</h3>
+<div class="paragraph">
+<p>Use this command to generate obfuscated value that can be added to configuration file or simplejpa.properties. This is
+useful to hide sensitive information such as database password from novice users.</p>
+</div>
+<div class="paragraph">
+<p>The syntax for this command is:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlight"><code>obfuscate -generate=[value]</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>or</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlight"><code>obfuscate -reverse=[value]</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>Examples:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlight"><code>griffon obfuscate -generate=mypassword</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>The command above will generate <code>obfuscated:AGHJLPazOUvt5ZjzRNnKaA==</code>. This can be used as a substitution for
+configurations that accepts string value. For example, it can be used in <code>Config.groovy</code>:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlight"><code class="groovy language-groovy">griffon {
+   simplejpa {
+      entityManager {
+         javax.persistence.jdbc.password = "obfuscated:AGHJLPazOUvt5ZjzRNnKaA=="
+      }
+   }
+}</code></pre>
+</div>
+</div>
+</div>
+<div class="sect2">
+<h3 id="_create_repository">create-repository</h3>
+<div class="paragraph">
+<p>Use this command to create a new repository.  It is recommended to generate repository automatically by using
+DDD generator rather than create them manually using this command.</p>
+</div>
+<div class="paragraph">
+<p>The syntax for this command is:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlight"><code>create-repository [name]</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>This command will create new repository class in <code>griffon-app/repositories</code>.</p>
+</div>
+<div class="paragraph">
+<p>Examples:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlight"><code>create-repository Invoice</code></pre>
+</div>
+</div>
+</div>
 </div>
 </div>
 </div>
 <div id="footer">
 <div id="footer-text">
-Last updated 2014-08-13 14:43:17 ICT
+Last updated 2015-02-01 00:04:24 ICT
 </div>
 </div>
 </body>

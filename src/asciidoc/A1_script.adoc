@@ -80,7 +80,7 @@ The following command will do the same as the previous one:
 [source]
 ----
 griffon create-simple-jpa -user=steven -password=12345 -database=sample
-    -provider=hibernate -databaseType=mysql -rootPassword=secret
+    -provider=hibernate -jdbc=mysql -rootPassword=secret
 ----
 
 The following command will generate +persistence.xml+ with a connection to MySQL database (user: scott, password: tiger,
@@ -91,6 +91,9 @@ database schema: ha), uses Hibernate JPA, and will not check if required user an
 griffon create-simple-jpa -user=scott -password=tiger -database=ha
     -skip-database
 ----
+
+If you use `-jdbc=derby-embedded`, `-database` should be a full path to directory such as
+'C:/Users/me/mydb'.
 
 === create-domain-class
 
