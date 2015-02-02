@@ -11,6 +11,7 @@
 <link rel="stylesheet" href="../stylesheets/simplejpadoc.css">
 <link rel="stylesheet" href="http://cdnjs.cloudflare.com/ajax/libs/font-awesome/3.2.1/css/font-awesome.min.css">
 <link rel="stylesheet" href="../stylesheets/coderay-asciidoctor.css">
+<meta name="viewport" content="user-scalable=no">
 </head>
 <body class="article">
 <div id="header">
@@ -5359,7 +5360,7 @@ DDD generator rather than create them manually using this command.</p>
 </div>
 <div id="footer">
 <div id="footer-text">
-Last updated 2015-02-02 00:41:59 ICT
+Last updated 2015-02-02 13:28:54 ICT
 </div>
 <div id="mask"></div>
 <script type="text/javascript">
@@ -5375,10 +5376,12 @@ var mask = document.getElementById('mask');
 function navIconClick() {
     toc.style.visibility = 'visible';
     mask.style.visibility = 'visible';
+    document.body.style.overflow = 'hidden';
 }
 function hideToc() {
     toc.style.visibility = 'hidden';
     mask.style.visibility = 'hidden';
+    document.body.style.overflow = 'auto'
 }
 navIcon.addEventListener('click', navIconClick);
 toc.addEventListener('click', hideToc);

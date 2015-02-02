@@ -160,7 +160,7 @@ p a > code:hover { color: #561309; }
 #header br + span:before { content: "\2013 \0020"; }
 #header br + span.author { padding-left: 0; }
 #header br + span.author:before { content: ", "; }
-#toc { border-right: 1px solid rgba(0,0,0,0.14); background-color: #fff; display: block; left: 0px; position: fixed; top: 0px; width: 300px; z-index: 5; overflow-y: auto; padding-left: 10px; height: 100%; visibility: hidden;}
+#toc { border-right: 1px solid rgba(0,0,0,0.14); background-color: #fff; display: block; left: 0px; position: fixed; top: 0px; width: 300px; z-index: 5; overflow-y: scroll; padding-left: 10px; height: 100%; visibility: hidden;}
 #toc > ul { margin-left: 0.25em; }
 #toc ul.sectlevel0 > li > a { font-style: italic; }
 #toc ul.sectlevel0 ul.sectlevel1 { margin-left: 0; margin-top: 0.5em; margin-bottom: 0.5em; }

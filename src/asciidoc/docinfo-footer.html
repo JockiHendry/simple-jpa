@@ -12,10 +12,12 @@ var mask = document.getElementById('mask');
 function navIconClick() {
     toc.style.visibility = 'visible';
     mask.style.visibility = 'visible';
+    document.body.style.overflow = 'hidden';
 }
 function hideToc() {
     toc.style.visibility = 'hidden';
     mask.style.visibility = 'hidden';
+    document.body.style.overflow = 'auto'
 }
 navIcon.addEventListener('click', navIconClick);
 toc.addEventListener('click', hideToc);
