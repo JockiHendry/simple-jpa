@@ -1,1 +1,5 @@
-simple-jpa is a plugin for Griffon that provides an easy way to use JPA.
+simple-jpa is a plugin for Griffon that provides integration with JPA.
+
+Release notes: https://github.com/JockiHendry/simple-jpa/blob/master/release_notes.md
+
+Documentation: https://jockihendry.github.io/simple-jpa
